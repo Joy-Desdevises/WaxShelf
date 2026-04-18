@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+/* ── Design tokens WaxShelf ───────────────────────────────────── */
+@theme {
+  --color-wax-black:       #0a0a0a;
+  --color-wax-dark:        #111111;
+  --color-wax-surface:     #1a1a1a;
+  --color-wax-muted:       #2a2a2a;
+  --color-wax-border:      #333333;
+  --color-wax-text:        #e8e8e8;
+  --color-wax-subtle:      #888888;
+  --color-wax-amber:       #f5a623;
+  --color-wax-amber-light: #fbbf24;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background-color: #0a0a0a;
+  color: #e8e8e8;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+}
+
+body { margin: 0; min-height: 100dvh; }
+#root { min-height: 100dvh; }
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+
+/* ── Carte vinyle — flip 3D ───────────────────────────────────── */
+.vinyl-card-container { perspective: 1000px; }
+
+.vinyl-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vinyl-card-container:hover .vinyl-card-inner {
+  transform: rotateY(180deg);
+}
+
+.vinyl-card-front,
+.vinyl-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.vinyl-card-back { transform: rotateY(180deg); }
+
+/* ── Line clamp ───────────────────────────────────────────────── */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
