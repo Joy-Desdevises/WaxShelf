@@ -59,12 +59,19 @@ export function useSyncDiscogs() {
       // 1. Récupérer la collection depuis Discogs
       const releases = await fetchFullCollection(discogsToken, discogsUsername)
 
-      // 2. Upsert dans Supabase
+      // 2. Upsert par lots de 100 (évite les timeouts sur les grandes collections)
       const records = releases.map((r) => ({ ...r, user_id: userId }))
-      const { error } = await supabase
-        .from('vinyl_records')
-        .upsert(records, { onConflict: 'user_id,discogs_id', ignoreDuplicates: false })
-      if (error) throw error
+      const BATCH = 100
+      for (let i = 0; i < records.length; i += BATCH) {
+        const batch = records.slice(i, i + BATCH)
+        const { error } = await supabase
+          .from('vinyl_records')
+          .upsert(batch, {
+            onConflict: 'user_id,discogs_id',
+            ignoreDuplicates: false,
+          })
+        if (error) throw error
+      }
 
       return releases.length
     },

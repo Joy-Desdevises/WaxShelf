@@ -85,9 +85,12 @@ create index if not exists vinyl_records_year_idx on public.vinyl_records(year);
 create index if not exists vinyl_records_country_idx on public.vinyl_records(country);
 
 -- Contrainte d'unicité : un même release Discogs une seule fois par utilisateur
-create unique index if not exists vinyl_records_user_discogs_unique
-  on public.vinyl_records(user_id, discogs_id)
-  where discogs_id is not null;
+-- (contrainte classique requise pour ON CONFLICT — les NULL multiples sont autorisés en PostgreSQL)
+alter table public.vinyl_records
+  drop constraint if exists vinyl_records_user_discogs_unique;
+alter table public.vinyl_records
+  add constraint vinyl_records_user_discogs_unique
+  unique (user_id, discogs_id);
 
 -- Trigger updated_at
 create or replace trigger vinyl_records_updated_at
