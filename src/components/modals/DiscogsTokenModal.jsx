@@ -22,12 +22,12 @@ const STEPS = [
     ),
   },
   {
-    title: 'Copier et coller ton token',
-    description: null, // Le champ est rendu à part
+    title: 'Colle ton token Discogs',
+    description: null,
   },
   {
-    title: 'Confirme ton nom d\'utilisateur Discogs',
-    description: null, // Champ rendu à part
+    title: 'Ton nom d\'utilisateur Discogs',
+    description: null,
   },
 ]
 
@@ -35,26 +35,30 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
   const { updateProfile } = useAuth()
   const [step, setStep] = useState(0)
   const [token, setToken] = useState('')
+  const [showToken, setShowToken] = useState(false)
   const [discogsUsername, setDiscogsUsername] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   async function handleFinish() {
-    if (!token.trim() || !discogsUsername.trim()) {
+    const cleanToken = token.trim()
+    const cleanUsername = discogsUsername.trim()
+    if (!cleanToken || !cleanUsername) {
       setError('Token et nom d\'utilisateur requis.')
       return
     }
     setSaving(true)
     setError('')
     const { error: err } = await updateProfile({
-      discogs_token: token.trim(),
-      discogs_username: discogsUsername.trim(),
+      discogs_token: cleanToken,
+      discogs_username: cleanUsername,
     })
     setSaving(false)
     if (err) {
       setError('Erreur lors de la sauvegarde. Réessaie.')
     } else {
-      onSuccess?.()
+      // On passe les valeurs fraîches directement — pas de dépendance au profil React
+      onSuccess?.({ token: cleanToken, discogsUsername: cleanUsername })
       onClose()
     }
   }
@@ -98,29 +102,49 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
           {/* Étape 0 — Instructions */}
           {step === 0 && STEPS[0].description}
 
-          {/* Étape 1 — Token */}
+          {/* Étape 1 — Token avec œil */}
           {step === 1 && (
             <div>
               <p className="mb-3 text-sm text-[#888]">Colle ton token Discogs ci-dessous :</p>
-              <input
-                type="password"
-                placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none focus:border-[#f5a623] transition"
-              />
+              <div className="relative">
+                <input
+                  type={showToken ? 'text' : 'password'}
+                  placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 pr-11 text-sm text-white placeholder-[#555] outline-none focus:border-[#f5a623] transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowToken((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#555] hover:text-white transition"
+                >
+                  {showToken ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
           )}
 
           {/* Étape 2 — Username Discogs */}
           {step === 2 && (
             <div>
-              <p className="mb-3 text-sm text-[#888]">
-                Ton nom d&apos;utilisateur Discogs (visible sur ton profil Discogs) :
+              <p className="mb-1 text-sm text-[#888]">
+                Ton nom d&apos;utilisateur Discogs (celui affiché sur ton profil) :
+              </p>
+              <p className="mb-3 text-xs text-[#555]">
+                Attention : c&apos;est sensible à la casse — copie-le exactement depuis{' '}
+                <a
+                  href="https://www.discogs.com/my"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#f5a623] hover:underline"
+                >
+                  discogs.com/my
+                </a>
               </p>
               <input
                 type="text"
-                placeholder="mon-pseudo-discogs"
+                placeholder="MonPseudoDiscogs"
                 value={discogsUsername}
                 onChange={(e) => setDiscogsUsername(e.target.value)}
                 className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none focus:border-[#f5a623] transition"
@@ -129,7 +153,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
           )}
 
           {error && (
-            <p className="mt-2 text-sm text-red-400">{error}</p>
+            <p className="mt-3 rounded-lg bg-red-900/30 px-3 py-2 text-sm text-red-400">{error}</p>
           )}
         </div>
 

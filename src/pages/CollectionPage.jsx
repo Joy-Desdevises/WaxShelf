@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import Header from '../components/layout/Header'
 import VinylGrid from '../components/vinyl/VinylGrid'
@@ -8,61 +8,46 @@ import { useCollectionByUsername, useSyncDiscogs } from '../hooks/useCollection'
 import { supabase } from '../lib/supabase'
 import { searchDiscogs } from '../lib/discogs'
 
-// ── Décades disponibles ──────────────────────────────────────────────────────
 function getDecades(records) {
   const decades = new Set()
-  records.forEach((r) => {
-    if (r.year) decades.add(Math.floor(r.year / 10) * 10)
-  })
+  records.forEach((r) => { if (r.year) decades.add(Math.floor(r.year / 10) * 10) })
   return Array.from(decades).sort((a, b) => a - b)
 }
-
-// ── Genres disponibles ───────────────────────────────────────────────────────
 function getGenres(records) {
   const genres = new Set()
   records.forEach((r) => r.genres?.forEach((g) => genres.add(g)))
   return Array.from(genres).sort()
 }
-
-// ── Pays disponibles ─────────────────────────────────────────────────────────
 function getCountries(records) {
   const countries = new Set()
   records.forEach((r) => { if (r.country) countries.add(r.country) })
   return Array.from(countries).sort()
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-
 export default function CollectionPage() {
   const { username } = useParams()
   const { user, profile } = useAuth()
   const isOwner = user && profile?.username === username
 
-  // Données
   const { data: collection = [], isLoading, refetch } = useCollectionByUsername(username)
 
-  // Filtres
   const [search, setSearch] = useState('')
   const [filterGenre, setFilterGenre] = useState('')
   const [filterDecade, setFilterDecade] = useState('')
   const [filterCountry, setFilterCountry] = useState('')
   const [cardSize, setCardSize] = useState('lg')
-
-  // UI
   const [showDiscogsModal, setShowDiscogsModal] = useState(false)
   const [showAddSearch, setShowAddSearch] = useState(false)
+  const [toast, setToast] = useState(null) // { type: 'success'|'error', message }
 
-  // Sync
   const syncMutation = useSyncDiscogs()
 
-  // Dérivés
   const decades = useMemo(() => getDecades(collection), [collection])
   const genres = useMemo(() => getGenres(collection), [collection])
   const countries = useMemo(() => getCountries(collection), [collection])
 
   const filtered = useMemo(() => {
     return collection.filter((v) => {
-      // Recherche texte
       if (search) {
         const q = search.toLowerCase()
         const matches =
@@ -71,36 +56,56 @@ export default function CollectionPage() {
           v.styles?.some((s) => s.toLowerCase().includes(q))
         if (!matches) return false
       }
-      // Genre
       if (filterGenre && !v.genres?.includes(filterGenre)) return false
-      // Décennie
       if (filterDecade) {
         const decade = Math.floor((v.year || 0) / 10) * 10
         if (decade !== parseInt(filterDecade)) return false
       }
-      // Pays
       if (filterCountry && v.country !== filterCountry) return false
       return true
     })
   }, [collection, search, filterGenre, filterDecade, filterCountry])
 
-  async function handleSync() {
-    if (!profile?.discogs_token) {
+  function showToast(type, message) {
+    setToast({ type, message })
+    setTimeout(() => setToast(null), 5000)
+  }
+
+  // handleSync accepte des valeurs fraîches passées par la modal (évite le profil périmé)
+  // ou va chercher le token directement dans Supabase en dernier recours
+  const handleSync = useCallback(async (freshValues = null) => {
+    let discogsToken = freshValues?.token || profile?.discogs_token
+    let discogsUsername = freshValues?.discogsUsername || profile?.discogs_username
+
+    // Si toujours vide, on relit le profil directement depuis Supabase
+    if (!discogsToken && user?.id) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('discogs_token, discogs_username')
+        .eq('id', user.id)
+        .single()
+      discogsToken = data?.discogs_token
+      discogsUsername = data?.discogs_username
+    }
+
+    if (!discogsToken) {
       setShowDiscogsModal(true)
       return
     }
+
     try {
       const count = await syncMutation.mutateAsync({
         userId: user.id,
-        discogsToken: profile.discogs_token,
-        discogsUsername: profile.discogs_username,
+        discogsToken,
+        discogsUsername,
       })
-      alert(`✅ Sync terminée — ${count} vinyles importés.`)
+      showToast('success', `✅ Sync terminée — ${count} vinyles importés.`)
       refetch()
     } catch (err) {
-      alert(`Erreur lors de la sync : ${err.message}`)
+      const msg = err?.response?.data?.message || err.message || 'Erreur inconnue'
+      showToast('error', `Erreur Discogs : ${msg}`)
     }
-  }
+  }, [profile, user, syncMutation, refetch])
 
   const hasFilters = search || filterGenre || filterDecade || filterCountry
 
@@ -108,9 +113,22 @@ export default function CollectionPage() {
     <div className="min-h-screen bg-[#0a0a0a]">
       <Header collection={collection} />
 
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl px-5 py-3 text-sm font-medium shadow-xl transition-all ${
+            toast.type === 'success'
+              ? 'bg-green-900/90 text-green-200'
+              : 'bg-red-900/90 text-red-200'
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
+
       <main className="mx-auto max-w-7xl px-4 py-8">
 
-        {/* ── En-tête de la collection ── */}
+        {/* En-tête */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white">
@@ -126,15 +144,14 @@ export default function CollectionPage() {
             )}
           </div>
 
-          {/* Actions propriétaire */}
           {isOwner && (
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={handleSync}
+                onClick={() => handleSync()}
                 disabled={syncMutation.isPending}
                 className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-2 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50"
               >
-                <span className={syncMutation.isPending ? 'animate-spin' : ''}>🔄</span>
+                <span className={syncMutation.isPending ? 'animate-spin inline-block' : ''}>🔄</span>
                 {syncMutation.isPending ? 'Sync en cours…' : 'Sync Discogs'}
               </button>
               <button
@@ -147,9 +164,8 @@ export default function CollectionPage() {
           )}
         </div>
 
-        {/* ── Barre de recherche + filtres ── */}
+        {/* Barre de recherche + filtres */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-          {/* Recherche */}
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#555]">🔍</span>
             <input
@@ -169,7 +185,6 @@ export default function CollectionPage() {
             )}
           </div>
 
-          {/* Filtres */}
           <div className="flex flex-wrap gap-2">
             <Select value={filterGenre} onChange={setFilterGenre} placeholder="Genre" options={genres} />
             <Select
@@ -179,7 +194,6 @@ export default function CollectionPage() {
               options={decades.map((d) => ({ value: String(d), label: `${d}s` }))}
             />
             <Select value={filterCountry} onChange={setFilterCountry} placeholder="Pays" options={countries} />
-
             {hasFilters && (
               <button
                 onClick={() => { setSearch(''); setFilterGenre(''); setFilterDecade(''); setFilterCountry('') }}
@@ -190,30 +204,29 @@ export default function CollectionPage() {
             )}
           </div>
 
-          {/* Taille des cartes */}
           <div className="flex rounded-lg border border-[#222] bg-[#111] p-0.5">
             <SizeBtn active={cardSize === 'lg'} onClick={() => setCardSize('lg')} label="⊞" title="Grande taille" />
             <SizeBtn active={cardSize === 'sm'} onClick={() => setCardSize('sm')} label="⊟" title="Petite taille" />
           </div>
         </div>
 
-        {/* ── Grille ── */}
         <VinylGrid records={filtered} size={cardSize} loading={isLoading} />
-
       </main>
 
-      {/* Modals */}
       {showDiscogsModal && (
         <DiscogsTokenModal
           onClose={() => setShowDiscogsModal(false)}
-          onSuccess={handleSync}
+          onSuccess={(freshValues) => {
+            setShowDiscogsModal(false)
+            handleSync(freshValues)
+          }}
         />
       )}
 
       {showAddSearch && (
         <AddVinylModal
           userId={user?.id}
-          discogsToken={profile?.discogs_token}
+          profileId={user?.id}
           onClose={() => setShowAddSearch(false)}
           onAdded={() => { setShowAddSearch(false); refetch() }}
         />
@@ -222,7 +235,7 @@ export default function CollectionPage() {
   )
 }
 
-// ── Composants utilitaires ────────────────────────────────────────────────────
+// ── Composants utilitaires ─────────────────────────────────────────────────
 
 function Select({ value, onChange, placeholder, options }) {
   const normalized = options.map((o) =>
@@ -256,26 +269,43 @@ function SizeBtn({ active, onClick, label, title }) {
   )
 }
 
-// ── Modal ajout manuel ────────────────────────────────────────────────────────
+// ── Modal ajout manuel ─────────────────────────────────────────────────────
+// Récupère le token Discogs directement depuis Supabase pour éviter le profil périmé
 
-function AddVinylModal({ userId, discogsToken, onClose, onAdded }) {
+function AddVinylModal({ userId, profileId, onClose, onAdded }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
   const [adding, setAdding] = useState(null)
   const [error, setError] = useState('')
 
+  async function getToken() {
+    const { data } = await supabase
+      .from('profiles')
+      .select('discogs_token')
+      .eq('id', profileId)
+      .single()
+    return data?.discogs_token || null
+  }
+
   async function handleSearch(e) {
     e.preventDefault()
     if (!query.trim()) return
-    if (!discogsToken) { setError('Configure d\'abord ton token Discogs.'); return }
     setSearching(true)
     setError('')
     try {
-      const res = await searchDiscogs(discogsToken, query)
+      const token = await getToken()
+      if (!token) {
+        setError('Configure d\'abord ton token Discogs (bouton "Sync Discogs").')
+        setSearching(false)
+        return
+      }
+      const res = await searchDiscogs(token, query)
+      if (res.length === 0) setError('Aucun résultat trouvé pour cette recherche.')
       setResults(res)
     } catch (err) {
-      setError(`Erreur Discogs : ${err.message}`)
+      const msg = err?.response?.data?.message || err.message || 'Erreur inconnue'
+      setError(`Erreur Discogs : ${msg}`)
     }
     setSearching(false)
   }
@@ -320,7 +350,9 @@ function AddVinylModal({ userId, discogsToken, onClose, onAdded }) {
           </button>
         </form>
 
-        {error && <p className="px-4 text-sm text-red-400">{error}</p>}
+        {error && (
+          <p className="mx-4 mb-2 rounded-lg bg-red-900/30 px-3 py-2 text-sm text-red-400">{error}</p>
+        )}
 
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           {results.map((r) => (
