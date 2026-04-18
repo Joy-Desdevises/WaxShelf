@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import ListenSuggestionModal from '../modals/ListenSuggestionModal'
@@ -10,8 +10,24 @@ export default function Header({ collection = [] }) {
   const { user, profile, signOut } = useAuth()
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef(null)
 
-  const isOwner = user && profile?.username === username
+  // Ferme le menu si on clique ailleurs
+  useEffect(() => {
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  async function handleSignOut() {
+    await signOut()
+    navigate('/')
+  }
 
   return (
     <>
@@ -24,7 +40,7 @@ export default function Header({ collection = [] }) {
             <span className="text-lg font-semibold tracking-tight">WaxShelf</span>
           </Link>
 
-          {/* Nav utilisateur */}
+          {/* Nav utilisateur (pages d'un profil) */}
           {username && (
             <nav className="hidden items-center gap-1 sm:flex">
               <NavLink to={`/${username}`}>Collection</NavLink>
@@ -35,7 +51,8 @@ export default function Header({ collection = [] }) {
 
           {/* Actions droite */}
           <div className="flex items-center gap-2">
-            {/* "What should I listen to?" — visible uniquement sur la page collection */}
+
+            {/* "What should I listen to?" */}
             {username && collection.length > 0 && (
               <button
                 onClick={() => setShowSuggest(true)}
@@ -48,24 +65,49 @@ export default function Header({ collection = [] }) {
 
             {/* Auth */}
             {user ? (
-              <div className="flex items-center gap-2">
-                {profile && (
-                  <Link
-                    to={`/${profile.username}`}
-                    className="h-8 w-8 overflow-hidden rounded-full border border-[#333] bg-[#1a1a1a] text-center text-sm leading-8 text-white"
-                  >
-                    {profile.avatar_url
-                      ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
-                      : profile.username[0].toUpperCase()
-                    }
-                  </Link>
-                )}
+              <div className="relative" ref={menuRef}>
+                {/* Avatar — ouvre le menu */}
                 <button
-                  onClick={() => { signOut(); navigate('/') }}
-                  className="rounded px-3 py-1.5 text-sm text-[#888] hover:text-white"
+                  onClick={() => setShowMenu((v) => !v)}
+                  className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-[#333] bg-[#1a1a1a] text-sm font-bold text-white transition hover:border-[#555]"
                 >
-                  Déconnexion
+                  {profile?.avatar_url
+                    ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
+                    : (profile?.username?.[0] ?? '?').toUpperCase()
+                  }
                 </button>
+
+                {/* Menu déroulant */}
+                {showMenu && (
+                  <div className="absolute right-0 top-10 z-50 w-48 rounded-xl border border-[#222] bg-[#111] py-1 shadow-2xl">
+                    {profile && (
+                      <>
+                        <p className="px-4 py-2 text-xs text-[#555]">@{profile.username}</p>
+                        <div className="my-1 border-t border-[#1a1a1a]" />
+                        <MenuItem to={`/${profile.username}`} onClick={() => setShowMenu(false)}>
+                          Ma collection
+                        </MenuItem>
+                        <MenuItem to={`/${profile.username}/dashboard`} onClick={() => setShowMenu(false)}>
+                          Statistiques
+                        </MenuItem>
+                        <MenuItem to={`/${profile.username}/wantlist`} onClick={() => setShowMenu(false)}>
+                          Wantlist
+                        </MenuItem>
+                        <div className="my-1 border-t border-[#1a1a1a]" />
+                        <MenuItem to="/settings" onClick={() => setShowMenu(false)}>
+                          ⚙️ Paramètres
+                        </MenuItem>
+                      </>
+                    )}
+                    <div className="my-1 border-t border-[#1a1a1a]" />
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full px-4 py-2 text-left text-sm text-red-400 transition hover:bg-[#1a1a1a]"
+                    >
+                      Déconnexion
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <button
@@ -97,6 +139,18 @@ function NavLink({ to, children }) {
     <Link
       to={to}
       className="rounded-md px-3 py-1.5 text-sm text-[#888] transition hover:bg-[#1a1a1a] hover:text-white"
+    >
+      {children}
+    </Link>
+  )
+}
+
+function MenuItem({ to, onClick, children }) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className="block px-4 py-2 text-sm text-[#888] transition hover:bg-[#1a1a1a] hover:text-white"
     >
       {children}
     </Link>
