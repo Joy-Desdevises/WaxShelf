@@ -55,8 +55,20 @@ export default function AuthModal({ onClose }) {
                 required
               />
             )}
-            <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="you@example.com" required />
-            <Field label="Mot de passe" type="password" value={password} onChange={setPassword} placeholder="••••••••" required />
+            <Field
+              label="Email"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="you@example.com"
+              required
+            />
+            <PasswordField
+              label="Mot de passe"
+              value={password}
+              onChange={setPassword}
+              required
+            />
 
             {error && <p className="text-sm text-red-400">{error}</p>}
 
@@ -71,7 +83,7 @@ export default function AuthModal({ onClose }) {
         )}
 
         <p className="mt-4 text-center text-sm text-[#555]">
-          {mode === 'signin' ? "Pas encore de compte ? " : "Déjà un compte ? "}
+          {mode === 'signin' ? 'Pas encore de compte ? ' : 'Déjà un compte ? '}
           <button
             onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
             className="text-[#f5a623] hover:underline"
@@ -87,7 +99,9 @@ export default function AuthModal({ onClose }) {
 function Field({ label, type, value, onChange, placeholder, required }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#555]">{label}</label>
+      <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#555]">
+        {label}
+      </label>
       <input
         type={type}
         value={value}
@@ -96,6 +110,36 @@ function Field({ label, type, value, onChange, placeholder, required }) {
         required={required}
         className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#444] outline-none focus:border-[#f5a623] transition"
       />
+    </div>
+  )
+}
+
+function PasswordField({ label, value, onChange, required }) {
+  const [visible, setVisible] = useState(false)
+
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#555]">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          type={visible ? 'text' : 'password'}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="••••••••"
+          required={required}
+          className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 pr-11 text-sm text-white placeholder-[#444] outline-none focus:border-[#f5a623] transition"
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#555] hover:text-white transition"
+          aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+        >
+          {visible ? '🙈' : '👁️'}
+        </button>
+      </div>
     </div>
   )
 }
