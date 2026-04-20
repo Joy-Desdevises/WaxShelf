@@ -31,10 +31,11 @@ export default function AuthModal({ onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="relative w-full max-w-sm rounded-xl bg-[#111] p-6 shadow-2xl">
+      <div className="relative w-full rounded-t-2xl bg-[#111] p-6 shadow-2xl sm:max-w-sm sm:rounded-xl">
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
         <button onClick={onClose} className="absolute right-4 top-4 text-[#555] hover:text-white">✕</button>
 
         <h2 className="mb-6 text-xl font-semibold text-white">

@@ -36,9 +36,10 @@ export default function CollectionPage() {
   const [filterDecade, setFilterDecade] = useState('')
   const [filterCountry, setFilterCountry] = useState('')
   const [cardSize, setCardSize] = useState('lg')
+  const [showFilters, setShowFilters] = useState(false)
   const [showDiscogsModal, setShowDiscogsModal] = useState(false)
   const [showAddSearch, setShowAddSearch] = useState(false)
-  const [toast, setToast] = useState(null) // { type: 'success'|'error', message }
+  const [toast, setToast] = useState(null)
 
   const syncMutation = useSyncDiscogs()
 
@@ -71,13 +72,17 @@ export default function CollectionPage() {
     setTimeout(() => setToast(null), 5000)
   }
 
-  // handleSync accepte des valeurs fraîches passées par la modal (évite le profil périmé)
-  // ou va chercher le token directement dans Supabase en dernier recours
+  function resetFilters() {
+    setSearch('')
+    setFilterGenre('')
+    setFilterDecade('')
+    setFilterCountry('')
+  }
+
   const handleSync = useCallback(async (freshValues = null) => {
     let discogsToken = freshValues?.token || profile?.discogs_token
     let discogsUsername = freshValues?.discogsUsername || profile?.discogs_username
 
-    // Si toujours vide, on relit le profil directement depuis Supabase
     if (!discogsToken && user?.id) {
       const { data } = await supabase
         .from('profiles')
@@ -94,120 +99,130 @@ export default function CollectionPage() {
     }
 
     try {
-      const count = await syncMutation.mutateAsync({
-        userId: user.id,
-        discogsToken,
-        discogsUsername,
-      })
+      const count = await syncMutation.mutateAsync({ userId: user.id, discogsToken, discogsUsername })
       showToast('success', `✅ Sync terminée — ${count} vinyles importés.`)
       refetch()
     } catch (err) {
       const msg = err?.response?.data?.message || err.message || 'Erreur inconnue'
-      showToast('error', `Erreur Discogs : ${msg}`)
+      showToast('error', `Erreur : ${msg}`)
     }
   }, [profile, user, syncMutation, refetch])
 
   const hasFilters = search || filterGenre || filterDecade || filterCountry
+  const activeFilterCount = [filterGenre, filterDecade, filterCountry].filter(Boolean).length
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       <Header collection={collection} />
 
-      {/* Toast notification */}
+      {/* Toast */}
       {toast && (
-        <div
-          className={`fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-xl px-5 py-3 text-sm font-medium shadow-xl transition-all ${
-            toast.type === 'success'
-              ? 'bg-green-900/90 text-green-200'
-              : 'bg-red-900/90 text-red-200'
-          }`}
-        >
+        <div className={`fixed bottom-6 left-4 right-4 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-xl sm:left-1/2 sm:right-auto sm:w-auto sm:-translate-x-1/2 sm:px-5 ${
+          toast.type === 'success' ? 'bg-green-900/90 text-green-200' : 'bg-red-900/90 text-red-200'
+        }`}>
           {toast.message}
         </div>
       )}
 
-      <main className="mx-auto max-w-7xl px-4 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-6">
 
-        {/* En-tête */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        {/* En-tête : titre + boutons owner */}
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className="text-xl font-bold text-white sm:text-2xl">
               {username}
-              <span className="ml-2 text-base font-normal text-[#555]">
+              <span className="ml-2 text-sm font-normal text-[#555]">
                 · {collection.length} vinyle{collection.length !== 1 ? 's' : ''}
               </span>
             </h1>
             {hasFilters && (
-              <p className="mt-1 text-sm text-[#555]">
+              <p className="mt-0.5 text-sm text-[#555]">
                 {filtered.length} résultat{filtered.length !== 1 ? 's' : ''}
               </p>
             )}
           </div>
 
           {isOwner && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
               <button
                 onClick={() => handleSync()}
                 disabled={syncMutation.isPending}
-                className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-2 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50 sm:flex-none sm:px-4"
               >
                 <span className={syncMutation.isPending ? 'animate-spin inline-block' : ''}>🔄</span>
-                {syncMutation.isPending ? 'Sync en cours…' : 'Sync Discogs'}
+                {syncMutation.isPending ? 'Sync…' : 'Sync Discogs'}
               </button>
               <button
                 onClick={() => setShowAddSearch(true)}
-                className="flex items-center gap-2 rounded-lg bg-[#f5a623] px-4 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24]"
+                className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#f5a623] px-3 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] sm:flex-none sm:px-4"
               >
-                + Ajouter un vinyle
+                + Ajouter
               </button>
             </div>
           )}
         </div>
 
-        {/* Barre de recherche + filtres */}
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+        {/* Barre de recherche + contrôles */}
+        <div className="mb-4 flex gap-2">
+          {/* Recherche — prend tout l'espace */}
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#555]">🔍</span>
             <input
               type="text"
-              placeholder="Rechercher artiste, titre, style…"
+              placeholder="Artiste, titre, style…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-[#222] bg-[#111] py-2.5 pl-10 pr-4 text-sm text-white placeholder-[#444] outline-none focus:border-[#333] transition"
+              className="w-full rounded-lg border border-[#222] bg-[#111] py-2.5 pl-10 pr-8 text-sm text-white placeholder-[#444] outline-none focus:border-[#333] transition"
             />
             {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#555] hover:text-white"
-              >
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#555] hover:text-white">
                 ✕
               </button>
             )}
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Select value={filterGenre} onChange={setFilterGenre} placeholder="Genre" options={genres} />
-            <Select
-              value={filterDecade}
-              onChange={setFilterDecade}
-              placeholder="Décennie"
-              options={decades.map((d) => ({ value: String(d), label: `${d}s` }))}
-            />
-            <Select value={filterCountry} onChange={setFilterCountry} placeholder="Pays" options={countries} />
-            {hasFilters && (
-              <button
-                onClick={() => { setSearch(''); setFilterGenre(''); setFilterDecade(''); setFilterCountry('') }}
-                className="rounded-lg border border-[#333] px-3 py-2 text-xs text-[#888] transition hover:border-[#555] hover:text-white"
-              >
-                Réinitialiser
-              </button>
+          {/* Bouton filtres mobile */}
+          <button
+            onClick={() => setShowFilters((v) => !v)}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition sm:hidden ${
+              activeFilterCount > 0
+                ? 'border-[#f5a623]/50 bg-[#f5a623]/10 text-[#f5a623]'
+                : 'border-[#222] bg-[#111] text-[#888]'
+            }`}
+          >
+            ⚡ Filtres
+            {activeFilterCount > 0 && (
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#f5a623] text-[10px] font-bold text-black">
+                {activeFilterCount}
+              </span>
             )}
-          </div>
+          </button>
 
+          {/* Toggle taille cartes */}
           <div className="flex rounded-lg border border-[#222] bg-[#111] p-0.5">
-            <SizeBtn active={cardSize === 'lg'} onClick={() => setCardSize('lg')} label="⊞" title="Grande taille" />
-            <SizeBtn active={cardSize === 'sm'} onClick={() => setCardSize('sm')} label="⊟" title="Petite taille" />
+            <SizeBtn active={cardSize === 'lg'} onClick={() => setCardSize('lg')} label="⊞" title="Grande" />
+            <SizeBtn active={cardSize === 'sm'} onClick={() => setCardSize('sm')} label="⊟" title="Petite" />
           </div>
+        </div>
+
+        {/* Filtres desktop (toujours visibles) + mobile (toggle) */}
+        <div className={`mb-5 ${showFilters || 'hidden sm:flex'} flex flex-col gap-2 rounded-lg border border-[#1a1a1a] bg-[#111] p-3 sm:flex-row sm:flex-wrap sm:items-center sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0`}>
+          <Select value={filterGenre} onChange={setFilterGenre} placeholder="Genre" options={genres} />
+          <Select
+            value={filterDecade}
+            onChange={setFilterDecade}
+            placeholder="Décennie"
+            options={decades.map((d) => ({ value: String(d), label: `${d}s` }))}
+          />
+          <Select value={filterCountry} onChange={setFilterCountry} placeholder="Pays" options={countries} />
+          {hasFilters && (
+            <button
+              onClick={() => { resetFilters(); setShowFilters(false) }}
+              className="rounded-lg border border-[#333] px-3 py-2 text-xs text-[#888] transition hover:border-[#555] hover:text-white"
+            >
+              Réinitialiser
+            </button>
+          )}
         </div>
 
         <VinylGrid records={filtered} size={cardSize} loading={isLoading} />
@@ -216,10 +231,7 @@ export default function CollectionPage() {
       {showDiscogsModal && (
         <DiscogsTokenModal
           onClose={() => setShowDiscogsModal(false)}
-          onSuccess={(freshValues) => {
-            setShowDiscogsModal(false)
-            handleSync(freshValues)
-          }}
+          onSuccess={(freshValues) => { setShowDiscogsModal(false); handleSync(freshValues) }}
         />
       )}
 
@@ -235,22 +247,18 @@ export default function CollectionPage() {
   )
 }
 
-// ── Composants utilitaires ─────────────────────────────────────────────────
+// ── Utilitaires ────────────────────────────────────────────────────────────
 
 function Select({ value, onChange, placeholder, options }) {
-  const normalized = options.map((o) =>
-    typeof o === 'string' ? { value: o, label: o } : o
-  )
+  const normalized = options.map((o) => typeof o === 'string' ? { value: o, label: o } : o)
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-lg border border-[#222] bg-[#111] px-3 py-2 text-sm text-white outline-none focus:border-[#333] transition cursor-pointer"
+      className="w-full rounded-lg border border-[#222] bg-[#0a0a0a] px-3 py-2 text-sm text-white outline-none transition sm:w-auto sm:bg-[#111]"
     >
       <option value="">{placeholder}</option>
-      {normalized.map((o) => (
-        <option key={o.value} value={o.value}>{o.label}</option>
-      ))}
+      {normalized.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   )
 }
@@ -260,9 +268,7 @@ function SizeBtn({ active, onClick, label, title }) {
     <button
       onClick={onClick}
       title={title}
-      className={`rounded-md px-3 py-1.5 text-sm transition ${
-        active ? 'bg-[#f5a623] text-black' : 'text-[#555] hover:text-white'
-      }`}
+      className={`rounded-md px-2.5 py-1.5 text-sm transition sm:px-3 ${active ? 'bg-[#f5a623] text-black' : 'text-[#555] hover:text-white'}`}
     >
       {label}
     </button>
@@ -270,7 +276,6 @@ function SizeBtn({ active, onClick, label, title }) {
 }
 
 // ── Modal ajout manuel ─────────────────────────────────────────────────────
-// Récupère le token Discogs directement depuis Supabase pour éviter le profil périmé
 
 function AddVinylModal({ userId, profileId, onClose, onAdded }) {
   const [query, setQuery] = useState('')
@@ -280,11 +285,7 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
   const [error, setError] = useState('')
 
   async function getToken() {
-    const { data } = await supabase
-      .from('profiles')
-      .select('discogs_token')
-      .eq('id', profileId)
-      .single()
+    const { data } = await supabase.from('profiles').select('discogs_token').eq('id', profileId).single()
     return data?.discogs_token || null
   }
 
@@ -295,26 +296,19 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
     setError('')
     try {
       const token = await getToken()
-      if (!token) {
-        setError('Configure d\'abord ton token Discogs (bouton "Sync Discogs").')
-        setSearching(false)
-        return
-      }
+      if (!token) { setError('Configure d\'abord ton token Discogs.'); setSearching(false); return }
       const res = await searchDiscogs(token, query)
-      if (res.length === 0) setError('Aucun résultat trouvé pour cette recherche.')
+      if (res.length === 0) setError('Aucun résultat.')
       setResults(res)
     } catch (err) {
-      const msg = err?.response?.data?.message || err.message || 'Erreur inconnue'
-      setError(`Erreur Discogs : ${msg}`)
+      setError(`Erreur : ${err?.response?.data?.message || err.message}`)
     }
     setSearching(false)
   }
 
   async function handleAdd(vinyl) {
     setAdding(vinyl.discogs_id)
-    const { error: err } = await supabase
-      .from('vinyl_records')
-      .insert({ ...vinyl, user_id: userId })
+    const { error: err } = await supabase.from('vinyl_records').insert({ ...vinyl, user_id: userId })
     setAdding(null)
     if (err) setError(err.message)
     else onAdded()
@@ -324,10 +318,13 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="relative flex h-[80vh] w-full max-w-lg flex-col rounded-xl bg-[#111] shadow-2xl">
+      <div className="relative flex w-full flex-col rounded-t-2xl bg-[#111] shadow-2xl sm:h-[80vh] sm:max-w-lg sm:rounded-xl">
+        {/* Handle mobile */}
+        <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
+
         <div className="flex items-center justify-between border-b border-[#222] p-4">
           <h2 className="font-semibold text-white">Ajouter un vinyle</h2>
           <button onClick={onClose} className="text-[#555] hover:text-white">✕</button>
@@ -354,14 +351,10 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
           <p className="mx-4 mb-2 rounded-lg bg-red-900/30 px-3 py-2 text-sm text-red-400">{error}</p>
         )}
 
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <div className="flex-1 overflow-y-auto px-4 pb-6">
           {results.map((r) => (
             <div key={r.discogs_id} className="flex items-center gap-3 rounded-lg p-2 hover:bg-[#1a1a1a]">
-              <img
-                src={r.thumb_image || PLACEHOLDER}
-                alt=""
-                className="h-12 w-12 flex-shrink-0 rounded object-cover"
-              />
+              <img src={r.thumb_image || PLACEHOLDER} alt="" className="h-12 w-12 flex-shrink-0 rounded object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="line-clamp-1 text-sm font-medium text-white">{r.title}</p>
                 <p className="text-xs text-[#555]">{r.year} · {r.genres?.[0]}</p>
