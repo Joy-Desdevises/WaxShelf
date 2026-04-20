@@ -137,3 +137,37 @@ export async function fetchReleaseValue(token, releaseId) {
     return null
   }
 }
+
+/**
+ * Rafraîchit les valeurs de marché de toute une collection
+ * Respecte le rate limit Discogs (~60 req/min) avec un délai entre les requêtes
+ *
+ * @param {string} token
+ * @param {Array} records - tableau de { id, discogs_id }
+ * @param {function} onProgress - callback(done, total, currentValue)
+ * @returns {Promise<Array>} - tableau de { id, average_value }
+ */
+export async function refreshCollectionValues(token, records, onProgress) {
+  const client = createDiscogsClient(token)
+  const withDiscogs = records.filter((r) => r.discogs_id)
+  const results = []
+
+  for (let i = 0; i < withDiscogs.length; i++) {
+    const record = withDiscogs[i]
+    try {
+      const { data } = await client.get(`/marketplace/stats/${record.discogs_id}`)
+      const value = data.lowest_price?.value || null
+      results.push({ id: record.id, average_value: value })
+      onProgress?.(i + 1, withDiscogs.length, value)
+    } catch {
+      results.push({ id: record.id, average_value: null })
+      onProgress?.(i + 1, withDiscogs.length, null)
+    }
+    // Pause pour respecter le rate limit (max ~55 req/min pour rester safe)
+    if (i < withDiscogs.length - 1) {
+      await new Promise((r) => setTimeout(r, 1100))
+    }
+  }
+
+  return results
+}

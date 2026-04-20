@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import Header from '../components/layout/Header'
 import VinylGrid from '../components/vinyl/VinylGrid'
+import VinylDetailModal from '../components/vinyl/VinylDetailModal'
 import DiscogsTokenModal from '../components/modals/DiscogsTokenModal'
 import { useAuth } from '../hooks/useAuth'
 import { useCollectionByUsername, useSyncDiscogs } from '../hooks/useCollection'
@@ -39,6 +40,7 @@ export default function CollectionPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [showDiscogsModal, setShowDiscogsModal] = useState(false)
   const [showAddSearch, setShowAddSearch] = useState(false)
+  const [selectedVinyl, setSelectedVinyl] = useState(null)
   const [toast, setToast] = useState(null)
 
   const syncMutation = useSyncDiscogs()
@@ -225,13 +227,26 @@ export default function CollectionPage() {
           )}
         </div>
 
-        <VinylGrid records={filtered} size={cardSize} loading={isLoading} />
+        <VinylGrid
+          records={filtered}
+          size={cardSize}
+          loading={isLoading}
+          onCardClick={(vinyl) => setSelectedVinyl(vinyl)}
+        />
       </main>
 
       {showDiscogsModal && (
         <DiscogsTokenModal
           onClose={() => setShowDiscogsModal(false)}
           onSuccess={(freshValues) => { setShowDiscogsModal(false); handleSync(freshValues) }}
+        />
+      )}
+
+      {selectedVinyl && (
+        <VinylDetailModal
+          vinyl={selectedVinyl}
+          isOwner={isOwner}
+          onClose={() => setSelectedVinyl(null)}
         />
       )}
 
