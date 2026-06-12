@@ -1,56 +1,46 @@
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY
+const API_KEY = import.meta.env.VITE_GROQ_API_KEY
 
 let queue = Promise.resolve()
 
 export function generateAnecdote(artist, title, year) {
   if (!API_KEY) {
-    console.warn('[Gemini] Clé API manquante — vérifie .env.local')
+    console.warn('[Groq] Clé API manquante — vérifie .env.local')
     return Promise.resolve(null)
   }
-
-  queue = queue.then(() => delay(2000))
+  queue = queue.then(() => delay(500))
   return (queue = queue.then(() => fetchAnecdote(artist, title, year)))
 }
 
-async function fetchAnecdote(artist, title, year, attempt = 1) {
-  console.log('[Gemini] Génération pour', artist, title, '(tentative', attempt, ')')
+async function fetchAnecdote(artist, title, year) {
+  console.log('[Groq] Génération pour', artist, title)
   const yearPart = year ? ` (${year})` : ''
   const prompt = `Génère une courte anecdote fascinante (2-3 phrases max) sur l'album "${title}" de ${artist}${yearPart}. L'anecdote doit être vraie, surprenante et donner envie d'écouter l'album. Réponds directement avec l'anecdote, sans introduction ni guillemets.`
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 150, temperature: 0.8 },
-        }),
-      }
-    )
-
-    if (res.status === 429) {
-      const body = await res.json().catch(() => ({}))
-      console.warn('[Gemini] 429 body:', JSON.stringify(body))
-      if (attempt >= 2) {
-        console.error('[Gemini] Quota épuisé après 2 tentatives')
-        return null
-      }
-      await delay(15000)
-      return fetchAnecdote(artist, title, year, attempt + 1)
-    }
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 150,
+        temperature: 0.8,
+      }),
+    })
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
-      console.error('[Gemini] Erreur HTTP', res.status, JSON.stringify(body))
+      console.error('[Groq] Erreur HTTP', res.status, JSON.stringify(body))
       return null
     }
 
     const data = await res.json()
-    return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null
+    return data.choices?.[0]?.message?.content?.trim() || null
   } catch (err) {
-    console.error('[Gemini] Erreur réseau:', err)
+    console.error('[Groq] Erreur réseau:', err)
     return null
   }
 }
