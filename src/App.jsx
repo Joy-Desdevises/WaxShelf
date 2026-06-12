@@ -7,7 +7,7 @@ import SettingsPage from './pages/SettingsPage'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/WaxShelf">
       <Routes>
         {/* Landing — liste des utilisateurs publics */}
         <Route path="/" element={<LandingPage />} />
