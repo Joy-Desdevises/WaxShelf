@@ -14,7 +14,7 @@ export function generateAnecdote(artist, title, year) {
 async function fetchAnecdote(artist, title, year) {
   console.log('[Groq] Génération pour', artist, title)
   const yearPart = year ? ` (${year})` : ''
-  const prompt = `En UNE seule phrase (jamais plus), donne une anecdote vraie et surprenante sur l'album "${title}" de ${artist}${yearPart}. Réponds uniquement avec cette phrase, sans introduction ni guillemets.`
+  const prompt = `En UNE phrase très courte (maximum 15 mots), donne une anecdote vraie et surprenante sur l'album "${title}" de ${artist}${yearPart}. Réponds uniquement avec cette phrase, sans introduction ni guillemets.`
 
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
