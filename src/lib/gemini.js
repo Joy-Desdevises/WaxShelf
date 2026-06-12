@@ -14,7 +14,7 @@ export function generateAnecdote(artist, title, year) {
 async function fetchAnecdote(artist, title, year) {
   console.log('[Groq] Génération pour', artist, title)
   const yearPart = year ? ` (${year})` : ''
-  const prompt = `Génère une courte anecdote fascinante (2-3 phrases max) sur l'album "${title}" de ${artist}${yearPart}. L'anecdote doit être vraie, surprenante et donner envie d'écouter l'album. Réponds directement avec l'anecdote, sans introduction ni guillemets.`
+  const prompt = `En UNE seule phrase (jamais plus), donne une anecdote vraie et surprenante sur l'album "${title}" de ${artist}${yearPart}. Réponds uniquement avec cette phrase, sans introduction ni guillemets.`
 
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -26,7 +26,7 @@ async function fetchAnecdote(artist, title, year) {
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 150,
+        max_tokens: 80,
         temperature: 0.8,
       }),
     })
@@ -38,7 +38,10 @@ async function fetchAnecdote(artist, title, year) {
     }
 
     const data = await res.json()
-    return data.choices?.[0]?.message?.content?.trim() || null
+    const text = data.choices?.[0]?.message?.content?.trim() || null
+    if (!text) return null
+    // Garde uniquement la première phrase
+    return text.split(/(?<=[.!?])\s+/)[0]
   } catch (err) {
     console.error('[Groq] Erreur réseau:', err)
     return null
