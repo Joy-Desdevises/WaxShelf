@@ -38,10 +38,7 @@ async function fetchAnecdote(artist, title, year) {
     }
 
     const data = await res.json()
-    const text = data.choices?.[0]?.message?.content?.trim() || null
-    if (!text) return null
-    // Garde uniquement la première phrase
-    return text.split(/(?<=[.!?])\s+/)[0]
+    return data.choices?.[0]?.message?.content?.trim() || null
   } catch (err) {
     console.error('[Groq] Erreur réseau:', err)
     return null
