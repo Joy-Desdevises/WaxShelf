@@ -1,6 +1,5 @@
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 
-// File d'attente pour éviter le rate limiting (max ~15 req/min en tier gratuit)
 let queue = Promise.resolve()
 
 export function generateAnecdote(artist, title, year) {
@@ -9,17 +8,12 @@ export function generateAnecdote(artist, title, year) {
     return Promise.resolve(null)
   }
 
-  // Chaque appel attend le précédent + 2s de délai
-  queue = queue.then(async () => {
-    await delay(2000)
-    return null
-  })
-
+  queue = queue.then(() => delay(2000))
   return (queue = queue.then(() => fetchAnecdote(artist, title, year)))
 }
 
-async function fetchAnecdote(artist, title, year) {
-  console.log('[Gemini] Génération pour', artist, title)
+async function fetchAnecdote(artist, title, year, attempt = 1) {
+  console.log('[Gemini] Génération pour', artist, title, '(tentative', attempt, ')')
   const yearPart = year ? ` (${year})` : ''
   const prompt = `Génère une courte anecdote fascinante (2-3 phrases max) sur l'album "${title}" de ${artist}${yearPart}. L'anecdote doit être vraie, surprenante et donner envie d'écouter l'album. Réponds directement avec l'anecdote, sans introduction ni guillemets.`
 
@@ -37,20 +31,26 @@ async function fetchAnecdote(artist, title, year) {
     )
 
     if (res.status === 429) {
-      console.warn('[Gemini] Rate limit, retry dans 5s...')
-      await delay(5000)
-      return fetchAnecdote(artist, title, year)
+      const body = await res.json().catch(() => ({}))
+      console.warn('[Gemini] 429 body:', JSON.stringify(body))
+      if (attempt >= 2) {
+        console.error('[Gemini] Quota épuisé après 2 tentatives')
+        return null
+      }
+      await delay(15000)
+      return fetchAnecdote(artist, title, year, attempt + 1)
     }
 
     if (!res.ok) {
-      console.error('[Gemini] Erreur HTTP', res.status)
+      const body = await res.json().catch(() => ({}))
+      console.error('[Gemini] Erreur HTTP', res.status, JSON.stringify(body))
       return null
     }
 
     const data = await res.json()
     return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null
   } catch (err) {
-    console.error('[Gemini] Erreur:', err)
+    console.error('[Gemini] Erreur réseau:', err)
     return null
   }
 }
