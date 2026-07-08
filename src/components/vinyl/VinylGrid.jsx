@@ -4,12 +4,13 @@ import VinylCard from './VinylCard'
  * VinylGrid
  *
  * Props :
- *  - records   : tableau de vinyl_record
- *  - size      : 'sm' | 'lg'
- *  - loading   : boolean
- *  - onCardClick : (vinyl) => void — ouvre la modale détail
+ *  - records       : tableau de vinyl_record
+ *  - size          : 'sm' | 'lg'
+ *  - loading       : boolean
+ *  - onCardClick   : (vinyl) => void — ouvre la modale détail
+ *  - currentUserId : id de l'utilisateur connecté (permet de logger une écoute depuis la carte)
  */
-export default function VinylGrid({ records = [], size = 'lg', loading = false, onCardClick }) {
+export default function VinylGrid({ records = [], size = 'lg', loading = false, onCardClick, currentUserId }) {
   if (loading) {
     return (
       <div className={`grid gap-3 ${gridCols(size)}`}>
@@ -38,6 +39,7 @@ export default function VinylGrid({ records = [], size = 'lg', loading = false, 
           vinyl={vinyl}
           size={size}
           onClick={() => onCardClick?.(vinyl)}
+          currentUserId={currentUserId}
         />
       ))}
     </div>

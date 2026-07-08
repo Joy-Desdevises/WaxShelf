@@ -232,6 +232,7 @@ export default function CollectionPage() {
           size={cardSize}
           loading={isLoading}
           onCardClick={(vinyl) => setSelectedVinyl(vinyl)}
+          currentUserId={user?.id}
         />
       </main>
 

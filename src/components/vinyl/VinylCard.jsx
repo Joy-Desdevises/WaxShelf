@@ -5,25 +5,38 @@
  * Au premier survol, génère une anecdote via Gemini et la sauvegarde en DB.
  *
  * Props :
- *  - vinyl   : objet vinyl_record
- *  - size    : 'sm' | 'lg'
- *  - onClick : fonction appelée au clic
+ *  - vinyl         : objet vinyl_record
+ *  - size          : 'sm' | 'lg'
+ *  - onClick       : fonction appelée au clic
+ *  - currentUserId : id de l'utilisateur connecté (permet de logger une écoute)
  */
 
 import { useState } from 'react'
 import { generateAnecdote } from '../../lib/gemini'
 import { supabase } from '../../lib/supabase'
+import { useLogPlay } from '../../hooks/usePlayLog'
 
 const PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
-export default function VinylCard({ vinyl, size = 'lg', onClick }) {
+export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }) {
   const dim = size === 'sm' ? 'w-32 h-32' : 'w-52 h-52'
   const titleSize = size === 'sm' ? 'text-xs' : 'text-sm'
   const artistSize = size === 'sm' ? 'text-[10px]' : 'text-xs'
 
   const [anecdote, setAnecdote] = useState(vinyl.anecdote || null)
   const [loading, setLoading] = useState(false)
+
+  const logPlay = useLogPlay(vinyl.id)
+  const [justLogged, setJustLogged] = useState(false)
+
+  async function handleLogPlay(e) {
+    e.stopPropagation()
+    if (!currentUserId || logPlay.isPending) return
+    await logPlay.mutateAsync(currentUserId)
+    setJustLogged(true)
+    setTimeout(() => setJustLogged(false), 2000)
+  }
 
   async function handleMouseEnter() {
     if (size === 'sm' || anecdote || loading) return
@@ -76,6 +89,21 @@ export default function VinylCard({ vinyl, size = 'lg', onClick }) {
             <span className="absolute bottom-1.5 right-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-[#f5a623] backdrop-blur-sm">
               ~{vinyl.average_value}€
             </span>
+          )}
+          {currentUserId && (
+            <button
+              onClick={handleLogPlay}
+              disabled={logPlay.isPending}
+              title="J'écoute ça"
+              aria-label="J'écoute ça"
+              className={`absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full backdrop-blur-sm transition disabled:opacity-60 ${
+                justLogged
+                  ? 'bg-[#f5a623] text-black'
+                  : 'bg-black/70 text-[#f5a623] hover:bg-[#f5a623] hover:text-black'
+              }`}
+            >
+              <span className="text-[10px]">{justLogged ? '✓' : '▶'}</span>
+            </button>
           )}
         </div>
 
