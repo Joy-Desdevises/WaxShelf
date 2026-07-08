@@ -1,14 +1,19 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useCollection } from '../../hooks/useCollection'
 import ListenSuggestionModal from '../modals/ListenSuggestionModal'
 import AuthModal from '../modals/AuthModal'
 
-export default function Header({ collection = [] }) {
+// Header unique, affiché sur toutes les pages : mêmes onglets et même
+// widget "What should I listen to?" partout, basés sur l'utilisateur connecté
+// plutôt que sur la page actuellement affichée.
+export default function Header() {
   const { username } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const { user, profile, signOut } = useAuth()
+  const { data: ownCollection = [] } = useCollection(user?.id)
 
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
@@ -77,7 +82,7 @@ export default function Header({ collection = [] }) {
           <div className="flex items-center gap-2">
 
             {/* "What should I listen to?" — icône seule sur mobile */}
-            {username && collection.length > 0 && (
+            {user && ownCollection.length > 0 && (
               <button
                 onClick={() => setShowSuggest(true)}
                 className="flex items-center gap-2 rounded-full bg-[#f5a623] px-3 py-1.5 text-sm font-medium text-black transition-all hover:bg-[#fbbf24] active:scale-95 md:px-4"
@@ -165,7 +170,7 @@ export default function Header({ collection = [] }) {
       </header>
 
       {showSuggest && (
-        <ListenSuggestionModal collection={collection} onClose={() => setShowSuggest(false)} />
+        <ListenSuggestionModal collection={ownCollection} onClose={() => setShowSuggest(false)} />
       )}
       {showAuth && (
         <AuthModal onClose={() => setShowAuth(false)} />

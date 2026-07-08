@@ -113,7 +113,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      <Header collection={collection} />
+      <Header />
 
       {toast && (
         <div className={`fixed bottom-6 left-4 right-4 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-xl sm:left-1/2 sm:right-auto sm:w-auto sm:-translate-x-1/2 sm:px-5 ${
