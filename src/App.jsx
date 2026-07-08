@@ -4,6 +4,7 @@ import CollectionPage from './pages/CollectionPage'
 import DashboardPage from './pages/DashboardPage'
 import WantlistPage from './pages/WantlistPage'
 import SettingsPage from './pages/SettingsPage'
+import JournalPage from './pages/JournalPage'
 
 export default function App() {
   return (
@@ -23,6 +24,9 @@ export default function App() {
 
         {/* Wantlist */}
         <Route path="/:username/wantlist" element={<WantlistPage />} />
+
+        {/* Journal d'écoute */}
+        <Route path="/:username/journal" element={<JournalPage />} />
       </Routes>
     </BrowserRouter>
   )

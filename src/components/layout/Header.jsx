@@ -44,6 +44,7 @@ export default function Header({ collection = [] }) {
         { to: `/${username}`, label: 'Collection' },
         { to: `/${username}/dashboard`, label: 'Stats' },
         { to: `/${username}/wantlist`, label: 'Wantlist' },
+        { to: `/${username}/journal`, label: 'Journal' },
       ]
     : []
 
@@ -103,6 +104,7 @@ export default function Header({ collection = [] }) {
                         <MenuItem to={`/${profile.username}`} onClick={() => setShowUserMenu(false)}>Ma collection</MenuItem>
                         <MenuItem to={`/${profile.username}/dashboard`} onClick={() => setShowUserMenu(false)}>Statistiques</MenuItem>
                         <MenuItem to={`/${profile.username}/wantlist`} onClick={() => setShowUserMenu(false)}>Wantlist</MenuItem>
+                        <MenuItem to={`/${profile.username}/journal`} onClick={() => setShowUserMenu(false)}>🎵 Journal</MenuItem>
                         <div className="my-1 border-t border-[#1a1a1a]" />
                         <MenuItem to="/settings" onClick={() => setShowUserMenu(false)}>⚙️ Paramètres</MenuItem>
                       </>

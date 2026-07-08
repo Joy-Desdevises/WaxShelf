@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useLikes, useComments, useVinylMeta } from '../../hooks/useSocial'
+import { usePlayCount, useLogPlay } from '../../hooks/usePlayLog'
 
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
@@ -10,7 +11,10 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
   const { likes, toggleLike } = useLikes(vinyl.id)
   const { comments, addComment, deleteComment } = useComments(vinyl.id)
   const { saveMeta } = useVinylMeta(vinyl.id)
+  const playCount = usePlayCount(vinyl.id)
+  const logPlay = useLogPlay(vinyl.id)
 
+  const [justLogged, setJustLogged] = useState(false)
   const [rating, setRating] = useState(vinyl.rating || 0)
   const [hoverRating, setHoverRating] = useState(0)
   const [notes, setNotes] = useState(vinyl.notes || '')
@@ -42,6 +46,13 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
   async function handleLike() {
     if (!user) return
     toggleLike.mutate({ userId: user.id, hasLiked })
+  }
+
+  async function handleLogPlay() {
+    if (!user || logPlay.isPending) return
+    await logPlay.mutateAsync(user.id)
+    setJustLogged(true)
+    setTimeout(() => setJustLogged(false), 3000)
   }
 
   async function handleComment(e) {
@@ -148,8 +159,8 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
 
           <div className="border-t border-[#1a1a1a]" />
 
-          {/* ── Likes ── */}
-          <div className="flex items-center gap-3 px-5 py-4 sm:px-6">
+          {/* ── Actions : Like + J'écoute ça ── */}
+          <div className="flex flex-wrap items-center gap-3 px-5 py-4 sm:px-6">
             <button
               onClick={handleLike}
               disabled={!user || toggleLike.isPending}
@@ -162,8 +173,36 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
               <span className="text-base">{hasLiked ? '❤️' : '🤍'}</span>
               <span>{likes.length} j'aime{likes.length > 1 ? 's' : ''}</span>
             </button>
+
+            {user && (
+              <button
+                onClick={handleLogPlay}
+                disabled={logPlay.isPending || justLogged}
+                className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition ${
+                  justLogged
+                    ? 'border-[#f5a623]/50 bg-[#f5a623]/10 text-[#f5a623]'
+                    : 'border-[#2a2a2a] text-[#555] hover:border-[#f5a623]/40 hover:text-[#f5a623]'
+                } disabled:cursor-default disabled:opacity-60`}
+              >
+                <span className="text-base">{justLogged ? '🎵' : '▶'}</span>
+                <span>
+                  {justLogged
+                    ? 'Ajouté au journal !'
+                    : logPlay.isPending
+                    ? '…'
+                    : "J'écoute ça"}
+                </span>
+              </button>
+            )}
+
+            {playCount > 0 && (
+              <span className="text-xs text-[#444]">
+                {playCount} écoute{playCount > 1 ? 's' : ''}
+              </span>
+            )}
+
             {!user && (
-              <p className="text-xs text-[#555]">Connecte-toi pour liker</p>
+              <p className="text-xs text-[#555]">Connecte-toi pour interagir</p>
             )}
           </div>
 

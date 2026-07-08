@@ -36,7 +36,10 @@ export default function VinylCard({ vinyl, size = 'lg', onClick }) {
           .from('vinyl_records')
           .update({ anecdote: text })
           .eq('id', vinyl.id)
-          .then()
+          .then(({ error }) => {
+            if (error) console.error('[Supabase] Erreur sauvegarde anecdote:', error.message)
+            else console.log('[Supabase] Anecdote sauvegardée pour', vinyl.title)
+          })
       }
     } finally {
       setLoading(false)
