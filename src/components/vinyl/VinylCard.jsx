@@ -61,7 +61,7 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
 
   return (
     <div
-      className={`vinyl-card-container ${dim} cursor-pointer select-none`}
+      className={`vinyl-card-container relative ${dim} cursor-pointer select-none`}
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       role="button"
@@ -89,21 +89,6 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
             <span className="absolute bottom-1.5 right-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-[#f5a623] backdrop-blur-sm">
               ~{vinyl.average_value}€
             </span>
-          )}
-          {currentUserId && (
-            <button
-              onClick={handleLogPlay}
-              disabled={logPlay.isPending}
-              title="J'écoute ça"
-              aria-label="J'écoute ça"
-              className={`absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full backdrop-blur-sm transition disabled:opacity-60 ${
-                justLogged
-                  ? 'bg-[#f5a623] text-black'
-                  : 'bg-black/70 text-[#f5a623] hover:bg-[#f5a623] hover:text-black'
-              }`}
-            >
-              <span className="text-[10px]">{justLogged ? '✓' : '▶'}</span>
-            </button>
           )}
         </div>
 
@@ -151,6 +136,23 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
         </div>
 
       </div>
+
+      {/* ── Bouton "j'écoute" : hors du volet qui flip, reste toujours cliquable ── */}
+      {currentUserId && (
+        <button
+          onClick={handleLogPlay}
+          disabled={logPlay.isPending}
+          title="J'écoute ça"
+          aria-label="J'écoute ça"
+          className={`absolute right-1.5 top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-full backdrop-blur-sm transition disabled:opacity-60 ${
+            justLogged
+              ? 'bg-[#f5a623] text-black'
+              : 'bg-black/70 text-[#f5a623] hover:bg-[#f5a623] hover:text-black'
+          }`}
+        >
+          <span className="text-[10px]">{justLogged ? '✓' : '▶'}</span>
+        </button>
+      )}
     </div>
   )
 }

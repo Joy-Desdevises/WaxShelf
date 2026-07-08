@@ -39,14 +39,17 @@ export default function Header({ collection = [] }) {
     navigate('/')
   }
 
-  const navLinks = username
-    ? [
-        { to: `/${username}`, label: 'Collection' },
-        { to: `/${username}/dashboard`, label: 'Stats' },
-        { to: `/${username}/wantlist`, label: 'Wantlist' },
-        { to: `/${username}/journal`, label: 'Journal' },
-      ]
-    : []
+  const navLinks = [
+    { to: '/', label: 'Accueil' },
+    ...(username
+      ? [
+          { to: `/${username}`, label: 'Collection' },
+          { to: `/${username}/dashboard`, label: 'Stats' },
+          { to: `/${username}/wantlist`, label: 'Wantlist' },
+          { to: `/${username}/journal`, label: 'Journal' },
+        ]
+      : []),
+  ]
 
   return (
     <>
@@ -60,13 +63,11 @@ export default function Header({ collection = [] }) {
           </Link>
 
           {/* Nav desktop */}
-          {username && (
-            <nav className="hidden items-center gap-1 md:flex">
-              {navLinks.map((l) => (
-                <NavLink key={l.to} to={l.to}>{l.label}</NavLink>
-              ))}
-            </nav>
-          )}
+          <nav className="hidden items-center gap-1 md:flex">
+            {navLinks.map((l) => (
+              <NavLink key={l.to} to={l.to}>{l.label}</NavLink>
+            ))}
+          </nav>
 
           {/* Actions droite */}
           <div className="flex items-center gap-2">
@@ -128,23 +129,21 @@ export default function Header({ collection = [] }) {
               </button>
             )}
 
-            {/* Hamburger — mobile uniquement, si on est sur une page profil */}
-            {username && (
-              <button
-                onClick={() => setShowMobileMenu((v) => !v)}
-                className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 rounded-lg border border-[#333] md:hidden"
-                aria-label="Menu"
-              >
-                <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? 'translate-y-2 rotate-45' : ''}`} />
-                <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? 'opacity-0' : ''}`} />
-                <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? '-translate-y-2 -rotate-45' : ''}`} />
-              </button>
-            )}
+            {/* Hamburger — mobile uniquement */}
+            <button
+              onClick={() => setShowMobileMenu((v) => !v)}
+              className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 rounded-lg border border-[#333] md:hidden"
+              aria-label="Menu"
+            >
+              <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? 'translate-y-2 rotate-45' : ''}`} />
+              <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? 'opacity-0' : ''}`} />
+              <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? '-translate-y-2 -rotate-45' : ''}`} />
+            </button>
           </div>
         </div>
 
         {/* Menu mobile déroulant */}
-        {showMobileMenu && username && (
+        {showMobileMenu && (
           <div className="border-t border-[#222] bg-[#0a0a0a] px-4 pb-4 pt-2 md:hidden">
             <nav className="flex flex-col gap-1">
               {navLinks.map((l) => (

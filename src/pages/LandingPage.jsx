@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import AuthModal from '../components/modals/AuthModal'
+import Header from '../components/layout/Header'
 import { useAuth } from '../hooks/useAuth'
 
 export default function LandingPage() {
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAuth, setShowAuth] = useState(false)
@@ -26,28 +27,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
 
-      {/* Nav */}
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">🎵</span>
-          <span className="text-base font-semibold text-white tracking-tight">WaxShelf</span>
-        </div>
-        {user && profile ? (
-          <Link
-            to={`/${profile.username}`}
-            className="rounded-lg bg-[#f5a623] px-4 py-2 text-sm font-medium text-black hover:bg-[#fbbf24]"
-          >
-            Ma collection
-          </Link>
-        ) : (
-          <button
-            onClick={() => setShowAuth(true)}
-            className="rounded-lg border border-[#333] px-4 py-2 text-sm text-white hover:border-[#555] hover:bg-[#1a1a1a]"
-          >
-            Connexion
-          </button>
-        )}
-      </nav>
+      <Header />
 
       {/* Hero */}
       <section className="mx-auto max-w-3xl px-4 pb-12 pt-10 text-center sm:pb-16 sm:pt-20">
