@@ -50,7 +50,7 @@ export default function JournalPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold">Journal d'écoute</h1>
           <p className="mt-1 text-sm text-[#555]">
-            {isOwner ? 'Toutes tes sessions d'écoute' : `Les écoutes de @${username}`}
+            {isOwner ? "Toutes tes sessions d'écoute" : `Les écoutes de @${username}`}
           </p>
         </div>
 
@@ -78,8 +78,8 @@ export default function JournalPage() {
             <p className="text-4xl">🎵</p>
             <p className="mt-4 text-[#555]">
               {isOwner
-                ? 'Aucune écoute pour l'instant. Ouvre un vinyle et clique sur "J'écoute ça" !'
-                : 'Aucune écoute enregistrée.'}
+                ? "Aucune écoute pour l'instant. Ouvre un vinyle et clique sur 'J'écoute ça' !"
+                : "Aucune écoute enregistrée."}
             </p>
           </div>
         ) : (
