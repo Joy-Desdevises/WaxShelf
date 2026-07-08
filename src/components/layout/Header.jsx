@@ -39,14 +39,18 @@ export default function Header({ collection = [] }) {
     navigate('/')
   }
 
+  // Sur les pages sans :username dans l'URL (ex: l'accueil), on retombe
+  // sur le profil connecté pour garder les mêmes onglets partout.
+  const navUsername = username || profile?.username
+
   const navLinks = [
     { to: '/', label: 'Accueil' },
-    ...(username
+    ...(navUsername
       ? [
-          { to: `/${username}`, label: 'Collection' },
-          { to: `/${username}/dashboard`, label: 'Stats' },
-          { to: `/${username}/wantlist`, label: 'Wantlist' },
-          { to: `/${username}/journal`, label: 'Journal' },
+          { to: `/${navUsername}`, label: 'Collection' },
+          { to: `/${navUsername}/dashboard`, label: 'Stats' },
+          { to: `/${navUsername}/wantlist`, label: 'Wantlist' },
+          { to: `/${navUsername}/journal`, label: 'Journal' },
         ]
       : []),
   ]
