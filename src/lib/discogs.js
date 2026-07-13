@@ -190,6 +190,7 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
   const currency = await fetchAccountCurrency(client)
   const withDiscogs = records.filter((r) => r.discogs_id)
   const results = []
+  let consecutiveFailures = 0
 
   for (let i = 0; i < withDiscogs.length; i++) {
     const record = withDiscogs[i]
@@ -204,13 +205,24 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
         average_value_currency: price.currency,
         master_id: data.master_id || null,
       })
+      consecutiveFailures = 0
     } catch (err) {
       // échec réseau/rate-limit : on laisse les données existantes intactes
       console.error('[Discogs] Échec enrichissement release', record.discogs_id, ':', err.response?.status, err.response?.data || err.message)
+      consecutiveFailures++
+      // Une rafale d'échecs consécutifs signale un blocage global (rate limit,
+      // anti-bot Cloudflare) plutôt que des soucis isolés par disque : mieux
+      // vaut s'arrêter que griller le reste du quota pour rien.
+      if (consecutiveFailures >= 5) {
+        console.error('[Discogs] 5 échecs consécutifs, arrêt anticipé (rate limit probable) — réessaie dans quelques minutes.')
+        break
+      }
     }
     onProgress?.(i + 1, withDiscogs.length)
     if (i < withDiscogs.length - 1) {
-      await new Promise((r) => setTimeout(r, 1100))
+      // 1500ms ~ 40 req/min, marge confortable sous la limite Discogs (60/min)
+      // pour absorber les 2 requêtes initiales (devise du compte) sans y coller.
+      await new Promise((r) => setTimeout(r, 1500))
     }
   }
 

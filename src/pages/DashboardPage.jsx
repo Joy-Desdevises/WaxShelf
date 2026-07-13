@@ -155,7 +155,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-[#555]">
                   {stats?.withValue}/{collection.length} vinyles avec une valeur connue
                   {collection.filter(v => v.discogs_id).length > 0 &&
-                    ` · ~${Math.ceil(collection.filter(v => v.discogs_id).length * 1.1 / 60)} min pour tout actualiser`}
+                    ` · ~${Math.ceil(collection.filter(v => v.discogs_id).length * 1.5 / 60)} min pour tout actualiser`}
                 </p>
               )}
             </div>
