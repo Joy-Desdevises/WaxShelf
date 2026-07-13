@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useCollectionByUsername, useSyncDiscogs } from '../hooks/useCollection'
 import { supabase } from '../lib/supabase'
 import { searchDiscogs } from '../lib/discogs'
+import { timeAgo } from '../lib/format'
 
 // Décennie basée sur l'année de sortie originale de l'album, pas celle du
 // pressage possédé (peut être une réédition tardive) — cf. DashboardPage.
@@ -32,7 +33,7 @@ function getCountries(records) {
 
 export default function CollectionPage() {
   const { username } = useParams()
-  const { user, profile } = useAuth()
+  const { user, profile, updateProfile } = useAuth()
   const isOwner = user && profile?.username === username
 
   const { data: collection = [], isLoading, refetch } = useCollectionByUsername(username)
@@ -115,13 +116,14 @@ export default function CollectionPage() {
         onEnrichProgress: (done, total) => setEnrichProgress({ done, total }),
       })
       showToast('success', `✅ Sync terminée — ${count} vinyles importés.`)
+      updateProfile({ last_collection_sync_at: new Date().toISOString() })
       refetch()
     } catch (err) {
       const msg = err?.response?.data?.message || err.message || 'Erreur inconnue'
       showToast('error', `Erreur : ${msg}`)
     }
     setEnrichProgress(null)
-  }, [profile, user, syncMutation, refetch])
+  }, [profile, user, syncMutation, refetch, updateProfile])
 
   const hasFilters = search || filterGenre || filterDecade || filterCountry
   const activeFilterCount = [filterGenre, filterDecade, filterCountry].filter(Boolean).length
@@ -186,6 +188,11 @@ export default function CollectionPage() {
                     style={{ width: `${(enrichProgress.done / enrichProgress.total) * 100}%` }}
                   />
                 </div>
+              )}
+              {!syncMutation.isPending && profile?.last_collection_sync_at && (
+                <p className="text-center text-[10px] text-[#888] sm:text-left">
+                  Dernière sync : {timeAgo(profile.last_collection_sync_at)}
+                </p>
               )}
             </div>
           )}

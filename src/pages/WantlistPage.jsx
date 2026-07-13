@@ -5,12 +5,13 @@ import Header from '../components/layout/Header'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { fetchWantlist } from '../lib/discogs'
+import { timeAgo } from '../lib/format'
 
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
 export default function WantlistPage() {
   const { username } = useParams()
-  const { user, profile } = useAuth()
+  const { user, profile, updateProfile } = useAuth()
   const isOwner = user && profile?.username === username
   const qc = useQueryClient()
 
@@ -88,6 +89,7 @@ export default function WantlistPage() {
 
       qc.invalidateQueries({ queryKey: ['wantlist', username] })
       showToast('success', `✅ Wantlist synchronisée — ${wants.length} vinyles.`)
+      updateProfile({ last_wantlist_sync_at: new Date().toISOString() })
     } catch (err) {
       showToast('error', `Erreur : ${err?.response?.data?.message || err.message}`)
     }
@@ -118,14 +120,19 @@ export default function WantlistPage() {
             <span className="ml-2 text-sm font-normal text-[#555]">· @{username}</span>
           </h1>
           {isOwner && (
-            <button
-              onClick={handleSync}
-              disabled={syncing}
-              className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-2 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50"
-            >
-              <span className={syncing ? 'animate-spin inline-block' : ''}>🔄</span>
-              {syncing ? 'Sync…' : 'Sync Discogs'}
-            </button>
+            <div className="flex flex-col items-end gap-1">
+              <button
+                onClick={handleSync}
+                disabled={syncing}
+                className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-2 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50"
+              >
+                <span className={syncing ? 'animate-spin inline-block' : ''}>🔄</span>
+                {syncing ? 'Sync…' : 'Sync Discogs'}
+              </button>
+              {!syncing && profile?.last_wantlist_sync_at && (
+                <p className="text-[10px] text-[#888]">Dernière sync : {timeAgo(profile.last_wantlist_sync_at)}</p>
+              )}
+            </div>
           )}
         </div>
 
