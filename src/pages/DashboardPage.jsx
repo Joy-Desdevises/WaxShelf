@@ -6,6 +6,7 @@ import { useCollectionByUsername } from '../hooks/useCollection'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { refreshCollectionValues } from '../lib/discogs'
+import { formatCurrency } from '../lib/format'
 
 export default function DashboardPage() {
   const { username } = useParams()
@@ -25,6 +26,7 @@ export default function DashboardPage() {
 
     const withValue = collection.filter((v) => v.average_value > 0)
     const totalValue = withValue.reduce((s, v) => s + Number(v.average_value), 0)
+    const currency = withValue.find((v) => v.average_value_currency)?.average_value_currency || 'EUR'
 
     const genreCount = {}
     collection.forEach((v) => v.genres?.forEach((g) => { genreCount[g] = (genreCount[g] || 0) + 1 }))
@@ -53,7 +55,7 @@ export default function DashboardPage() {
       ? (collection.filter((v) => v.rating).reduce((s, v) => s + v.rating, 0) / ratedCount).toFixed(1)
       : null
 
-    return { totalValue, withValue: withValue.length, topGenres, decadeCount, topCountries, topValuable, ratedCount, avgRating }
+    return { totalValue, currency, withValue: withValue.length, topGenres, decadeCount, topCountries, topValuable, ratedCount, avgRating }
   }, [collection])
 
   function showToast(type, message) {
@@ -93,8 +95,8 @@ export default function DashboardPage() {
       const BATCH = 50
       for (let i = 0; i < results.length; i += BATCH) {
         await Promise.all(
-          results.slice(i, i + BATCH).map(({ id, average_value }) =>
-            supabase.from('vinyl_records').update({ average_value }).eq('id', id)
+          results.slice(i, i + BATCH).map(({ id, average_value, average_value_currency }) =>
+            supabase.from('vinyl_records').update({ average_value, average_value_currency }).eq('id', id)
           )
         )
       }
@@ -172,7 +174,7 @@ export default function DashboardPage() {
             {/* ── KPIs ── */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <StatCard icon="📀" label="Vinyles" value={collection.length} />
-              <StatCard icon="💰" label="Valeur estimée" value={stats.totalValue > 0 ? `~${Math.round(stats.totalValue)}€` : '—'} />
+              <StatCard icon="💰" label="Valeur estimée" value={stats.totalValue > 0 ? `~${formatCurrency(Math.round(stats.totalValue), stats.currency)}` : '—'} />
               <StatCard icon="⭐" label="Note moyenne" value={stats.avgRating ? `${stats.avgRating}/5` : '—'} sub={stats.ratedCount > 0 ? `${stats.ratedCount} notés` : 'Aucune note'} />
               <StatCard icon="🌍" label="Pays différents" value={Object.keys(stats.decadeCount).length > 0 ? stats.topCountries.length : '—'} />
             </div>
@@ -190,7 +192,7 @@ export default function DashboardPage() {
                         <p className="text-xs text-[#555]">{v.artist}</p>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p className="text-sm font-semibold text-[#f5a623]">~{v.average_value}€</p>
+                        <p className="text-sm font-semibold text-[#f5a623]">~{formatCurrency(v.average_value, v.average_value_currency)}</p>
                       </div>
                       {/* Barre proportionnelle */}
                       <div className="hidden w-20 sm:block">

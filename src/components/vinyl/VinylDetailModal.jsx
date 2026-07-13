@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useLikes, useComments, useVinylMeta } from '../../hooks/useSocial'
 import { usePlayCount, useLogPlay } from '../../hooks/usePlayLog'
+import { formatCurrency } from '../../lib/format'
 
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
@@ -105,7 +106,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
 
               {vinyl.average_value && (
                 <p className="mt-3 text-sm font-medium text-[#f5a623]">
-                  ~{vinyl.average_value}€ valeur estimée
+                  ~{formatCurrency(vinyl.average_value, vinyl.average_value_currency)} valeur estimée
                 </p>
               )}
 

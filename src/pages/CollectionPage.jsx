@@ -42,6 +42,7 @@ export default function CollectionPage() {
   const [showAddSearch, setShowAddSearch] = useState(false)
   const [selectedVinyl, setSelectedVinyl] = useState(null)
   const [toast, setToast] = useState(null)
+  const [enrichProgress, setEnrichProgress] = useState(null) // { done, total }
 
   const syncMutation = useSyncDiscogs()
 
@@ -100,14 +101,21 @@ export default function CollectionPage() {
       return
     }
 
+    setEnrichProgress(null)
     try {
-      const count = await syncMutation.mutateAsync({ userId: user.id, discogsToken, discogsUsername })
+      const count = await syncMutation.mutateAsync({
+        userId: user.id,
+        discogsToken,
+        discogsUsername,
+        onEnrichProgress: (done, total) => setEnrichProgress({ done, total }),
+      })
       showToast('success', `✅ Sync terminée — ${count} vinyles importés.`)
       refetch()
     } catch (err) {
       const msg = err?.response?.data?.message || err.message || 'Erreur inconnue'
       showToast('error', `Erreur : ${msg}`)
     }
+    setEnrichProgress(null)
   }, [profile, user, syncMutation, refetch])
 
   const hasFilters = search || filterGenre || filterDecade || filterCountry
@@ -145,21 +153,35 @@ export default function CollectionPage() {
           </div>
 
           {isOwner && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleSync()}
-                disabled={syncMutation.isPending}
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50 sm:flex-none sm:px-4"
-              >
-                <span className={syncMutation.isPending ? 'animate-spin inline-block' : ''}>🔄</span>
-                {syncMutation.isPending ? 'Sync…' : 'Sync Discogs'}
-              </button>
-              <button
-                onClick={() => setShowAddSearch(true)}
-                className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#f5a623] px-3 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] sm:flex-none sm:px-4"
-              >
-                + Ajouter
-              </button>
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleSync()}
+                  disabled={syncMutation.isPending}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50 sm:flex-none sm:px-4"
+                >
+                  <span className={syncMutation.isPending ? 'animate-spin inline-block' : ''}>🔄</span>
+                  {syncMutation.isPending
+                    ? enrichProgress
+                      ? `Pays/année… (${enrichProgress.done}/${enrichProgress.total})`
+                      : 'Sync…'
+                    : 'Sync Discogs'}
+                </button>
+                <button
+                  onClick={() => setShowAddSearch(true)}
+                  className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#f5a623] px-3 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] sm:flex-none sm:px-4"
+                >
+                  + Ajouter
+                </button>
+              </div>
+              {syncMutation.isPending && enrichProgress && (
+                <div className="h-1 overflow-hidden rounded-full bg-[#1a1a1a]">
+                  <div
+                    className="h-full rounded-full bg-[#f5a623] transition-all"
+                    style={{ width: `${(enrichProgress.done / enrichProgress.total) * 100}%` }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

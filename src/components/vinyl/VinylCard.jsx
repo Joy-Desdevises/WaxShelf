@@ -13,6 +13,7 @@
 
 import { useState } from 'react'
 import { generateAnecdote } from '../../lib/gemini'
+import { formatCurrency } from '../../lib/format'
 import { supabase } from '../../lib/supabase'
 import { useLogPlay } from '../../hooks/usePlayLog'
 
@@ -87,7 +88,7 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
           )}
           {vinyl.average_value && (
             <span className="absolute bottom-1.5 right-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-[#f5a623] backdrop-blur-sm">
-              ~{vinyl.average_value}€
+              ~{formatCurrency(vinyl.average_value, vinyl.average_value_currency)}
             </span>
           )}
         </div>

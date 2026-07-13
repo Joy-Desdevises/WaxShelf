@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { fetchFullCollection } from '../lib/discogs'
+import { fetchFullCollection, enrichCollectionMetadata } from '../lib/discogs'
 
 // ── Lecture de la collection ─────────────────────────────────────────────────
 
@@ -55,7 +55,7 @@ export function useSyncDiscogs() {
   const qc = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ userId, discogsToken, discogsUsername }) => {
+    mutationFn: async ({ userId, discogsToken, discogsUsername, onEnrichProgress }) => {
       // 1. Récupérer la collection depuis Discogs
       const releases = await fetchFullCollection(discogsToken, discogsUsername)
 
@@ -71,6 +71,33 @@ export function useSyncDiscogs() {
             ignoreDuplicates: false,
           })
         if (error) throw error
+      }
+
+      // 3. Compléter automatiquement le pays (et l'année si absente) : l'endpoint
+      // collection ne fournit pas le pays, seul le détail /releases/{id} l'a.
+      // On ne retouche que les vinyles encore incomplets, pour rester rapide
+      // sur les resynchronisations une fois le rattrapage initial fait.
+      const { data: toEnrich, error: selectError } = await supabase
+        .from('vinyl_records')
+        .select('id, discogs_id, year')
+        .eq('user_id', userId)
+        .not('discogs_id', 'is', null)
+        .or('country.is.null,year.is.null')
+      if (selectError) throw selectError
+
+      if (toEnrich?.length) {
+        const enriched = await enrichCollectionMetadata(discogsToken, toEnrich, onEnrichProgress)
+        const EBATCH = 50
+        for (let i = 0; i < enriched.length; i += EBATCH) {
+          const chunk = enriched.slice(i, i + EBATCH)
+          const results = await Promise.all(
+            chunk.map(({ id, country, year }) =>
+              supabase.from('vinyl_records').update({ country, year }).eq('id', id)
+            )
+          )
+          const failed = results.find((r) => r.error)
+          if (failed) throw failed.error
+        }
       }
 
       return releases.length
