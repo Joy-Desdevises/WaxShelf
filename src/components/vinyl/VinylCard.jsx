@@ -135,12 +135,12 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
 
           {/* Année(s) + hint clic */}
           <div className="mt-2 flex items-center justify-between">
-            {vinyl.year && (
+            {(vinyl.year || vinyl.original_year) && (
               <span
                 className="text-[10px] text-[#999]"
                 title={vinyl.original_year && vinyl.original_year !== vinyl.year ? 'Album original · pressage' : undefined}
               >
-                {size === 'lg' && vinyl.original_year && vinyl.original_year !== vinyl.year
+                {size === 'lg' && vinyl.original_year && vinyl.year && vinyl.original_year !== vinyl.year
                   ? `${vinyl.original_year} · pressage ${vinyl.year}`
                   : vinyl.original_year || vinyl.year}
               </span>
