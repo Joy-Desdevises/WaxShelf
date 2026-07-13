@@ -126,97 +126,31 @@ export async function fetchWantlist(token, discogsUsername) {
   })
 }
 
-// ── Valeur marché ─────────────────────────────────────────────────────────────
+// ── Enrichissement (pays, année, valeur) ────────────────────────────────────
 
-// L'API publique Discogs n'expose ni médiane ni prix haut pour un release
-// (seulement lowest_price + num_for_sale via /marketplace/stats — ces deux
-// champs sont la totalité des données de marché documentées par Discogs).
-// /marketplace/price_suggestions renvoie en revanche le prix suggéré par
-// Discogs pour chaque état (grade), dans la devise du compte. On prend VG+
-// (Very Good Plus), l'état le plus couramment échangé, comme proxy réaliste
-// d'une "valeur typique" — bien plus représentatif que le prix de l'annonce
-// la moins chère du moment, sans toutefois être identique à la médiane
-// affichée sur la fiche release du site discogs.com (donnée non exposée par l'API).
-const CONDITION_PRIORITY = [
-  'Very Good Plus (VG+)',
-  'Near Mint (NM or M-)',
-  'Very Good (VG)',
-  'Good Plus (G+)',
-  'Mint (M)',
-  'Good (G)',
-  'Fair (F)',
-  'Poor (P)',
-]
-
-function pickSuggestedPrice(suggestions) {
-  if (!suggestions) return null
-  for (const grade of CONDITION_PRIORITY) {
-    if (suggestions[grade]) return suggestions[grade]
-  }
-  return Object.values(suggestions)[0] || null
-}
+// /releases/{id} est le seul endpoint qui fournit le pays de façon fiable
+// (absent des endpoints collection et de la sync en masse), et il inclut aussi
+// lowest_price/num_for_sale : la seule donnée de marché accessible à TOUS les
+// comptes Discogs sans configuration préalable. (/marketplace/price_suggestions
+// donnerait un prix par état plus proche d'une "valeur typique", mais exige que
+// le compte ait rempli ses Seller Settings — non applicable à la plupart des
+// utilisateurs, donc pas utilisé ici.) Un seul appel par disque suffit donc
+// pour compléter pays, année et valeur.
+//
+// average_value représente le prix de l'annonce la moins chère actuellement en
+// vente sur Discogs — pas une moyenne ni une médiane (non exposées par l'API
+// publique sans compte vendeur configuré).
 
 /**
- * Récupère la valeur de marché suggérée (VG+) d'un release
- */
-export async function fetchReleaseValue(token, releaseId) {
-  const client = createDiscogsClient(token)
-  try {
-    const { data } = await client.get(`/marketplace/price_suggestions/${releaseId}`)
-    return pickSuggestedPrice(data)
-  } catch {
-    return null
-  }
-}
-
-/**
- * Rafraîchit les valeurs de marché de toute une collection
- * Respecte le rate limit Discogs (~60 req/min) avec un délai entre les requêtes
- *
- * @param {string} token
- * @param {Array} records - tableau de { id, discogs_id }
- * @param {function} onProgress - callback(done, total, currentValue)
- * @returns {Promise<Array>} - tableau de { id, average_value, average_value_currency }
- */
-export async function refreshCollectionValues(token, records, onProgress) {
-  const client = createDiscogsClient(token)
-  const withDiscogs = records.filter((r) => r.discogs_id)
-  const results = []
-
-  for (let i = 0; i < withDiscogs.length; i++) {
-    const record = withDiscogs[i]
-    try {
-      const { data } = await client.get(`/marketplace/price_suggestions/${record.discogs_id}`)
-      const suggestion = pickSuggestedPrice(data)
-      results.push({
-        id: record.id,
-        average_value: suggestion?.value ?? null,
-        average_value_currency: suggestion?.currency ?? null,
-      })
-      onProgress?.(i + 1, withDiscogs.length, suggestion?.value ?? null)
-    } catch {
-      results.push({ id: record.id, average_value: null, average_value_currency: null })
-      onProgress?.(i + 1, withDiscogs.length, null)
-    }
-    // Pause pour respecter le rate limit (max ~55 req/min pour rester safe)
-    if (i < withDiscogs.length - 1) {
-      await new Promise((r) => setTimeout(r, 1100))
-    }
-  }
-
-  return results
-}
-
-/**
- * Complète le pays et l'année manquants en interrogeant le détail de chaque
- * release (/releases/{id}), seul endpoint Discogs fournissant le pays de façon
- * fiable (absent des endpoints collection et de la sync en masse).
- * Respecte le rate limit Discogs (~60 req/min).
+ * Complète pays, année et valeur marché manquants en interrogeant le détail
+ * de chaque release. Respecte le rate limit Discogs (~60 req/min). Un échec
+ * sur un disque (réseau, rate limit...) laisse ses données existantes intactes
+ * plutôt que de les écraser par null.
  *
  * @param {string} token
  * @param {Array} records - tableau de { id, discogs_id, year }
  * @param {function} onProgress - callback(done, total)
- * @returns {Promise<Array>} - tableau de { id, country, year }
+ * @returns {Promise<Array>} - tableau de { id, country, year, average_value, average_value_currency }
  */
 export async function enrichCollectionMetadata(token, records, onProgress) {
   const client = createDiscogsClient(token)
@@ -231,9 +165,11 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
         id: record.id,
         country: data.country || null,
         year: data.year || record.year || null,
+        average_value: data.lowest_price?.value ?? null,
+        average_value_currency: data.lowest_price?.currency ?? null,
       })
     } catch {
-      results.push({ id: record.id, country: null, year: record.year || null })
+      // échec réseau/rate-limit : on laisse les données existantes intactes
     }
     onProgress?.(i + 1, withDiscogs.length)
     if (i < withDiscogs.length - 1) {

@@ -105,8 +105,8 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
               </div>
 
               {vinyl.average_value && (
-                <p className="mt-3 text-sm font-medium text-[#f5a623]">
-                  ~{formatCurrency(vinyl.average_value, vinyl.average_value_currency)} valeur estimée
+                <p className="mt-3 text-sm font-medium text-[#f5a623]" title="Prix de l'annonce la moins chère actuellement en vente sur Discogs">
+                  ~{formatCurrency(vinyl.average_value, vinyl.average_value_currency)} <span className="font-normal text-[#888]">(prix mini Discogs)</span>
                 </p>
               )}
 

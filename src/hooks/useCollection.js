@@ -73,16 +73,18 @@ export function useSyncDiscogs() {
         if (error) throw error
       }
 
-      // 3. Compléter automatiquement le pays (et l'année si absente) : l'endpoint
-      // collection ne fournit pas le pays, seul le détail /releases/{id} l'a.
-      // On ne retouche que les vinyles encore incomplets, pour rester rapide
-      // sur les resynchronisations une fois le rattrapage initial fait.
+      // 3. Compléter automatiquement le pays, l'année et la valeur marché
+      // manquants : l'endpoint collection ne fournit ni pays ni valeur, seul
+      // le détail /releases/{id} les a. On ne retouche que les vinyles encore
+      // incomplets, pour rester rapide sur les resynchronisations une fois le
+      // rattrapage initial fait (la valeur peut ensuite être rafraîchie
+      // manuellement depuis le Dashboard puisqu'elle évolue dans le temps).
       const { data: toEnrich, error: selectError } = await supabase
         .from('vinyl_records')
         .select('id, discogs_id, year')
         .eq('user_id', userId)
         .not('discogs_id', 'is', null)
-        .or('country.is.null,year.is.null')
+        .or('country.is.null,year.is.null,average_value.is.null')
       if (selectError) throw selectError
 
       if (toEnrich?.length) {
@@ -91,8 +93,8 @@ export function useSyncDiscogs() {
         for (let i = 0; i < enriched.length; i += EBATCH) {
           const chunk = enriched.slice(i, i + EBATCH)
           const results = await Promise.all(
-            chunk.map(({ id, country, year }) =>
-              supabase.from('vinyl_records').update({ country, year }).eq('id', id)
+            chunk.map(({ id, country, year, average_value, average_value_currency }) =>
+              supabase.from('vinyl_records').update({ country, year, average_value, average_value_currency }).eq('id', id)
             )
           )
           const failed = results.find((r) => r.error)

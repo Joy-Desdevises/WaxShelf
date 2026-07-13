@@ -154,7 +154,11 @@ function SuggestionResult({ vinyl, onReset, onClose }) {
       <div className="mt-2 flex items-center justify-center gap-3 text-sm text-[#555]">
         {vinyl.year && <span>{vinyl.year}</span>}
         {vinyl.styles?.[0] && <span>· {vinyl.styles[0]}</span>}
-        {vinyl.average_value && <span>· ~{formatCurrency(vinyl.average_value, vinyl.average_value_currency)}</span>}
+        {vinyl.average_value && (
+          <span title="Prix mini Discogs (annonce la moins chère en vente actuellement)">
+            · ~{formatCurrency(vinyl.average_value, vinyl.average_value_currency)}
+          </span>
+        )}
       </div>
 
       <div className="mt-6 flex gap-3">
