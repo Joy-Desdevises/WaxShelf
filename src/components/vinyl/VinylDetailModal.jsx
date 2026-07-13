@@ -97,11 +97,12 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
               </p>
               <p className="mt-1 text-sm text-[#888]">{vinyl.artist}</p>
 
+              <div className="mt-2 space-y-0.5 text-xs text-[#888]">
+                <p>Date sortie album : <span className="text-[#ddd]">{vinyl.original_year || 'Non renseigné'}</span></p>
+                <p>Date de pressage : <span className="text-[#ddd]">{vinyl.year || 'Non renseigné'}</span></p>
+              </div>
+
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {vinyl.original_year && <Tag title="Sortie originale de l'album">{vinyl.original_year}</Tag>}
-                {vinyl.year && vinyl.year !== vinyl.original_year && (
-                  <Tag title="Année de ce pressage">pressage {vinyl.year}</Tag>
-                )}
                 {vinyl.country && <Tag>{vinyl.country}</Tag>}
                 {vinyl.genres?.slice(0, 2).map((g) => <Tag key={g}>{g}</Tag>)}
                 {vinyl.styles?.slice(0, 2).map((s) => <Tag key={s} amber>{s}</Tag>)}
