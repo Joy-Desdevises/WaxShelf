@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import Header from '../components/layout/Header'
+import Avatar from '../components/layout/Avatar'
+import { AVATAR_PRESETS, presetToAvatarUrl } from '../lib/avatars'
 
 export default function SettingsPage() {
   const { user, profile, loading, updateProfile, signOut } = useAuth()
@@ -49,6 +51,7 @@ function ProfileSection({ profile, updateProfile }) {
   const [isPublic, setIsPublic] = useState(profile?.is_public ?? true)
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState(null)
+  const [avatarSaving, setAvatarSaving] = useState(false)
 
   async function handleSave() {
     setSaving(true)
@@ -59,9 +62,51 @@ function ProfileSection({ profile, updateProfile }) {
     else setStatus({ type: 'success', msg: 'Profil mis à jour ✓' })
   }
 
+  async function handleSelectAvatar(avatarUrl) {
+    setAvatarSaving(true)
+    await updateProfile({ avatar_url: avatarUrl })
+    setAvatarSaving(false)
+  }
+
   return (
     <Card title="Profil">
       <div className="space-y-4">
+        <div>
+          <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-[#555]">
+            Photo de profil
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => handleSelectAvatar(null)}
+              disabled={avatarSaving}
+              title="Initiale par défaut"
+              className={`rounded-full transition disabled:opacity-50 ${
+                !profile?.avatar_url ? 'ring-2 ring-[#f5a623] ring-offset-2 ring-offset-[#111]' : 'opacity-60 hover:opacity-100'
+              }`}
+            >
+              <Avatar avatarUrl={null} fallbackLetter={profile?.username?.[0]} className="h-11 w-11 rounded-full text-sm text-white" />
+            </button>
+            {AVATAR_PRESETS.map((preset) => {
+              const value = presetToAvatarUrl(preset.id)
+              const selected = profile?.avatar_url === value
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => handleSelectAvatar(value)}
+                  disabled={avatarSaving}
+                  title={preset.id}
+                  className={`rounded-full transition disabled:opacity-50 ${
+                    selected ? 'ring-2 ring-[#f5a623] ring-offset-2 ring-offset-[#111]' : 'opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <Avatar avatarUrl={value} className="h-11 w-11 rounded-full text-lg" />
+                </button>
+              )
+            })}
+          </div>
+        </div>
         <Field label="Nom d'affichage" value={displayName} onChange={setDisplayName} placeholder="Ton nom public" />
         <Field
           label="Nom d'utilisateur"

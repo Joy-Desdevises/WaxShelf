@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useCollection } from '../../hooks/useCollection'
 import ListenSuggestionModal from '../modals/ListenSuggestionModal'
 import AuthModal from '../modals/AuthModal'
+import Avatar from './Avatar'
 
 // Header unique, affiché sur toutes les pages : mêmes onglets et même
 // widget "What should I listen to?" partout, basés sur l'utilisateur connecté
@@ -97,12 +98,13 @@ export default function Header() {
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setShowUserMenu((v) => !v)}
-                  className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-[#333] bg-[#1a1a1a] text-sm font-bold text-white transition hover:border-[#555]"
+                  className="rounded-full border border-[#333] transition hover:border-[#555]"
                 >
-                  {profile?.avatar_url
-                    ? <img src={profile.avatar_url} alt="" className="h-full w-full object-cover" />
-                    : (profile?.username?.[0] ?? '?').toUpperCase()
-                  }
+                  <Avatar
+                    avatarUrl={profile?.avatar_url}
+                    fallbackLetter={profile?.username?.[0]}
+                    className="h-8 w-8 rounded-full text-sm text-white"
+                  />
                 </button>
 
                 {showUserMenu && (

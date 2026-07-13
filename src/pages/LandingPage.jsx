@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import AuthModal from '../components/modals/AuthModal'
 import Header from '../components/layout/Header'
+import Avatar from '../components/layout/Avatar'
 import { useAuth } from '../hooks/useAuth'
 
 export default function LandingPage() {
@@ -86,18 +87,16 @@ export default function LandingPage() {
 }
 
 function UserCard({ user }) {
-  const initials = (user.display_name || user.username || '?')[0].toUpperCase()
   return (
     <Link
       to={`/${user.username}`}
       className="group flex flex-col items-center rounded-xl border border-[#1a1a1a] bg-[#111] p-3 text-center transition hover:border-[#333] hover:bg-[#161616] sm:p-4"
     >
-      <div className="mb-2 h-10 w-10 overflow-hidden rounded-full border border-[#2a2a2a] bg-[#1a1a1a] text-center text-base font-bold leading-[40px] text-[#f5a623] sm:mb-3 sm:h-12 sm:w-12 sm:text-lg sm:leading-[48px]">
-        {user.avatar_url
-          ? <img src={user.avatar_url} alt="" className="h-full w-full object-cover" />
-          : initials
-        }
-      </div>
+      <Avatar
+        avatarUrl={user.avatar_url}
+        fallbackLetter={(user.display_name || user.username)?.[0]}
+        className="mb-2 h-10 w-10 rounded-full border border-[#2a2a2a] text-base text-[#f5a623] sm:mb-3 sm:h-12 sm:w-12 sm:text-lg"
+      />
       <p className="line-clamp-1 text-xs font-medium text-white group-hover:text-[#f5a623] transition sm:text-sm">
         {user.display_name || user.username}
       </p>
