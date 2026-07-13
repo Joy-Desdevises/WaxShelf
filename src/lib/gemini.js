@@ -14,7 +14,7 @@ export function generateAnecdote(artist, title, year) {
 async function fetchAnecdote(artist, title, year) {
   console.log('[Groq] Génération pour', artist, title)
   const yearPart = year ? ` (${year})` : ''
-  const prompt = `En UNE phrase très courte (maximum 15 mots), donne une anecdote vraie et surprenante sur l'album "${title}" de ${artist}${yearPart}. Cet album existe réellement et fait partie de la collection de l'utilisateur : ne remets jamais en question son existence, sa date de sortie ou son authenticité. Si tu ne reconnais pas précisément cet album ou cette édition, donne à la place une anecdote vraie sur l'artiste ${artist} en général (sans mentionner que tu ne connais pas l'album). Réponds uniquement avec cette phrase, sans introduction ni guillemets.`
+  const prompt = `En UNE phrase très courte (maximum 15 mots), donne une anecdote vraie et surprenante sur l'album "${title}" de ${artist}${yearPart}. Priorité absolue : une anecdote spécifique à CET album précis (enregistrement, sortie, réception critique, un titre qui y figure...) — utilise ta meilleure estimation si tu n'es pas sûr à 100%, plutôt que de jouer la sécurité. Cet album existe réellement et fait partie de la collection de l'utilisateur : ne remets jamais en question son existence, sa date de sortie ou son authenticité. Ne bascule sur une anecdote générale à propos de l'artiste ${artist} qu'en tout dernier recours, si tu ne reconnais vraiment aucun élément permettant de parler de cet album précis (sans jamais dire que tu ne le connais pas). Réponds uniquement avec cette phrase, sans introduction ni guillemets.`
 
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
