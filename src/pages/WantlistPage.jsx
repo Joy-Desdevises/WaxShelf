@@ -76,6 +76,16 @@ export default function WantlistPage() {
         if (error) throw error
       }
 
+      // Supprime les envies qui ne sont plus dans la wantlist Discogs
+      // (l'upsert seul ne fait qu'ajouter/mettre à jour, jamais nettoyer).
+      const currentIds = wants.map((w) => w.discogs_id)
+      let deleteQuery = supabase.from('wantlist_items').delete().eq('user_id', user.id)
+      deleteQuery = currentIds.length > 0
+        ? deleteQuery.not('discogs_id', 'in', `(${currentIds.join(',')})`)
+        : deleteQuery
+      const { error: deleteError } = await deleteQuery
+      if (deleteError) throw deleteError
+
       qc.invalidateQueries({ queryKey: ['wantlist', username] })
       showToast('success', `✅ Wantlist synchronisée — ${wants.length} vinyles.`)
     } catch (err) {
