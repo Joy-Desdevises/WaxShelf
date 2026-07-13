@@ -5,10 +5,10 @@ import { supabase } from '../lib/supabase'
 import Header from '../components/layout/Header'
 
 export default function SettingsPage() {
-  const { user, profile, updateProfile, signOut } = useAuth()
+  const { user, profile, loading, updateProfile, signOut } = useAuth()
   const navigate = useNavigate()
 
-  if (!user) {
+  if (!loading && !user) {
     navigate('/')
     return null
   }
@@ -19,12 +19,22 @@ export default function SettingsPage() {
       <main className="mx-auto max-w-2xl px-4 py-10">
         <h1 className="mb-8 text-2xl font-bold text-white">Paramètres</h1>
 
-        <div className="space-y-6">
-          <ProfileSection profile={profile} updateProfile={updateProfile} />
-          <DiscogsSection profile={profile} updateProfile={updateProfile} />
-          <PasswordSection />
-          <DangerSection signOut={signOut} navigate={navigate} />
-        </div>
+        {loading || !profile ? (
+          <div className="space-y-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 animate-pulse rounded-xl bg-[#111]" />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* key força un remount propre si l'utilisateur change (rare, mais sûr) :
+                sans ça, les champs internes resteraient figés sur l'ancien profil. */}
+            <ProfileSection key={profile.id} profile={profile} updateProfile={updateProfile} />
+            <DiscogsSection key={profile.id} profile={profile} updateProfile={updateProfile} />
+            <PasswordSection />
+            <DangerSection signOut={signOut} navigate={navigate} />
+          </div>
+        )}
       </main>
     </div>
   )
