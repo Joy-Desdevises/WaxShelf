@@ -14,6 +14,7 @@
 import { useState } from 'react'
 import { generateAnecdote } from '../../lib/gemini'
 import { formatCurrency } from '../../lib/format'
+import { fetchMasterYear } from '../../lib/discogs'
 import { supabase } from '../../lib/supabase'
 import { useLogPlay } from '../../hooks/usePlayLog'
 
@@ -43,7 +44,11 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
     if (size === 'sm' || anecdote || loading) return
     setLoading(true)
     try {
-      const text = await generateAnecdote(vinyl.artist, vinyl.title, vinyl.year)
+      // vinyl.year est l'année de CE pressage précis (souvent une réédition
+      // tardive) ; master_id référence l'œuvre et donne l'année de sortie
+      // originale, plus pertinente pour une anecdote historique.
+      const originalYear = vinyl.master_id ? await fetchMasterYear(vinyl.master_id) : null
+      const text = await generateAnecdote(vinyl.artist, vinyl.title, originalYear || vinyl.year)
       if (text) {
         setAnecdote(text)
         supabase

@@ -95,8 +95,8 @@ export default function DashboardPage() {
       const BATCH = 50
       for (let i = 0; i < results.length; i += BATCH) {
         await Promise.all(
-          results.slice(i, i + BATCH).map(({ id, country, year, average_value, average_value_currency }) =>
-            supabase.from('vinyl_records').update({ country, year, average_value, average_value_currency }).eq('id', id)
+          results.slice(i, i + BATCH).map(({ id, country, year, average_value, average_value_currency, master_id }) =>
+            supabase.from('vinyl_records').update({ country, year, average_value, average_value_currency, master_id }).eq('id', id)
           )
         )
       }

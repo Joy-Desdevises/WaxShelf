@@ -155,15 +155,20 @@ async function fetchAccountCurrency(client) {
 }
 
 /**
- * Complète pays, année et valeur marché manquants en interrogeant le détail
- * de chaque release. Respecte le rate limit Discogs (~60 req/min). Un échec
- * sur un disque (réseau, rate limit...) laisse ses données existantes intactes
- * plutôt que de les écraser par null.
+ * Complète pays, année, valeur marché et master_id manquants en interrogeant
+ * le détail de chaque release. Respecte le rate limit Discogs (~60 req/min).
+ * Un échec sur un disque (réseau, rate limit...) laisse ses données
+ * existantes intactes plutôt que de les écraser par null.
+ *
+ * master_id référence l'œuvre Discogs (indépendante du pressage) : son année
+ * (/masters/{master_id}) est l'année de sortie originale de l'album, utile
+ * partout où year (celle de ce pressage précis, potentiellement une
+ * réédition tardive) prêterait à confusion — voir fetchMasterYear.
  *
  * @param {string} token
  * @param {Array} records - tableau de { id, discogs_id, year }
  * @param {function} onProgress - callback(done, total)
- * @returns {Promise<Array>} - tableau de { id, country, year, average_value, average_value_currency }
+ * @returns {Promise<Array>} - tableau de { id, country, year, average_value, average_value_currency, master_id }
  */
 export async function enrichCollectionMetadata(token, records, onProgress) {
   const client = createDiscogsClient(token)
@@ -181,6 +186,7 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
         year: data.year || record.year || null,
         average_value: typeof data.lowest_price === 'number' ? data.lowest_price : null,
         average_value_currency: currency,
+        master_id: data.master_id || null,
       })
     } catch {
       // échec réseau/rate-limit : on laisse les données existantes intactes
@@ -192,4 +198,20 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
   }
 
   return results
+}
+
+/**
+ * Récupère l'année de sortie originale de l'album via son master Discogs.
+ * Endpoint public, ne nécessite pas de token.
+ */
+export async function fetchMasterYear(masterId) {
+  if (!masterId) return null
+  try {
+    const { data } = await axios.get(`${BASE_URL}/masters/${masterId}`, {
+      headers: { 'User-Agent': 'WaxShelf/1.0 +https://waxshelf.app' },
+    })
+    return data.year || null
+  } catch {
+    return null
+  }
 }
