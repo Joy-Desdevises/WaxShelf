@@ -12,6 +12,14 @@ export const AVATAR_PRESETS = [
   { id: 'violin', emoji: '🎻', bg: '#6a4c93' },
   { id: 'piano', emoji: '🎹', bg: '#1d3557' },
   { id: 'note', emoji: '🎵', bg: '#d62828' },
+  // Variantes vinyle, mêmes disques, autres couleurs de fond
+  { id: 'vinyl-red', emoji: '📀', bg: '#c1121f' },
+  { id: 'vinyl-blue', emoji: '📀', bg: '#1d4ed8' },
+  { id: 'vinyl-green', emoji: '📀', bg: '#2b9348' },
+  { id: 'vinyl-purple', emoji: '📀', bg: '#7c3aed' },
+  { id: 'vinyl-pink', emoji: '📀', bg: '#db2777' },
+  { id: 'vinyl-teal', emoji: '📀', bg: '#0d9488' },
+  { id: 'vinyl-dark', emoji: '📀', bg: '#27272a' },
 ]
 
 const PRESET_PREFIX = 'preset:'

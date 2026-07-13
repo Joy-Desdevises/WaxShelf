@@ -52,6 +52,7 @@ function ProfileSection({ profile, updateProfile }) {
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState(null)
   const [avatarSaving, setAvatarSaving] = useState(false)
+  const [avatarError, setAvatarError] = useState(null)
 
   async function handleSave() {
     setSaving(true)
@@ -63,9 +64,41 @@ function ProfileSection({ profile, updateProfile }) {
   }
 
   async function handleSelectAvatar(avatarUrl) {
+    setAvatarError(null)
     setAvatarSaving(true)
     await updateProfile({ avatar_url: avatarUrl })
     setAvatarSaving(false)
+  }
+
+  async function handleUploadPhoto(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarError('Image trop lourde (2 Mo maximum).')
+      e.target.value = ''
+      return
+    }
+
+    setAvatarError(null)
+    setAvatarSaving(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${profile.id}/avatar.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true, cacheControl: '3600' })
+      if (uploadError) throw uploadError
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+      // Cache-bust : même chemin réutilisé à chaque upload (upsert), sans ça
+      // le navigateur pourrait continuer d'afficher l'ancienne photo en cache.
+      const { error: saveError } = await updateProfile({ avatar_url: `${data.publicUrl}?t=${Date.now()}` })
+      if (saveError) throw saveError
+    } catch (err) {
+      setAvatarError(err.message)
+    }
+    setAvatarSaving(false)
+    e.target.value = ''
   }
 
   return (
@@ -105,7 +138,23 @@ function ProfileSection({ profile, updateProfile }) {
                 </button>
               )
             })}
+            <label
+              title="Importer une photo (2 Mo max)"
+              className={`flex h-11 w-11 items-center justify-center rounded-full border-2 border-dashed border-[#333] text-base text-[#888] transition hover:border-[#f5a623] hover:text-[#f5a623] ${
+                avatarSaving ? 'pointer-events-none opacity-50' : 'cursor-pointer'
+              }`}
+            >
+              📤
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={handleUploadPhoto}
+                disabled={avatarSaving}
+                className="hidden"
+              />
+            </label>
           </div>
+          {avatarError && <p className="mt-2 text-xs text-red-400">{avatarError}</p>}
         </div>
         <Field label="Nom d'affichage" value={displayName} onChange={setDisplayName} placeholder="Ton nom public" />
         <Field
