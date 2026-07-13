@@ -201,7 +201,7 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
       const { data } = await client.get(`/releases/${record.discogs_id}`, { params: { curr_abbr: currency } })
       const price = extractLowestPrice(data.lowest_price, currency)
       const masterId = data.master_id || null
-      const originalYear = await fetchMasterYear(masterId)
+      const originalYear = await fetchMasterYear(client, masterId)
       results.push({
         id: record.id,
         country: data.country || null,
@@ -226,13 +226,13 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
     }
     onProgress?.(i + 1, withDiscogs.length)
     if (i < withDiscogs.length - 1) {
-      // Chaque itération fait 2 requêtes vers 2 quotas séparés : /releases (avec
-      // token, 60 req/min) et /masters pour l'année d'album (anonyme, ~25
-      // req/min seulement). C'est ce deuxième quota, bien plus strict, qui
-      // dimensionne le délai — sinon la plupart des appels /masters se font
-      // rate-limiter en silence et original_year reste vide pour presque tout
-      // le monde. 2600ms ~ 23 req/min, marge confortable sous 25/min.
-      await new Promise((r) => setTimeout(r, 2600))
+      // /masters n'exige pas de token, mais y en envoyer un le fait basculer
+      // du quota anonyme (~25 req/min, partagé par IP — et bloqué par la
+      // protection anti-bot après un gros volume de tests) vers le même
+      // quota authentifié que /releases (60 req/min, lié au compte). Les 2
+      // requêtes par itération partagent donc désormais un seul budget.
+      // 2200ms ~ 27 itérations/min = ~55 req/min, marge sous 60/min.
+      await new Promise((r) => setTimeout(r, 2200))
     }
   }
 
@@ -241,14 +241,13 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
 
 /**
  * Récupère l'année de sortie originale de l'album via son master Discogs.
- * Endpoint public, ne nécessite pas de token.
+ * Authentifiée avec le même client que le reste de l'enrichissement (voir
+ * commentaire sur le quota partagé dans enrichCollectionMetadata).
  */
-export async function fetchMasterYear(masterId) {
+async function fetchMasterYear(client, masterId) {
   if (!masterId) return null
   try {
-    const { data } = await axios.get(`${BASE_URL}/masters/${masterId}`, {
-      headers: { 'User-Agent': 'WaxShelf/1.0 +https://waxshelf.app' },
-    })
+    const { data } = await client.get(`/masters/${masterId}`)
     return data.year || null
   } catch (err) {
     console.error('[Discogs] Échec récupération master', masterId, ':', err.response?.status, err.response?.data || err.message)
