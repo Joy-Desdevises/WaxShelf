@@ -34,7 +34,7 @@ export default function SettingsPage() {
             <ProfileSection key={profile.id} profile={profile} updateProfile={updateProfile} />
             <DiscogsSection key={profile.id} profile={profile} updateProfile={updateProfile} />
             <PasswordSection />
-            <DangerSection signOut={signOut} navigate={navigate} />
+            <DangerSection signOut={signOut} navigate={navigate} profile={profile} />
           </div>
         )}
       </main>
@@ -311,20 +311,88 @@ function PasswordSection() {
 
 // ── Section Danger ─────────────────────────────────────────────────────────
 
-function DangerSection({ signOut, navigate }) {
+function DangerSection({ signOut, navigate, profile }) {
   async function handleSignOut() {
     await signOut()
     navigate('/')
   }
 
   return (
-    <Card title="Session">
-      <button
-        onClick={handleSignOut}
-        className="rounded-lg border border-red-500/30 px-5 py-2.5 text-sm text-red-400 transition hover:border-red-500/60 hover:bg-red-500/10"
-      >
-        Se déconnecter
-      </button>
+    <>
+      <Card title="Session">
+        <button
+          onClick={handleSignOut}
+          className="rounded-lg border border-red-500/30 px-5 py-2.5 text-sm text-red-400 transition hover:border-red-500/60 hover:bg-red-500/10"
+        >
+          Se déconnecter
+        </button>
+      </Card>
+      <DeleteAccountSection username={profile?.username} signOut={signOut} navigate={navigate} />
+    </>
+  )
+}
+
+// ── Section suppression de compte ────────────────────────────────────────────
+
+function DeleteAccountSection({ username, signOut, navigate }) {
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleDelete() {
+    setDeleting(true)
+    setError('')
+    const { error: err } = await supabase.functions.invoke('delete-account')
+    if (err) {
+      setError('Erreur lors de la suppression. Réessaie ou contacte le support.')
+      setDeleting(false)
+      return
+    }
+    await signOut()
+    navigate('/')
+  }
+
+  return (
+    <Card title="Zone de danger">
+      {!showConfirm ? (
+        <button
+          onClick={() => setShowConfirm(true)}
+          className="rounded-lg border border-red-500/30 px-5 py-2.5 text-sm text-red-400 transition hover:border-red-500/60 hover:bg-red-500/10"
+        >
+          Supprimer mon compte
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-red-400">
+            Action irréversible : ta collection, tes commentaires, likes et abonnements seront supprimés définitivement.
+            Tape <strong className="text-white">{username}</strong> pour confirmer.
+          </p>
+          <input
+            type="text"
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder={username}
+            className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#888] outline-none focus:border-red-500 transition"
+          />
+          {error && <p className="text-sm text-red-400">{error}</p>}
+          <div className="flex gap-2">
+            <button
+              onClick={handleDelete}
+              disabled={confirmText !== username || deleting}
+              className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-red-500 disabled:opacity-40"
+            >
+              {deleting ? 'Suppression…' : 'Confirmer la suppression'}
+            </button>
+            <button
+              onClick={() => { setShowConfirm(false); setConfirmText(''); setError('') }}
+              className="rounded-lg px-5 py-2.5 text-sm text-[#999] transition hover:text-white"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      )}
     </Card>
   )
 }
