@@ -149,9 +149,24 @@ async function fetchAccountCurrency(client) {
     const { data: identity } = await client.get('/oauth/identity')
     const { data: user } = await client.get(`/users/${identity.username}`)
     return user.curr_abbr || 'USD'
-  } catch {
+  } catch (err) {
+    console.error('[Discogs] Échec récupération devise du compte, repli sur USD:', err.response?.status, err.response?.data || err.message)
     return 'USD'
   }
+}
+
+// lowest_price peut être un nombre brut (observé en public/non-authentifié)
+// ou un objet { value, currency } (observé sur d'autres endpoints Discogs) —
+// on gère les deux formes plutôt que de supposer laquelle un compte donné
+// recevra.
+function extractLowestPrice(lowestPrice, fallbackCurrency) {
+  if (typeof lowestPrice === 'number') {
+    return { value: lowestPrice, currency: fallbackCurrency }
+  }
+  if (lowestPrice && typeof lowestPrice.value === 'number') {
+    return { value: lowestPrice.value, currency: lowestPrice.currency || fallbackCurrency }
+  }
+  return { value: null, currency: null }
 }
 
 /**
@@ -180,16 +195,18 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
     const record = withDiscogs[i]
     try {
       const { data } = await client.get(`/releases/${record.discogs_id}`, { params: { curr_abbr: currency } })
+      const price = extractLowestPrice(data.lowest_price, currency)
       results.push({
         id: record.id,
         country: data.country || null,
         year: data.year || record.year || null,
-        average_value: typeof data.lowest_price === 'number' ? data.lowest_price : null,
-        average_value_currency: currency,
+        average_value: price.value,
+        average_value_currency: price.currency,
         master_id: data.master_id || null,
       })
-    } catch {
+    } catch (err) {
       // échec réseau/rate-limit : on laisse les données existantes intactes
+      console.error('[Discogs] Échec enrichissement release', record.discogs_id, ':', err.response?.status, err.response?.data || err.message)
     }
     onProgress?.(i + 1, withDiscogs.length)
     if (i < withDiscogs.length - 1) {
