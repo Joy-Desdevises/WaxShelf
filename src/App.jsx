@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage'
 import WantlistPage from './pages/WantlistPage'
 import SettingsPage from './pages/SettingsPage'
 import JournalPage from './pages/JournalPage'
+import Footer from './components/layout/Footer'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         {/* Journal d'écoute */}
         <Route path="/:username/journal" element={<JournalPage />} />
       </Routes>
+      <Footer />
     </BrowserRouter>
   )
 }

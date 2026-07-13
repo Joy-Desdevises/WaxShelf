@@ -29,14 +29,19 @@ const STEPS = [
     title: 'Ton nom d\'utilisateur Discogs',
     description: null,
   },
+  {
+    title: 'Visibilité de ta collection',
+    description: null,
+  },
 ]
 
 export default function DiscogsTokenModal({ onClose, onSuccess }) {
-  const { updateProfile } = useAuth()
+  const { profile, updateProfile } = useAuth()
   const [step, setStep] = useState(0)
   const [token, setToken] = useState('')
   const [showToken, setShowToken] = useState(false)
   const [discogsUsername, setDiscogsUsername] = useState('')
+  const [isPublic, setIsPublic] = useState(profile?.is_public ?? true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -52,6 +57,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
     const { error: err } = await updateProfile({
       discogs_token: cleanToken,
       discogs_username: cleanUsername,
+      is_public: isPublic,
     })
     setSaving(false)
     if (err) {
@@ -149,6 +155,30 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
                 onChange={(e) => setDiscogsUsername(e.target.value)}
                 className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none focus:border-[#f5a623] transition"
               />
+            </div>
+          )}
+
+          {/* Étape 3 — Visibilité */}
+          {step === 3 && (
+            <div>
+              <p className="mb-4 text-sm text-[#888]">
+                Une fois synchronisée, ta collection sera visible à l'adresse{' '}
+                <span className="text-white">waxshelf.app/{profile?.username || 'ton-pseudo'}</span>.
+                Tu peux changer ce choix à tout moment depuis Paramètres.
+              </p>
+              <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#333] bg-[#0a0a0a] p-3">
+                <div
+                  onClick={() => setIsPublic((v) => !v)}
+                  className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${isPublic ? 'bg-[#f5a623]' : 'bg-[#333]'}`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isPublic ? 'translate-x-5' : 'translate-x-0.5'}`}
+                  />
+                </div>
+                <span className="text-sm text-white">
+                  {isPublic ? 'Collection publique — visible par tous' : 'Collection privée — visible uniquement par toi'}
+                </span>
+              </label>
             </div>
           )}
 
