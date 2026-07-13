@@ -1,16 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { fetchWantlist } from '../lib/discogs'
+import { useProfileByUsername } from './useProfile'
 
 export function useWantlistItems(username) {
-  const { data: profileData } = useQuery({
-    queryKey: ['profile', username],
-    queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id').eq('username', username).single()
-      return data
-    },
-    enabled: !!username,
-  })
+  const { data: profileData } = useProfileByUsername(username)
 
   return useQuery({
     queryKey: ['wantlist', username],

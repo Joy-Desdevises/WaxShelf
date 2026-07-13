@@ -1,10 +1,13 @@
 import { useState, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import Header from '../components/layout/Header'
+import Avatar from '../components/layout/Avatar'
 import VinylGrid from '../components/vinyl/VinylGrid'
 import VinylDetailModal from '../components/vinyl/VinylDetailModal'
 import { useAuth } from '../hooks/useAuth'
 import { useCollectionByUsername } from '../hooks/useCollection'
+import { useProfileByUsername } from '../hooks/useProfile'
+import { useFollowCounts, useIsFollowing, useToggleFollow, useFollowList } from '../hooks/useFollows'
 import { supabase } from '../lib/supabase'
 import { searchDiscogs } from '../lib/discogs'
 
@@ -35,6 +38,10 @@ export default function CollectionPage() {
   const isOwner = user && profile?.username === username
 
   const { data: collection = [], isLoading, refetch } = useCollectionByUsername(username)
+  const { data: viewedProfile } = useProfileByUsername(username)
+  const { data: followCounts } = useFollowCounts(viewedProfile?.id)
+  const { data: isFollowing } = useIsFollowing(user?.id, viewedProfile?.id)
+  const toggleFollow = useToggleFollow()
 
   const [search, setSearch] = useState('')
   const [filterGenre, setFilterGenre] = useState('')
@@ -44,6 +51,12 @@ export default function CollectionPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [showAddSearch, setShowAddSearch] = useState(false)
   const [selectedVinyl, setSelectedVinyl] = useState(null)
+  const [showFollowList, setShowFollowList] = useState(null) // 'followers' | 'following' | null
+
+  function handleToggleFollow() {
+    if (!user || !viewedProfile) return
+    toggleFollow.mutate({ followerId: user.id, followingId: viewedProfile.id, isFollowing: !!isFollowing })
+  }
 
   const decades = useMemo(() => getDecades(collection), [collection])
   const genres = useMemo(() => getGenres(collection), [collection])
@@ -94,6 +107,14 @@ export default function CollectionPage() {
                 · {collection.length} vinyle{collection.length !== 1 ? 's' : ''}
               </span>
             </h1>
+            <div className="mt-1 flex gap-3 text-sm text-[#999]">
+              <button onClick={() => setShowFollowList('followers')} className="hover:text-white hover:underline">
+                <span className="font-semibold text-white">{followCounts?.followers ?? 0}</span> abonnés
+              </button>
+              <button onClick={() => setShowFollowList('following')} className="hover:text-white hover:underline">
+                <span className="font-semibold text-white">{followCounts?.following ?? 0}</span> abonnements
+              </button>
+            </div>
             {hasFilters && (
               <p className="mt-0.5 text-sm text-[#999]">
                 {filtered.length} résultat{filtered.length !== 1 ? 's' : ''}
@@ -101,13 +122,27 @@ export default function CollectionPage() {
             )}
           </div>
 
-          {isOwner && (
+          {isOwner ? (
             <button
               onClick={() => setShowAddSearch(true)}
               className="flex items-center justify-center gap-1 rounded-lg bg-[#f5a623] px-3 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] sm:px-4"
             >
               + Ajouter
             </button>
+          ) : (
+            user && (
+              <button
+                onClick={handleToggleFollow}
+                disabled={toggleFollow.isPending}
+                className={`flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50 sm:px-4 ${
+                  isFollowing
+                    ? 'border border-[#333] text-white hover:border-red-500/50 hover:text-red-400'
+                    : 'bg-[#f5a623] text-black hover:bg-[#fbbf24]'
+                }`}
+              >
+                {isFollowing ? 'Suivi(e) ✓' : '+ Suivre'}
+              </button>
+            )
           )}
         </div>
 
@@ -199,6 +234,14 @@ export default function CollectionPage() {
           onAdded={() => { setShowAddSearch(false); refetch() }}
         />
       )}
+
+      {showFollowList && (
+        <FollowListModal
+          userId={viewedProfile?.id}
+          direction={showFollowList}
+          onClose={() => setShowFollowList(null)}
+        />
+      )}
     </div>
   )
 }
@@ -228,6 +271,52 @@ function SizeBtn({ active, onClick, label, title }) {
     >
       {label}
     </button>
+  )
+}
+
+// ── Modal liste abonnés / abonnements ──────────────────────────────────────
+
+function FollowListModal({ userId, direction, onClose }) {
+  const { data: list = [], isLoading } = useFollowList(userId, direction)
+  const title = direction === 'followers' ? 'Abonnés' : 'Abonnements'
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="relative flex w-full max-h-[70vh] flex-col rounded-t-2xl bg-[#111] shadow-2xl sm:max-h-[80vh] sm:max-w-sm sm:rounded-xl">
+        <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
+        <div className="flex items-center justify-between border-b border-[#222] p-4">
+          <h2 className="font-semibold text-white">{title}</h2>
+          <button onClick={onClose} className="text-[#999] hover:text-white">✕</button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-2">
+          {isLoading ? (
+            <p className="p-4 text-center text-sm text-[#999]">Chargement…</p>
+          ) : list.length === 0 ? (
+            <p className="p-4 text-center text-sm text-[#999]">
+              {direction === 'followers' ? 'Aucun abonné pour le moment.' : "Ne suit personne pour le moment."}
+            </p>
+          ) : (
+            list.map((p) => (
+              <Link
+                key={p.id}
+                to={`/${p.username}`}
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-[#1a1a1a]"
+              >
+                <Avatar avatarUrl={p.avatar_url} fallbackLetter={p.username?.[0]} className="h-9 w-9 rounded-full text-sm text-white" />
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-1 text-sm font-medium text-white">{p.display_name || p.username}</p>
+                  <p className="text-xs text-[#999]">@{p.username}</p>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
   )
 }
 
