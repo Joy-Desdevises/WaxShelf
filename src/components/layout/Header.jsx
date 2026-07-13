@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../hooks/useAuth'
 import { useCollection, useSyncDiscogs } from '../../hooks/useCollection'
+import { useSyncWantlist } from '../../hooks/useWantlist'
 import { supabase } from '../../lib/supabase'
 import { timeAgo } from '../../lib/format'
 import ListenSuggestionModal from '../modals/ListenSuggestionModal'
@@ -21,6 +22,7 @@ export default function Header() {
   const { user, profile, updateProfile, signOut } = useAuth()
   const { data: ownCollection = [] } = useCollection(user?.id)
   const syncMutation = useSyncDiscogs()
+  const wantlistSyncMutation = useSyncWantlist()
   const qc = useQueryClient()
 
   const [showSuggest, setShowSuggest] = useState(false)
@@ -29,6 +31,7 @@ export default function Header() {
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [showDiscogsModal, setShowDiscogsModal] = useState(false)
   const [enrichProgress, setEnrichProgress] = useState(null) // { done, total }
+  const [syncStep, setSyncStep] = useState(null) // 'collection' | 'wantlist'
   const [toast, setToast] = useState(null)
 
   const userMenuRef = useRef(null)
@@ -80,6 +83,7 @@ export default function Header() {
     }
 
     setEnrichProgress(null)
+    setSyncStep('collection')
     try {
       const count = await syncMutation.mutateAsync({
         userId: user.id,
@@ -87,17 +91,27 @@ export default function Header() {
         discogsUsername,
         onEnrichProgress: (done, total) => setEnrichProgress({ done, total }),
       })
-      showToast('success', `✅ Sync terminée — ${count} vinyles importés.`)
       updateProfile({ last_collection_sync_at: new Date().toISOString() })
       // Préfixe partagé par toutes les variantes de requêtes collection
       // (propre utilisateur ou vue publique par pseudo) : peu importe la
       // page actuellement affichée, elle se rafraîchit après le sync.
       qc.invalidateQueries({ queryKey: ['collection'] })
+
+      // Un seul bouton fait aussi la wantlist à la suite : rapide (peu de
+      // pages, pas d'enrichissement par disque), ça ne vaut pas la peine de
+      // faire deux boutons distincts pour ça.
+      setSyncStep('wantlist')
+      setEnrichProgress(null)
+      const wantlistCount = await wantlistSyncMutation.mutateAsync({ userId: user.id, discogsToken, discogsUsername })
+      updateProfile({ last_wantlist_sync_at: new Date().toISOString() })
+
+      showToast('success', `✅ Sync terminée — ${count} vinyles, ${wantlistCount} envies.`)
     } catch (err) {
       const msg = err?.response?.data?.message || err.message || 'Erreur inconnue'
       showToast('error', `Erreur : ${msg}`)
     }
     setEnrichProgress(null)
+    setSyncStep(null)
   }
 
   // Sur les pages sans :username dans l'URL (ex: l'accueil), on retombe
@@ -137,21 +151,23 @@ export default function Header() {
           {/* Actions droite */}
           <div className="flex items-center gap-2">
 
-            {/* Sync Discogs — icône seule sur mobile */}
+            {/* Sync Discogs (collection + wantlist) — icône seule sur mobile */}
             {user && (
               <button
                 onClick={() => handleSync()}
-                disabled={syncMutation.isPending}
+                disabled={syncStep !== null}
                 title={profile?.last_collection_sync_at ? `Dernière sync : ${timeAgo(profile.last_collection_sync_at)}` : undefined}
                 className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#111] px-3 py-1.5 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50 md:px-4"
               >
-                <span className={syncMutation.isPending ? 'animate-spin inline-block' : ''}>🔄</span>
+                <span className={syncStep !== null ? 'animate-spin inline-block' : ''}>🔄</span>
                 <span className="hidden md:inline">
-                  {syncMutation.isPending
+                  {syncStep === 'collection'
                     ? enrichProgress
                       ? `Sync… (${enrichProgress.done}/${enrichProgress.total})`
                       : 'Sync…'
-                    : 'Sync Discogs'}
+                    : syncStep === 'wantlist'
+                      ? 'Wantlist…'
+                      : 'Sync Discogs'}
                 </span>
               </button>
             )}
@@ -228,7 +244,7 @@ export default function Header() {
         </div>
 
         {/* Progression du sync — barre pleine largeur */}
-        {syncMutation.isPending && enrichProgress && (
+        {syncStep === 'collection' && enrichProgress && (
           <div className="h-0.5 w-full overflow-hidden bg-[#1a1a1a]">
             <div
               className="h-full bg-[#f5a623] transition-all"

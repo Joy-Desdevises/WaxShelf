@@ -1,117 +1,27 @@
-import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Header from '../components/layout/Header'
 import { useAuth } from '../hooks/useAuth'
+import { useWantlistItems } from '../hooks/useWantlist'
 import { supabase } from '../lib/supabase'
-import { fetchWantlist } from '../lib/discogs'
 import { timeAgo } from '../lib/format'
 
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
 export default function WantlistPage() {
   const { username } = useParams()
-  const { user, profile, updateProfile } = useAuth()
+  const { user, profile } = useAuth()
   const isOwner = user && profile?.username === username
-  const qc = useQueryClient()
 
-  const [syncing, setSyncing] = useState(false)
-  const [toast, setToast] = useState(null)
-
-  const { data: profileData } = useQuery({
-    queryKey: ['profile', username],
-    queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id').eq('username', username).single()
-      return data
-    },
-    enabled: !!username,
-  })
-
-  const { data: items = [], isLoading } = useQuery({
-    queryKey: ['wantlist', username],
-    queryFn: async () => {
-      if (!profileData?.id) return []
-      const { data, error } = await supabase
-        .from('wantlist_items')
-        .select('*')
-        .eq('user_id', profileData.id)
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      return data
-    },
-    enabled: !!profileData?.id,
-  })
-
-  function showToast(type, message) {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 5000)
-  }
-
-  async function handleSync() {
-    // Récupère le token frais depuis Supabase
-    const { data: prof } = await supabase
-      .from('profiles')
-      .select('discogs_token, discogs_username')
-      .eq('id', user.id)
-      .single()
-
-    if (!prof?.discogs_token) {
-      showToast('error', 'Configure d\'abord ton token Discogs dans les paramètres.')
-      return
-    }
-
-    setSyncing(true)
-    try {
-      const wants = await fetchWantlist(prof.discogs_token, prof.discogs_username)
-
-      // Upsert par lots
-      const records = wants.map((w) => ({ ...w, user_id: user.id }))
-      const BATCH = 100
-      for (let i = 0; i < records.length; i += BATCH) {
-        const { error } = await supabase
-          .from('wantlist_items')
-          .upsert(records.slice(i, i + BATCH), {
-            onConflict: 'user_id,discogs_id',
-            ignoreDuplicates: false,
-          })
-        if (error) throw error
-      }
-
-      // Supprime les envies qui ne sont plus dans la wantlist Discogs
-      // (l'upsert seul ne fait qu'ajouter/mettre à jour, jamais nettoyer).
-      const currentIds = wants.map((w) => w.discogs_id)
-      let deleteQuery = supabase.from('wantlist_items').delete().eq('user_id', user.id)
-      deleteQuery = currentIds.length > 0
-        ? deleteQuery.not('discogs_id', 'in', `(${currentIds.join(',')})`)
-        : deleteQuery
-      const { error: deleteError } = await deleteQuery
-      if (deleteError) throw deleteError
-
-      qc.invalidateQueries({ queryKey: ['wantlist', username] })
-      showToast('success', `✅ Wantlist synchronisée — ${wants.length} vinyles.`)
-      updateProfile({ last_wantlist_sync_at: new Date().toISOString() })
-    } catch (err) {
-      showToast('error', `Erreur : ${err?.response?.data?.message || err.message}`)
-    }
-    setSyncing(false)
-  }
+  const { data: items = [], isLoading, refetch } = useWantlistItems(username)
 
   async function handleRemove(itemId) {
     await supabase.from('wantlist_items').delete().eq('id', itemId)
-    qc.invalidateQueries({ queryKey: ['wantlist', username] })
+    refetch()
   }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       <Header />
-
-      {toast && (
-        <div className={`fixed bottom-6 left-4 right-4 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-xl sm:left-1/2 sm:right-auto sm:w-auto sm:-translate-x-1/2 sm:px-5 ${
-          toast.type === 'success' ? 'bg-green-900/90 text-green-200' : 'bg-red-900/90 text-red-200'
-        }`}>
-          {toast.message}
-        </div>
-      )}
 
       <main className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
@@ -119,20 +29,8 @@ export default function WantlistPage() {
             Wantlist
             <span className="ml-2 text-sm font-normal text-[#999]">· @{username}</span>
           </h1>
-          {isOwner && (
-            <div className="flex flex-col items-end gap-1">
-              <button
-                onClick={handleSync}
-                disabled={syncing}
-                className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-2 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50"
-              >
-                <span className={syncing ? 'animate-spin inline-block' : ''}>🔄</span>
-                {syncing ? 'Sync…' : 'Sync Discogs'}
-              </button>
-              {!syncing && profile?.last_wantlist_sync_at && (
-                <p className="text-[10px] text-[#888]">Dernière sync : {timeAgo(profile.last_wantlist_sync_at)}</p>
-              )}
-            </div>
+          {isOwner && profile?.last_wantlist_sync_at && (
+            <p className="text-[10px] text-[#888]">Dernière sync : {timeAgo(profile.last_wantlist_sync_at)}</p>
           )}
         </div>
 
@@ -148,7 +46,7 @@ export default function WantlistPage() {
             <p className="mt-4 text-[#888]">La wantlist est vide.</p>
             {isOwner && (
               <p className="mt-1 text-sm text-[#999]">
-                Clique sur "Sync Discogs" pour importer tes envies.
+                Clique sur "Sync Discogs" en haut de page pour importer tes envies.
               </p>
             )}
           </div>

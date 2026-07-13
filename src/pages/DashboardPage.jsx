@@ -64,7 +64,7 @@ export default function DashboardPage() {
 
           {isOwner && !isLoading && collection.length > 0 && stats?.withValue < collection.length && (
             <p className="text-xs text-[#999]">
-              {stats?.withValue}/{collection.length} vinyles avec une valeur connue — synchronise depuis le bouton en haut de page pour compléter.
+              {stats?.withValue}/{collection.length} vinyles avec une valeur connue
             </p>
           )}
         </div>
