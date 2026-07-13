@@ -32,24 +32,15 @@ export default function DashboardPage() {
     collection.forEach((v) => v.genres?.forEach((g) => { genreCount[g] = (genreCount[g] || 0) + 1 }))
     const topGenres = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 6)
 
-    // Par décennie : basé sur l'année de sortie ORIGINALE de l'album
-    // (l'époque de la musique), pas sur l'année du pressage possédé.
+    // Par décennie : basé UNIQUEMENT sur l'année de sortie ORIGINALE de
+    // l'album (l'époque de la musique). Un album sans original_year connu
+    // est exclu de cette stat plutôt que de retomber sur l'année du pressage
+    // (qui n'a rien à voir avec l'époque de la musique).
     const decadeCount = {}
     collection.forEach((v) => {
-      const y = v.original_year || v.year
-      if (y) {
-        const d = `${Math.floor(y / 10) * 10}s`
+      if (v.original_year) {
+        const d = `${Math.floor(v.original_year / 10) * 10}s`
         decadeCount[d] = (decadeCount[d] || 0) + 1
-      }
-    })
-
-    // Pressages dans le temps : basé sur l'année DU PRESSAGE que tu possèdes
-    // (réédition tardive éventuelle), distinct de la décennie ci-dessus.
-    const pressingDecadeCount = {}
-    collection.forEach((v) => {
-      if (v.year) {
-        const d = `${Math.floor(v.year / 10) * 10}s`
-        pressingDecadeCount[d] = (pressingDecadeCount[d] || 0) + 1
       }
     })
 
@@ -63,7 +54,7 @@ export default function DashboardPage() {
       .sort((a, b) => Number(b.average_value) - Number(a.average_value))
       .slice(0, 10)
 
-    return { totalValue, currency, withValue: withValue.length, topGenres, decadeCount, pressingDecadeCount, topCountries, topValuable }
+    return { totalValue, currency, withValue: withValue.length, topGenres, decadeCount, topCountries, topValuable }
   }, [collection])
 
   function showToast(type, message) {
@@ -250,18 +241,6 @@ export default function DashboardPage() {
                       <span className="text-[#888]">{country}</span>
                       <span className="font-semibold text-white">{count}</span>
                     </span>
-                  ))}
-                </div>
-              </Card>
-            )}
-
-            {/* ── Pressages dans le temps ── */}
-            {Object.keys(stats.pressingDecadeCount).length > 0 && (
-              <Card title="💿 Vos pressages dans le temps">
-                <p className="-mt-2 mb-3 text-xs text-[#555]">Année du pressage que tu possèdes (peut différer de la sortie originale, ex. réédition)</p>
-                <div className="space-y-3">
-                  {Object.entries(stats.pressingDecadeCount).sort().map(([decade, count]) => (
-                    <Bar key={decade} label={decade} count={count} max={Math.max(...Object.values(stats.pressingDecadeCount))} />
                   ))}
                 </div>
               </Card>

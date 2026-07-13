@@ -138,7 +138,7 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
             {vinyl.original_year && (
               <span className="text-[10px] text-[#999]">{vinyl.original_year}</span>
             )}
-            <span className="text-[9px] text-[#888] italic">Clic pour détails</span>
+            <span className="ml-auto text-[9px] text-[#888] italic">Clic pour détails</span>
           </div>
         </div>
 
