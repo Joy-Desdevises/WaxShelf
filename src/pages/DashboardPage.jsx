@@ -90,13 +90,22 @@ export default function DashboardPage() {
         (done, total) => setProgress({ done, total })
       )
 
+      // Une valeur saisie à la main (value_manual) ne doit jamais être
+      // écrasée par le prix automatique récupéré ici.
+      const manualById = new Map(withDiscogs.map((v) => [v.id, v.value_manual]))
+
       // Mise à jour en base par lots
       const BATCH = 50
       for (let i = 0; i < results.length; i += BATCH) {
         await Promise.all(
-          results.slice(i, i + BATCH).map(({ id, country, year, average_value, average_value_currency, master_id, original_year }) =>
-            supabase.from('vinyl_records').update({ country, year, average_value, average_value_currency, master_id, original_year }).eq('id', id)
-          )
+          results.slice(i, i + BATCH).map(({ id, country, year, average_value, average_value_currency, master_id, original_year }) => {
+            const update = { country, year, master_id, original_year }
+            if (!manualById.get(id)) {
+              update.average_value = average_value
+              update.average_value_currency = average_value_currency
+            }
+            return supabase.from('vinyl_records').update(update).eq('id', id)
+          })
         )
       }
 

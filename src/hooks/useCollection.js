@@ -82,21 +82,30 @@ export function useSyncDiscogs() {
       // manuellement depuis le Dashboard puisqu'elle évolue dans le temps).
       const { data: toEnrich, error: selectError } = await supabase
         .from('vinyl_records')
-        .select('id, discogs_id, year')
+        .select('id, discogs_id, year, value_manual')
         .eq('user_id', userId)
         .not('discogs_id', 'is', null)
         .or('country.is.null,year.is.null,average_value.is.null,master_id.is.null,original_year.is.null')
       if (selectError) throw selectError
 
       if (toEnrich?.length) {
+        // Une valeur saisie à la main (value_manual) ne doit jamais être
+        // écrasée par le prix automatique, même si le disque est retraité
+        // pour une autre donnée manquante (année, master_id...).
+        const manualById = new Map(toEnrich.map((r) => [r.id, r.value_manual]))
         const enriched = await enrichCollectionMetadata(discogsToken, toEnrich, onEnrichProgress)
         const EBATCH = 50
         for (let i = 0; i < enriched.length; i += EBATCH) {
           const chunk = enriched.slice(i, i + EBATCH)
           const results = await Promise.all(
-            chunk.map(({ id, country, year, average_value, average_value_currency, master_id, original_year }) =>
-              supabase.from('vinyl_records').update({ country, year, average_value, average_value_currency, master_id, original_year }).eq('id', id)
-            )
+            chunk.map(({ id, country, year, average_value, average_value_currency, master_id, original_year }) => {
+              const update = { country, year, master_id, original_year }
+              if (!manualById.get(id)) {
+                update.average_value = average_value
+                update.average_value_currency = average_value_currency
+              }
+              return supabase.from('vinyl_records').update(update).eq('id', id)
+            })
           )
           const failed = results.find((r) => r.error)
           if (failed) throw failed.error

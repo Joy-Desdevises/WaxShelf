@@ -86,16 +86,19 @@ export function useComments(vinylId) {
   return { comments, isLoading, addComment, deleteComment }
 }
 
-// ── Rating + Notes (propriétaire) ─────────────────────────────────────────────
+// ── Rating + Notes + Valeur (propriétaire) ────────────────────────────────────
 
 export function useVinylMeta(vinylId) {
   const qc = useQueryClient()
 
   const saveMeta = useMutation({
-    mutationFn: async ({ rating, notes }) => {
+    mutationFn: async ({ rating, notes, average_value, average_value_currency, value_manual }) => {
       const update = {}
       if (rating !== undefined) update.rating = rating
       if (notes !== undefined) update.notes = notes
+      if (average_value !== undefined) update.average_value = average_value
+      if (average_value_currency !== undefined) update.average_value_currency = average_value_currency
+      if (value_manual !== undefined) update.value_manual = value_manual
       const { error } = await supabase
         .from('vinyl_records')
         .update(update)

@@ -22,6 +22,8 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
   const [notesSaved, setNotesSaved] = useState(false)
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [editingValue, setEditingValue] = useState(false)
+  const [valueInput, setValueInput] = useState(vinyl.average_value ?? '')
 
   const hasLiked = likes.some((l) => l.user_id === user?.id)
 
@@ -42,6 +44,21 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
     await saveMeta.mutateAsync({ notes })
     setNotesSaved(true)
     setTimeout(() => setNotesSaved(false), 2000)
+  }
+
+  async function handleSaveValue() {
+    const parsed = valueInput === '' ? null : parseFloat(valueInput)
+    if (parsed === null) {
+      // Champ vidé : on repasse en automatique, le prochain sync remplira à nouveau la valeur.
+      await saveMeta.mutateAsync({ average_value: null, value_manual: false })
+    } else if (!Number.isNaN(parsed)) {
+      await saveMeta.mutateAsync({
+        average_value: parsed,
+        average_value_currency: vinyl.average_value_currency || 'EUR',
+        value_manual: true,
+      })
+    }
+    setEditingValue(false)
   }
 
   async function handleLike() {
@@ -108,10 +125,54 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                 {vinyl.styles?.slice(0, 2).map((s) => <Tag key={s} amber>{s}</Tag>)}
               </div>
 
-              {vinyl.average_value && (
-                <p className="mt-3 text-sm font-medium text-[#f5a623]" title="Prix de l'annonce la moins chère actuellement en vente sur Discogs">
-                  ~{formatCurrency(vinyl.average_value, vinyl.average_value_currency)} <span className="font-normal text-[#888]">(prix mini Discogs)</span>
-                </p>
+              {isOwner && editingValue ? (
+                <div className="mt-3 flex items-center gap-2">
+                  <input
+                    type="number"
+                    step="0.01"
+                    autoFocus
+                    value={valueInput}
+                    onChange={(e) => setValueInput(e.target.value)}
+                    placeholder="Valeur (vide = auto)"
+                    className="w-32 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-2 py-1 text-sm text-white outline-none focus:border-[#f5a623]"
+                  />
+                  <button
+                    onClick={handleSaveValue}
+                    disabled={saveMeta.isPending}
+                    className="rounded-lg bg-[#f5a623] px-3 py-1 text-xs font-medium text-black transition hover:bg-[#fbbf24] disabled:opacity-50"
+                  >
+                    OK
+                  </button>
+                  <button
+                    onClick={() => { setEditingValue(false); setValueInput(vinyl.average_value ?? '') }}
+                    className="text-xs text-[#888] hover:text-white"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              ) : (
+                (vinyl.average_value != null || isOwner) && (
+                  <p className="mt-3 flex items-center gap-2 text-sm font-medium text-[#f5a623]">
+                    {vinyl.average_value != null ? (
+                      <span title={vinyl.value_manual ? 'Valeur saisie manuellement' : "Prix de l'annonce la moins chère actuellement en vente sur Discogs"}>
+                        ~{formatCurrency(vinyl.average_value, vinyl.average_value_currency)}{' '}
+                        <span className="font-normal text-[#888]">
+                          {vinyl.value_manual ? '(saisie manuelle)' : '(prix mini Discogs)'}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="font-normal text-[#888]">Aucune valeur connue</span>
+                    )}
+                    {isOwner && (
+                      <button
+                        onClick={() => setEditingValue(true)}
+                        className="text-xs text-[#888] underline decoration-dotted hover:text-white"
+                      >
+                        modifier
+                      </button>
+                    )}
+                  </p>
+                )
               )}
 
               {/* ── Étoiles (owner = modifiable, sinon lecture seule) ── */}
