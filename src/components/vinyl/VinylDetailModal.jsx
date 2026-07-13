@@ -192,7 +192,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                   </button>
                 ))}
                 {rating > 0 && (
-                  <span className="ml-1 text-xs text-[#555]">{rating}/5</span>
+                  <span className="ml-1 text-xs text-[#999]">{rating}/5</span>
                 )}
               </div>
             </div>
@@ -203,7 +203,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
           {/* ── Notes privées (owner uniquement) ── */}
           {isOwner && (
             <div className="p-5 sm:p-6">
-              <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-[#555]">
+              <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-[#999]">
                 Notes personnelles <span className="normal-case">(privées)</span>
               </h3>
               <textarea
@@ -211,7 +211,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Où tu l'as trouvé, ce qu'il t'évoque…"
                 rows={3}
-                className="w-full resize-none rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2.5 text-sm text-white placeholder-[#444] outline-none focus:border-[#f5a623] transition"
+                className="w-full resize-none rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2.5 text-sm text-white placeholder-[#888] outline-none focus:border-[#f5a623] transition"
               />
               <button
                 onClick={handleSaveNotes}
@@ -233,7 +233,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
               className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition ${
                 hasLiked
                   ? 'border-red-500/50 bg-red-500/10 text-red-400'
-                  : 'border-[#2a2a2a] text-[#555] hover:border-red-500/30 hover:text-red-400'
+                  : 'border-[#2a2a2a] text-[#999] hover:border-red-500/30 hover:text-red-400'
               } disabled:cursor-default disabled:opacity-60`}
             >
               <span className="text-base">{hasLiked ? '❤️' : '🤍'}</span>
@@ -247,7 +247,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                 className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm transition ${
                   justLogged
                     ? 'border-[#f5a623]/50 bg-[#f5a623]/10 text-[#f5a623]'
-                    : 'border-[#2a2a2a] text-[#555] hover:border-[#f5a623]/40 hover:text-[#f5a623]'
+                    : 'border-[#2a2a2a] text-[#999] hover:border-[#f5a623]/40 hover:text-[#f5a623]'
                 } disabled:cursor-default disabled:opacity-60`}
               >
                 <span className="text-base">{justLogged ? '🎵' : '▶'}</span>
@@ -262,13 +262,13 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
             )}
 
             {playCount > 0 && (
-              <span className="text-xs text-[#444]">
+              <span className="text-xs text-[#888]">
                 {playCount} écoute{playCount > 1 ? 's' : ''}
               </span>
             )}
 
             {!user && (
-              <p className="text-xs text-[#555]">Connecte-toi pour interagir</p>
+              <p className="text-xs text-[#999]">Connecte-toi pour interagir</p>
             )}
           </div>
 
@@ -276,7 +276,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
 
           {/* ── Commentaires ── */}
           <div className="p-5 sm:p-6">
-            <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-[#555]">
+            <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-[#999]">
               Commentaires
               {comments.length > 0 && (
                 <span className="ml-2 normal-case text-[#888]">· {comments.length}</span>
@@ -284,7 +284,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
             </h3>
 
             {comments.length === 0 && (
-              <p className="mb-4 text-sm text-[#444]">Aucun commentaire pour l'instant.</p>
+              <p className="mb-4 text-sm text-[#888]">Aucun commentaire pour l'instant.</p>
             )}
 
             <div className="mb-4 space-y-3">
@@ -302,13 +302,13 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                       >
                         @{c.profiles?.username}
                       </Link>
-                      <span className="text-[10px] text-[#444]">
+                      <span className="text-[10px] text-[#888]">
                         {new Date(c.created_at).toLocaleDateString('fr-FR')}
                       </span>
                       {user?.id === c.user_id && (
                         <button
                           onClick={() => deleteComment.mutate(c.id)}
-                          className="ml-auto text-[10px] text-[#444] hover:text-red-400"
+                          className="ml-auto text-[10px] text-[#888] hover:text-red-400"
                         >
                           supprimer
                         </button>
@@ -328,7 +328,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                   onChange={(e) => setComment(e.target.value)}
                   placeholder="Laisser un commentaire…"
                   maxLength={500}
-                  className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm text-white placeholder-[#444] outline-none focus:border-[#f5a623] transition"
+                  className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm text-white placeholder-[#888] outline-none focus:border-[#f5a623] transition"
                 />
                 <button
                   type="submit"
@@ -339,7 +339,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                 </button>
               </form>
             ) : (
-              <p className="text-sm text-[#444]">
+              <p className="text-sm text-[#888]">
                 <button onClick={onClose} className="text-[#f5a623] hover:underline">
                   Connecte-toi
                 </button>{' '}

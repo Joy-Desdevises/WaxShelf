@@ -148,12 +148,12 @@ export default function CollectionPage() {
           <div>
             <h1 className="text-xl font-bold text-white sm:text-2xl">
               {username}
-              <span className="ml-2 text-sm font-normal text-[#555]">
+              <span className="ml-2 text-sm font-normal text-[#999]">
                 · {collection.length} vinyle{collection.length !== 1 ? 's' : ''}
               </span>
             </h1>
             {hasFilters && (
-              <p className="mt-0.5 text-sm text-[#555]">
+              <p className="mt-0.5 text-sm text-[#999]">
                 {filtered.length} résultat{filtered.length !== 1 ? 's' : ''}
               </p>
             )}
@@ -202,16 +202,16 @@ export default function CollectionPage() {
         <div className="mb-4 flex gap-2">
           {/* Recherche — prend tout l'espace */}
           <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#555]">🔍</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]">🔍</span>
             <input
               type="text"
               placeholder="Artiste, titre, style…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-[#222] bg-[#111] py-2.5 pl-10 pr-8 text-sm text-white placeholder-[#444] outline-none focus:border-[#333] transition"
+              className="w-full rounded-lg border border-[#222] bg-[#111] py-2.5 pl-10 pr-8 text-sm text-white placeholder-[#888] outline-none focus:border-[#333] transition"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#555] hover:text-white">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#999] hover:text-white">
                 ✕
               </button>
             )}
@@ -318,7 +318,7 @@ function SizeBtn({ active, onClick, label, title }) {
     <button
       onClick={onClick}
       title={title}
-      className={`rounded-md px-2.5 py-1.5 text-sm transition sm:px-3 ${active ? 'bg-[#f5a623] text-black' : 'text-[#555] hover:text-white'}`}
+      className={`rounded-md px-2.5 py-1.5 text-sm transition sm:px-3 ${active ? 'bg-[#f5a623] text-black' : 'text-[#999] hover:text-white'}`}
     >
       {label}
     </button>
@@ -377,7 +377,7 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
 
         <div className="flex items-center justify-between border-b border-[#222] p-4">
           <h2 className="font-semibold text-white">Ajouter un vinyle</h2>
-          <button onClick={onClose} className="text-[#555] hover:text-white">✕</button>
+          <button onClick={onClose} className="text-[#999] hover:text-white">✕</button>
         </div>
 
         <form onSubmit={handleSearch} className="flex gap-2 p-4">
@@ -386,7 +386,7 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Artiste, titre, label…"
-            className="flex-1 rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#444] outline-none focus:border-[#f5a623] transition"
+            className="flex-1 rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#888] outline-none focus:border-[#f5a623] transition"
           />
           <button
             type="submit"
@@ -407,7 +407,7 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
               <img src={r.thumb_image || PLACEHOLDER} alt="" className="h-12 w-12 flex-shrink-0 rounded object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="line-clamp-1 text-sm font-medium text-white">{r.title}</p>
-                <p className="text-xs text-[#555]">{r.year} · {r.genres?.[0]}</p>
+                <p className="text-xs text-[#999]">{r.year} · {r.genres?.[0]}</p>
               </div>
               <button
                 onClick={() => handleAdd(r)}

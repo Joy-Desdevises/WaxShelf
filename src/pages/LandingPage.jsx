@@ -57,7 +57,7 @@ export default function LandingPage() {
       <section className="mx-auto max-w-7xl px-4 pb-16">
         <h2 className="mb-5 text-lg font-semibold text-white sm:text-xl">
           Collections publiques
-          {!loading && <span className="ml-2 text-sm font-normal text-[#555]">· {users.length}</span>}
+          {!loading && <span className="ml-2 text-sm font-normal text-[#999]">· {users.length}</span>}
         </h2>
 
         {loading ? (
@@ -100,7 +100,7 @@ function UserCard({ user }) {
       <p className="line-clamp-1 text-xs font-medium text-white group-hover:text-[#f5a623] transition sm:text-sm">
         {user.display_name || user.username}
       </p>
-      <p className="mt-0.5 hidden text-xs text-[#555] sm:block">@{user.username}</p>
+      <p className="mt-0.5 hidden text-xs text-[#999] sm:block">@{user.username}</p>
     </Link>
   )
 }

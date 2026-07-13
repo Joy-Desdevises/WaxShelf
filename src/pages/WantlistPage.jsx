@@ -117,7 +117,7 @@ export default function WantlistPage() {
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-xl font-bold text-white sm:text-2xl">
             Wantlist
-            <span className="ml-2 text-sm font-normal text-[#555]">· @{username}</span>
+            <span className="ml-2 text-sm font-normal text-[#999]">· @{username}</span>
           </h1>
           {isOwner && (
             <div className="flex flex-col items-end gap-1">
@@ -147,7 +147,7 @@ export default function WantlistPage() {
             <p className="text-5xl">🎵</p>
             <p className="mt-4 text-[#888]">La wantlist est vide.</p>
             {isOwner && (
-              <p className="mt-1 text-sm text-[#555]">
+              <p className="mt-1 text-sm text-[#999]">
                 Clique sur "Sync Discogs" pour importer tes envies.
               </p>
             )}
@@ -166,7 +166,7 @@ export default function WantlistPage() {
                 />
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-1 font-medium text-white">{item.title}</p>
-                  <p className="text-sm text-[#555]">
+                  <p className="text-sm text-[#999]">
                     {item.artist}{item.year ? ` · ${item.year}` : ''}
                   </p>
                 </div>

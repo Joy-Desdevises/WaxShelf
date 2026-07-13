@@ -74,7 +74,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
       <div className="relative w-full max-w-md rounded-xl bg-[#111] p-6 shadow-2xl">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-[#555] hover:text-white"
+          className="absolute right-4 top-4 text-[#999] hover:text-white"
           aria-label="Fermer"
         >
           ✕
@@ -90,7 +90,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
                     ? 'bg-[#f5a623] text-black'
                     : i === step
                     ? 'border-2 border-[#f5a623] text-[#f5a623]'
-                    : 'border border-[#333] text-[#555]'
+                    : 'border border-[#333] text-[#999]'
                 }`}
               >
                 {i < step ? '✓' : i + 1}
@@ -118,12 +118,12 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
                   placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx"
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
-                  className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 pr-11 text-sm text-white placeholder-[#555] outline-none focus:border-[#f5a623] transition"
+                  className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 pr-11 text-sm text-white placeholder-[#999] outline-none focus:border-[#f5a623] transition"
                 />
                 <button
                   type="button"
                   onClick={() => setShowToken((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#555] hover:text-white transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#999] hover:text-white transition"
                 >
                   {showToken ? '🙈' : '👁️'}
                 </button>
@@ -137,7 +137,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
               <p className="mb-1 text-sm text-[#888]">
                 Ton nom d&apos;utilisateur Discogs (celui affiché sur ton profil) :
               </p>
-              <p className="mb-3 text-xs text-[#555]">
+              <p className="mb-3 text-xs text-[#999]">
                 Attention : c&apos;est sensible à la casse — copie-le exactement depuis{' '}
                 <a
                   href="https://www.discogs.com/my"
@@ -153,7 +153,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
                 placeholder="MonPseudoDiscogs"
                 value={discogsUsername}
                 onChange={(e) => setDiscogsUsername(e.target.value)}
-                className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#555] outline-none focus:border-[#f5a623] transition"
+                className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#999] outline-none focus:border-[#f5a623] transition"
               />
             </div>
           )}
@@ -192,7 +192,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
           <button
             onClick={() => setStep((s) => Math.max(0, s - 1))}
             disabled={step === 0}
-            className="rounded-lg px-4 py-2 text-sm text-[#555] transition hover:text-white disabled:opacity-0"
+            className="rounded-lg px-4 py-2 text-sm text-[#999] transition hover:text-white disabled:opacity-0"
           >
             ← Retour
           </button>

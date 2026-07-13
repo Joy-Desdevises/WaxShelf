@@ -137,7 +137,7 @@ export default function DashboardPage() {
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-xl font-bold text-white sm:text-2xl">
             Statistiques
-            <span className="ml-2 text-sm font-normal text-[#555]">· @{username}</span>
+            <span className="ml-2 text-sm font-normal text-[#999]">· @{username}</span>
           </h1>
 
           {/* Bouton refresh valeurs (owner uniquement) */}
@@ -160,7 +160,7 @@ export default function DashboardPage() {
                 </div>
               )}
               {!refreshing && stats?.withValue < collection.length && (
-                <p className="text-xs text-[#555]">
+                <p className="text-xs text-[#999]">
                   {stats?.withValue}/{collection.length} vinyles avec une valeur connue
                   {collection.filter(v => v.discogs_id).length > 0 &&
                     ` · ~${Math.ceil(collection.filter(v => v.discogs_id).length * 2.6 / 60)} min pour tout actualiser`}
@@ -175,7 +175,7 @@ export default function DashboardPage() {
             {[...Array(4)].map((_, i) => <div key={i} className="h-28 animate-pulse rounded-xl bg-[#111]" />)}
           </div>
         ) : !stats ? (
-          <p className="text-[#555]">Aucune donnée disponible.</p>
+          <p className="text-[#999]">Aucune donnée disponible.</p>
         ) : (
           <div className="space-y-6">
 
@@ -189,15 +189,15 @@ export default function DashboardPage() {
             {/* ── Valeur : top 10 les plus chers ── */}
             {stats.topValuable.length > 0 && (
               <Card title="💰 Les plus précieux">
-                <p className="-mt-2 mb-3 text-xs text-[#555]">Prix de l'annonce la moins chère actuellement en vente sur Discogs (pas une moyenne)</p>
+                <p className="-mt-2 mb-3 text-xs text-[#999]">Prix de l'annonce la moins chère actuellement en vente sur Discogs (pas une moyenne)</p>
                 <div className="space-y-2">
                   {stats.topValuable.map((v, i) => (
                     <div key={v.id} className="flex items-center gap-3">
-                      <span className="w-5 shrink-0 text-right text-xs text-[#444]">{i + 1}</span>
+                      <span className="w-5 shrink-0 text-right text-xs text-[#888]">{i + 1}</span>
                       <img src={v.thumb_image || PLACEHOLDER} alt="" className="h-9 w-9 shrink-0 rounded object-cover" />
                       <div className="min-w-0 flex-1">
                         <p className="line-clamp-1 text-sm text-white">{v.title}</p>
-                        <p className="text-xs text-[#555]">{v.artist}</p>
+                        <p className="text-xs text-[#999]">{v.artist}</p>
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="text-sm font-semibold text-[#f5a623]">~{formatCurrency(v.average_value, v.average_value_currency)}</p>
@@ -231,7 +231,7 @@ export default function DashboardPage() {
 
               {Object.keys(stats.decadeCount).length > 0 && (
                 <Card title="📅 Par décennie">
-                  <p className="-mt-2 mb-3 text-xs text-[#555]">Année de sortie originale des albums</p>
+                  <p className="-mt-2 mb-3 text-xs text-[#999]">Année de sortie originale des albums</p>
                   <div className="space-y-3">
                     {Object.entries(stats.decadeCount).sort().map(([decade, count]) => (
                       <Bar key={decade} label={decade} count={count} max={Math.max(...Object.values(stats.decadeCount))} />

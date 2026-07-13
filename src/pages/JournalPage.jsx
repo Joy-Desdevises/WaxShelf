@@ -49,7 +49,7 @@ export default function JournalPage() {
         {/* ── Titre ── */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold">Journal d'écoute</h1>
-          <p className="mt-1 text-sm text-[#555]">
+          <p className="mt-1 text-sm text-[#999]">
             {isOwner ? "Toutes tes sessions d'écoute" : `Les écoutes de @${username}`}
           </p>
         </div>
@@ -76,7 +76,7 @@ export default function JournalPage() {
         ) : logs.length === 0 ? (
           <div className="rounded-xl border border-[#1a1a1a] bg-[#111] py-16 text-center">
             <p className="text-4xl">🎵</p>
-            <p className="mt-4 text-[#555]">
+            <p className="mt-4 text-[#999]">
               {isOwner
                 ? "Aucune écoute pour l'instant. Ouvre un vinyle et clique sur 'J'écoute ça' !"
                 : "Aucune écoute enregistrée."}
@@ -86,7 +86,7 @@ export default function JournalPage() {
           <div className="space-y-8">
             {grouped.map(({ day, entries }) => (
               <div key={day}>
-                <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#444]">
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#888]">
                   {formatDay(day)}
                 </h2>
                 <div className="space-y-2">
@@ -122,10 +122,10 @@ function LogEntry({ log, isOwner, onDelete, deleting }) {
       />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-white">{v.title}</p>
-        <p className="truncate text-xs text-[#555]">{v.artist}</p>
+        <p className="truncate text-xs text-[#999]">{v.artist}</p>
       </div>
       <div className="flex items-center gap-3">
-        <span className="text-xs text-[#444]">
+        <span className="text-xs text-[#888]">
           {new Date(log.played_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
         </span>
         {isOwner && (
@@ -145,7 +145,7 @@ function LogEntry({ log, isOwner, onDelete, deleting }) {
 function StatCard({ label, value, sub, small }) {
   return (
     <div className="rounded-xl border border-[#1a1a1a] bg-[#111] px-4 py-4">
-      <p className="text-xs text-[#555]">{label}</p>
+      <p className="text-xs text-[#999]">{label}</p>
       <p className={`mt-1 font-bold text-white ${small ? 'truncate text-sm' : 'text-2xl'}`}>
         {value}
       </p>

@@ -62,7 +62,7 @@ export default function ListenSuggestionModal({ collection, onClose }) {
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-[#555] hover:text-white"
+          className="absolute right-4 top-4 text-[#999] hover:text-white"
         >
           ✕
         </button>
@@ -77,7 +77,7 @@ export default function ListenSuggestionModal({ collection, onClose }) {
             </p>
 
             {/* Humeur */}
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#555]">
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#999]">
               Humeur
             </label>
             <div className="mb-4 flex flex-wrap gap-2">
@@ -87,7 +87,7 @@ export default function ListenSuggestionModal({ collection, onClose }) {
             </div>
 
             {/* Durée */}
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#555]">
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#999]">
               Durée disponible
             </label>
             <div className="mb-4 flex flex-wrap gap-2">
@@ -97,7 +97,7 @@ export default function ListenSuggestionModal({ collection, onClose }) {
             </div>
 
             {/* Genre */}
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#555]">
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#999]">
               Genre préféré
             </label>
             <div className="mb-6 flex flex-wrap gap-2">
@@ -151,7 +151,7 @@ function SuggestionResult({ vinyl, onReset, onClose }) {
       </div>
       <p className="text-xl font-bold text-white">{vinyl.title}</p>
       <p className="mt-1 text-[#888]">{vinyl.artist}</p>
-      <div className="mt-2 flex items-center justify-center gap-3 text-sm text-[#555]">
+      <div className="mt-2 flex items-center justify-center gap-3 text-sm text-[#999]">
         {vinyl.year && <span>{vinyl.year}</span>}
         {vinyl.styles?.[0] && <span>· {vinyl.styles[0]}</span>}
         {vinyl.average_value && (

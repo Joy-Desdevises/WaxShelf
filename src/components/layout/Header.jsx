@@ -111,7 +111,7 @@ export default function Header() {
                   <div className="absolute right-0 top-10 z-50 w-52 rounded-xl border border-[#222] bg-[#111] py-1 shadow-2xl">
                     {profile && (
                       <>
-                        <p className="px-4 py-2 text-xs text-[#555]">@{profile.username}</p>
+                        <p className="px-4 py-2 text-xs text-[#999]">@{profile.username}</p>
                         <div className="my-1 border-t border-[#1a1a1a]" />
                         <MenuItem to={`/${profile.username}`} onClick={() => setShowUserMenu(false)}>Ma collection</MenuItem>
                         <MenuItem to={`/${profile.username}/dashboard`} onClick={() => setShowUserMenu(false)}>Statistiques</MenuItem>

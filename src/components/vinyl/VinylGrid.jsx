@@ -26,7 +26,7 @@ export default function VinylGrid({ records = [], size = 'lg', loading = false, 
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <span className="mb-4 text-5xl">🎶</span>
         <p className="text-lg font-medium text-[#888]">Aucun vinyle trouvé</p>
-        <p className="mt-1 text-sm text-[#555]">Essaie d&apos;ajuster les filtres ou synchro ta collection Discogs.</p>
+        <p className="mt-1 text-sm text-[#999]">Essaie d&apos;ajuster les filtres ou synchro ta collection Discogs.</p>
       </div>
     )
   }

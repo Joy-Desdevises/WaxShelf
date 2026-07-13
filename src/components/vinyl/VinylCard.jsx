@@ -112,7 +112,7 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
           {size === 'lg' && (
             <div className="flex flex-1 items-center justify-center py-2">
               {loading ? (
-                <p className="animate-pulse text-center text-[9px] italic text-[#555]">
+                <p className="animate-pulse text-center text-[9px] italic text-[#999]">
                   Génération…
                 </p>
               ) : anecdote ? (
