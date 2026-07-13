@@ -182,7 +182,7 @@ export default function DashboardPage() {
             {/* ── KPIs ── */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <StatCard icon="📀" label="Vinyles" value={collection.length} />
-              <StatCard icon="💰" label="Valeur estimée" sub="prix mini en vente" value={stats.totalValue > 0 ? `~${formatCurrency(Math.round(stats.totalValue), stats.currency)}` : '—'} />
+              <StatCard icon="💰" label="Prix minimum en vente" sub="somme du prix le plus bas trouvé par disque" value={stats.totalValue > 0 ? `~${formatCurrency(Math.round(stats.totalValue), stats.currency)}` : '—'} />
               <StatCard icon="🌍" label="Pays différents" value={Object.keys(stats.decadeCount).length > 0 ? stats.topCountries.length : '—'} />
             </div>
 
@@ -268,8 +268,8 @@ function StatCard({ icon, label, value, sub }) {
     <div className="rounded-xl border border-[#1a1a1a] bg-[#111] p-4 sm:p-5">
       <div className="mb-2 text-xl sm:text-2xl">{icon}</div>
       <p className="text-xl font-bold text-white sm:text-2xl">{value}</p>
-      <p className="mt-0.5 text-xs text-[#555]">{label}</p>
-      {sub && <p className="mt-0.5 text-[10px] text-[#444]">{sub}</p>}
+      <p className="mt-0.5 text-xs text-[#999]">{label}</p>
+      {sub && <p className="mt-0.5 text-[10px] text-[#888]">{sub}</p>}
     </div>
   )
 }
