@@ -139,7 +139,20 @@ export async function fetchWantlist(token, discogsUsername) {
 //
 // average_value représente le prix de l'annonce la moins chère actuellement en
 // vente sur Discogs — pas une moyenne ni une médiane (non exposées par l'API
-// publique sans compte vendeur configuré).
+// publique sans compte vendeur configuré). Sur /releases/{id}, lowest_price est
+// un simple nombre (pas un objet { value, currency } comme sur /marketplace/stats)
+// et ne précise pas sa devise : on la récupère une seule fois via le profil
+// Discogs du token (curr_abbr) et on la fixe explicitement sur chaque requête.
+
+async function fetchAccountCurrency(client) {
+  try {
+    const { data: identity } = await client.get('/oauth/identity')
+    const { data: user } = await client.get(`/users/${identity.username}`)
+    return user.curr_abbr || 'USD'
+  } catch {
+    return 'USD'
+  }
+}
 
 /**
  * Complète pays, année et valeur marché manquants en interrogeant le détail
@@ -154,19 +167,20 @@ export async function fetchWantlist(token, discogsUsername) {
  */
 export async function enrichCollectionMetadata(token, records, onProgress) {
   const client = createDiscogsClient(token)
+  const currency = await fetchAccountCurrency(client)
   const withDiscogs = records.filter((r) => r.discogs_id)
   const results = []
 
   for (let i = 0; i < withDiscogs.length; i++) {
     const record = withDiscogs[i]
     try {
-      const { data } = await client.get(`/releases/${record.discogs_id}`)
+      const { data } = await client.get(`/releases/${record.discogs_id}`, { params: { curr_abbr: currency } })
       results.push({
         id: record.id,
         country: data.country || null,
         year: data.year || record.year || null,
-        average_value: data.lowest_price?.value ?? null,
-        average_value_currency: data.lowest_price?.currency ?? null,
+        average_value: typeof data.lowest_price === 'number' ? data.lowest_price : null,
+        average_value_currency: currency,
       })
     } catch {
       // échec réseau/rate-limit : on laisse les données existantes intactes
