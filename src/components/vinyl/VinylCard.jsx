@@ -133,16 +133,14 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
             </p>
           </div>
 
-          {/* Année(s) + hint clic */}
+          {/* Année (album original, repli sur le pressage) + hint clic */}
           <div className="mt-2 flex items-center justify-between">
-            {(vinyl.year || vinyl.original_year) && (
+            {(vinyl.original_year || vinyl.year) && (
               <span
                 className="text-[10px] text-[#999]"
-                title={vinyl.original_year && vinyl.original_year !== vinyl.year ? 'Album original · pressage' : undefined}
+                title={vinyl.original_year && vinyl.original_year !== vinyl.year ? 'Sortie originale de l\'album (voir la fiche pour le pressage)' : undefined}
               >
-                {size === 'lg' && vinyl.original_year && vinyl.year && vinyl.original_year !== vinyl.year
-                  ? `${vinyl.original_year} · pressage ${vinyl.year}`
-                  : vinyl.original_year || vinyl.year}
+                {vinyl.original_year || vinyl.year}
               </span>
             )}
             <span className="text-[9px] text-[#888] italic">Clic pour détails</span>
