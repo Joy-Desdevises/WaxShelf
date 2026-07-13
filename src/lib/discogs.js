@@ -51,13 +51,14 @@ function normalizeRelease(release) {
     year: info.year || null,
     genres: info.genres || [],
     styles: info.styles || [],
-    // Pas de `country` ici : cet endpoint ne le fournit jamais (absent de
-    // basic_information et des objets `labels`). Il est complété séparément
-    // via enrichCollectionMetadata, sans quoi une valeur déjà connue serait
-    // écrasée par null à chaque resynchronisation.
+    // Pas de `country`, `average_value` (ni sa devise), `master_id` ou
+    // `original_year` ici : cet endpoint ne fournit aucune de ces données
+    // (absentes de basic_information). Elles sont complétées séparément via
+    // enrichCollectionMetadata — les omettre du payload d'upsert est
+    // essentiel, sans quoi chaque resynchronisation écraserait par null des
+    // valeurs déjà connues.
     cover_image: info.cover_image || null,
     thumb_image: info.thumb || null,
-    average_value: null, // sera mis à jour séparément
   }
 }
 
