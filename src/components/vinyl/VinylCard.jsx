@@ -137,7 +137,7 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
           <div className="mt-2 flex items-center justify-between">
             {vinyl.year && (
               <span
-                className="text-[10px] text-[#555]"
+                className="text-[10px] text-[#999]"
                 title={vinyl.original_year && vinyl.original_year !== vinyl.year ? 'Album original · pressage' : undefined}
               >
                 {size === 'lg' && vinyl.original_year && vinyl.original_year !== vinyl.year
@@ -145,7 +145,7 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
                   : vinyl.original_year || vinyl.year}
               </span>
             )}
-            <span className="text-[9px] text-[#444] italic">Clic pour détails</span>
+            <span className="text-[9px] text-[#888] italic">Clic pour détails</span>
           </div>
         </div>
 
