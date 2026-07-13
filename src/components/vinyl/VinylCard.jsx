@@ -14,7 +14,6 @@
 import { useState } from 'react'
 import { generateAnecdote } from '../../lib/gemini'
 import { formatCurrency } from '../../lib/format'
-import { fetchMasterYear } from '../../lib/discogs'
 import { supabase } from '../../lib/supabase'
 import { useLogPlay } from '../../hooks/usePlayLog'
 
@@ -45,10 +44,9 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
     setLoading(true)
     try {
       // vinyl.year est l'année de CE pressage précis (souvent une réédition
-      // tardive) ; master_id référence l'œuvre et donne l'année de sortie
-      // originale, plus pertinente pour une anecdote historique.
-      const originalYear = vinyl.master_id ? await fetchMasterYear(vinyl.master_id) : null
-      const text = await generateAnecdote(vinyl.artist, vinyl.title, originalYear || vinyl.year)
+      // tardive) ; original_year (sortie via master_id) donne l'année de
+      // sortie originale de l'album, plus pertinente pour une anecdote historique.
+      const text = await generateAnecdote(vinyl.artist, vinyl.title, vinyl.original_year || vinyl.year)
       if (text) {
         setAnecdote(text)
         supabase
@@ -135,10 +133,17 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
             </p>
           </div>
 
-          {/* Année + hint clic */}
+          {/* Année(s) + hint clic */}
           <div className="mt-2 flex items-center justify-between">
             {vinyl.year && (
-              <span className="text-[10px] text-[#555]">{vinyl.year}</span>
+              <span
+                className="text-[10px] text-[#555]"
+                title={vinyl.original_year && vinyl.original_year !== vinyl.year ? 'Album original · pressage' : undefined}
+              >
+                {size === 'lg' && vinyl.original_year && vinyl.original_year !== vinyl.year
+                  ? `${vinyl.original_year} · pressage ${vinyl.year}`
+                  : vinyl.original_year || vinyl.year}
+              </span>
             )}
             <span className="text-[9px] text-[#444] italic">Clic pour détails</span>
           </div>

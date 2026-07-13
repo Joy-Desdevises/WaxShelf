@@ -98,7 +98,10 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
               <p className="mt-1 text-sm text-[#888]">{vinyl.artist}</p>
 
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {vinyl.year && <Tag>{vinyl.year}</Tag>}
+                {vinyl.original_year && <Tag title="Sortie originale de l'album">{vinyl.original_year}</Tag>}
+                {vinyl.year && vinyl.year !== vinyl.original_year && (
+                  <Tag title="Année de ce pressage">pressage {vinyl.year}</Tag>
+                )}
                 {vinyl.country && <Tag>{vinyl.country}</Tag>}
                 {vinyl.genres?.slice(0, 2).map((g) => <Tag key={g}>{g}</Tag>)}
                 {vinyl.styles?.slice(0, 2).map((s) => <Tag key={s} amber>{s}</Tag>)}
@@ -288,13 +291,16 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
   )
 }
 
-function Tag({ children, amber }) {
+function Tag({ children, amber, title }) {
   return (
-    <span className={`rounded-full px-2 py-0.5 text-[11px] ${
-      amber
-        ? 'bg-[#f5a623]/15 text-[#f5a623]'
-        : 'bg-[#1a1a1a] text-[#888]'
-    }`}>
+    <span
+      title={title}
+      className={`rounded-full px-2 py-0.5 text-[11px] ${
+        amber
+          ? 'bg-[#f5a623]/15 text-[#f5a623]'
+          : 'bg-[#1a1a1a] text-[#888]'
+      }`}
+    >
       {children}
     </span>
   )

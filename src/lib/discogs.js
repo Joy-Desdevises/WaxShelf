@@ -170,20 +170,22 @@ function extractLowestPrice(lowestPrice, fallbackCurrency) {
 }
 
 /**
- * Complète pays, année, valeur marché et master_id manquants en interrogeant
- * le détail de chaque release. Respecte le rate limit Discogs (~60 req/min).
- * Un échec sur un disque (réseau, rate limit...) laisse ses données
- * existantes intactes plutôt que de les écraser par null.
+ * Complète pays, année, valeur marché, master_id et original_year manquants
+ * en interrogeant le détail de chaque release (+ son master s'il existe).
+ * Respecte le rate limit Discogs (~60 req/min). Un échec sur un disque
+ * (réseau, rate limit...) laisse ses données existantes intactes plutôt que
+ * de les écraser par null.
  *
- * master_id référence l'œuvre Discogs (indépendante du pressage) : son année
- * (/masters/{master_id}) est l'année de sortie originale de l'album, utile
- * partout où year (celle de ce pressage précis, potentiellement une
- * réédition tardive) prêterait à confusion — voir fetchMasterYear.
+ * master_id référence l'œuvre Discogs (indépendante du pressage) ; son année
+ * (/masters/{master_id}, endpoint public, requête séparée du quota
+ * authentifié) est l'année de sortie originale de l'album — original_year —
+ * utile partout où year (celle de ce pressage précis, potentiellement une
+ * réédition tardive) prêterait à confusion.
  *
  * @param {string} token
  * @param {Array} records - tableau de { id, discogs_id, year }
  * @param {function} onProgress - callback(done, total)
- * @returns {Promise<Array>} - tableau de { id, country, year, average_value, average_value_currency, master_id }
+ * @returns {Promise<Array>} - tableau de { id, country, year, average_value, average_value_currency, master_id, original_year }
  */
 export async function enrichCollectionMetadata(token, records, onProgress) {
   const client = createDiscogsClient(token)
@@ -197,13 +199,16 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
     try {
       const { data } = await client.get(`/releases/${record.discogs_id}`, { params: { curr_abbr: currency } })
       const price = extractLowestPrice(data.lowest_price, currency)
+      const masterId = data.master_id || null
+      const originalYear = await fetchMasterYear(masterId)
       results.push({
         id: record.id,
         country: data.country || null,
         year: data.year || record.year || null,
         average_value: price.value,
         average_value_currency: price.currency,
-        master_id: data.master_id || null,
+        master_id: masterId,
+        original_year: originalYear,
       })
       consecutiveFailures = 0
     } catch (err) {

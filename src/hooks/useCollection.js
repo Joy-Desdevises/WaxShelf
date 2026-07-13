@@ -73,19 +73,19 @@ export function useSyncDiscogs() {
         if (error) throw error
       }
 
-      // 3. Compléter automatiquement le pays, l'année, la valeur marché et le
-      // master_id manquants : l'endpoint collection ne fournit rien de tout
-      // ça, seul le détail /releases/{id} les a. On ne retouche que les
-      // vinyles encore incomplets, pour rester rapide sur les
-      // resynchronisations une fois le rattrapage initial fait (la valeur
-      // peut ensuite être rafraîchie manuellement depuis le Dashboard
-      // puisqu'elle évolue dans le temps).
+      // 3. Compléter automatiquement le pays, l'année, la valeur marché, le
+      // master_id et l'année originale de l'album manquants : l'endpoint
+      // collection ne fournit rien de tout ça, seul le détail /releases/{id}
+      // (+ son master) les a. On ne retouche que les vinyles encore
+      // incomplets, pour rester rapide sur les resynchronisations une fois
+      // le rattrapage initial fait (la valeur peut ensuite être rafraîchie
+      // manuellement depuis le Dashboard puisqu'elle évolue dans le temps).
       const { data: toEnrich, error: selectError } = await supabase
         .from('vinyl_records')
         .select('id, discogs_id, year')
         .eq('user_id', userId)
         .not('discogs_id', 'is', null)
-        .or('country.is.null,year.is.null,average_value.is.null,master_id.is.null')
+        .or('country.is.null,year.is.null,average_value.is.null,master_id.is.null,original_year.is.null')
       if (selectError) throw selectError
 
       if (toEnrich?.length) {
@@ -94,8 +94,8 @@ export function useSyncDiscogs() {
         for (let i = 0; i < enriched.length; i += EBATCH) {
           const chunk = enriched.slice(i, i + EBATCH)
           const results = await Promise.all(
-            chunk.map(({ id, country, year, average_value, average_value_currency, master_id }) =>
-              supabase.from('vinyl_records').update({ country, year, average_value, average_value_currency, master_id }).eq('id', id)
+            chunk.map(({ id, country, year, average_value, average_value_currency, master_id, original_year }) =>
+              supabase.from('vinyl_records').update({ country, year, average_value, average_value_currency, master_id, original_year }).eq('id', id)
             )
           )
           const failed = results.find((r) => r.error)

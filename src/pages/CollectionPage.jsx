@@ -9,9 +9,14 @@ import { useCollectionByUsername, useSyncDiscogs } from '../hooks/useCollection'
 import { supabase } from '../lib/supabase'
 import { searchDiscogs } from '../lib/discogs'
 
+// Décennie basée sur l'année de sortie originale de l'album, pas celle du
+// pressage possédé (peut être une réédition tardive) — cf. DashboardPage.
 function getDecades(records) {
   const decades = new Set()
-  records.forEach((r) => { if (r.year) decades.add(Math.floor(r.year / 10) * 10) })
+  records.forEach((r) => {
+    const y = r.original_year || r.year
+    if (y) decades.add(Math.floor(y / 10) * 10)
+  })
   return Array.from(decades).sort((a, b) => a - b)
 }
 function getGenres(records) {
@@ -62,7 +67,7 @@ export default function CollectionPage() {
       }
       if (filterGenre && !v.genres?.includes(filterGenre)) return false
       if (filterDecade) {
-        const decade = Math.floor((v.year || 0) / 10) * 10
+        const decade = Math.floor((v.original_year || v.year || 0) / 10) * 10
         if (decade !== parseInt(filterDecade)) return false
       }
       if (filterCountry && v.country !== filterCountry) return false
