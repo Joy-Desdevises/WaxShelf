@@ -1,24 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
 import Header from '../components/layout/Header'
 import { useCollectionByUsername } from '../hooks/useCollection'
 import { useAuth } from '../hooks/useAuth'
-import { supabase } from '../lib/supabase'
-import { enrichCollectionMetadata } from '../lib/discogs'
 import { formatCurrency } from '../lib/format'
 
 export default function DashboardPage() {
   const { username } = useParams()
   const { user, profile } = useAuth()
   const isOwner = user && profile?.username === username
-  const qc = useQueryClient()
 
   const { data: collection = [], isLoading } = useCollectionByUsername(username)
-
-  const [refreshing, setRefreshing] = useState(false)
-  const [progress, setProgress] = useState(null) // { done, total }
-  const [toast, setToast] = useState(null)
 
   // ── Stats calculées ────────────────────────────────────────────────────────
   const stats = useMemo(() => {
@@ -57,116 +49,23 @@ export default function DashboardPage() {
     return { totalValue, currency, withValue: withValue.length, topGenres, decadeCount, topCountries, topValuable }
   }, [collection])
 
-  function showToast(type, message) {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 6000)
-  }
-
-  async function handleRefreshValues() {
-    const { data: prof } = await supabase
-      .from('profiles')
-      .select('discogs_token')
-      .eq('id', user.id)
-      .single()
-
-    if (!prof?.discogs_token) {
-      showToast('error', 'Configure d\'abord ton token Discogs dans les paramètres.')
-      return
-    }
-
-    const withDiscogs = collection.filter((v) => v.discogs_id)
-    if (withDiscogs.length === 0) {
-      showToast('error', 'Aucun vinyle avec un ID Discogs trouvé.')
-      return
-    }
-
-    setRefreshing(true)
-    setProgress({ done: 0, total: withDiscogs.length })
-
-    try {
-      const results = await enrichCollectionMetadata(
-        prof.discogs_token,
-        withDiscogs,
-        (done, total) => setProgress({ done, total })
-      )
-
-      // Une valeur saisie à la main (value_manual) ne doit jamais être
-      // écrasée par le prix automatique récupéré ici.
-      const manualById = new Map(withDiscogs.map((v) => [v.id, v.value_manual]))
-
-      // Mise à jour en base par lots
-      const BATCH = 50
-      for (let i = 0; i < results.length; i += BATCH) {
-        await Promise.all(
-          results.slice(i, i + BATCH).map(({ id, country, year, average_value, average_value_currency, master_id, original_year }) => {
-            const update = { country, year, master_id, original_year }
-            if (!manualById.get(id)) {
-              update.average_value = average_value
-              update.average_value_currency = average_value_currency
-            }
-            return supabase.from('vinyl_records').update(update).eq('id', id)
-          })
-        )
-      }
-
-      qc.invalidateQueries({ queryKey: ['collection', 'public', username] })
-      showToast('success', `✅ ${results.filter((r) => r.average_value).length} valeurs mises à jour.`)
-    } catch (err) {
-      showToast('error', `Erreur : ${err.message}`)
-    }
-
-    setRefreshing(false)
-    setProgress(null)
-  }
-
   const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       <Header />
 
-      {toast && (
-        <div className={`fixed bottom-6 left-4 right-4 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-xl sm:left-1/2 sm:right-auto sm:w-auto sm:-translate-x-1/2 sm:px-5 ${
-          toast.type === 'success' ? 'bg-green-900/90 text-green-200' : 'bg-red-900/90 text-red-200'
-        }`}>
-          {toast.message}
-        </div>
-      )}
-
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-xl font-bold text-white sm:text-2xl">
             Statistiques
             <span className="ml-2 text-sm font-normal text-[#999]">· @{username}</span>
           </h1>
 
-          {/* Bouton refresh valeurs (owner uniquement) */}
-          {isOwner && !isLoading && collection.length > 0 && (
-            <div className="flex flex-col gap-1">
-              <button
-                onClick={handleRefreshValues}
-                disabled={refreshing}
-                className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#111] px-4 py-2 text-sm text-white transition hover:border-[#f5a623]/50 hover:bg-[#1a1a1a] disabled:opacity-50"
-              >
-                <span className={refreshing ? 'animate-spin inline-block' : ''}>💰</span>
-                {refreshing ? `Récup. valeurs… (${progress?.done}/${progress?.total})` : 'Actualiser les valeurs'}
-              </button>
-              {refreshing && progress && (
-                <div className="h-1 overflow-hidden rounded-full bg-[#1a1a1a]">
-                  <div
-                    className="h-full rounded-full bg-[#f5a623] transition-all"
-                    style={{ width: `${(progress.done / progress.total) * 100}%` }}
-                  />
-                </div>
-              )}
-              {!refreshing && stats?.withValue < collection.length && (
-                <p className="text-xs text-[#999]">
-                  {stats?.withValue}/{collection.length} vinyles avec une valeur connue
-                  {collection.filter(v => v.discogs_id).length > 0 &&
-                    ` · ~${Math.ceil(collection.filter(v => v.discogs_id).length * 2.6 / 60)} min pour tout actualiser`}
-                </p>
-              )}
-            </div>
+          {isOwner && !isLoading && collection.length > 0 && stats?.withValue < collection.length && (
+            <p className="text-xs text-[#999]">
+              {stats?.withValue}/{collection.length} vinyles avec une valeur connue — synchronise depuis le bouton en haut de page pour compléter.
+            </p>
           )}
         </div>
 

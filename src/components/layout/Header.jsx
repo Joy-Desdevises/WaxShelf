@@ -1,25 +1,35 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../hooks/useAuth'
-import { useCollection } from '../../hooks/useCollection'
+import { useCollection, useSyncDiscogs } from '../../hooks/useCollection'
+import { supabase } from '../../lib/supabase'
+import { timeAgo } from '../../lib/format'
 import ListenSuggestionModal from '../modals/ListenSuggestionModal'
 import AuthModal from '../modals/AuthModal'
+import DiscogsTokenModal from '../modals/DiscogsTokenModal'
 import Avatar from './Avatar'
 
-// Header unique, affiché sur toutes les pages : mêmes onglets et même
-// widget "What should I listen to?" partout, basés sur l'utilisateur connecté
-// plutôt que sur la page actuellement affichée.
+// Header unique, affiché sur toutes les pages : mêmes onglets, même widget
+// "What should I listen to?" et même bouton de sync Discogs partout, basés
+// sur l'utilisateur connecté plutôt que sur la page actuellement affichée —
+// synchroniser sa collection ne devrait pas nécessiter d'être sur une page en particulier.
 export default function Header() {
   const { username } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, profile, signOut } = useAuth()
+  const { user, profile, updateProfile, signOut } = useAuth()
   const { data: ownCollection = [] } = useCollection(user?.id)
+  const syncMutation = useSyncDiscogs()
+  const qc = useQueryClient()
 
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [showDiscogsModal, setShowDiscogsModal] = useState(false)
+  const [enrichProgress, setEnrichProgress] = useState(null) // { done, total }
+  const [toast, setToast] = useState(null)
 
   const userMenuRef = useRef(null)
 
@@ -43,6 +53,51 @@ export default function Header() {
   async function handleSignOut() {
     await signOut()
     navigate('/')
+  }
+
+  function showToast(type, message) {
+    setToast({ type, message })
+    setTimeout(() => setToast(null), 5000)
+  }
+
+  async function handleSync(freshValues = null) {
+    let discogsToken = freshValues?.token || profile?.discogs_token
+    let discogsUsername = freshValues?.discogsUsername || profile?.discogs_username
+
+    if (!discogsToken && user?.id) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('discogs_token, discogs_username')
+        .eq('id', user.id)
+        .single()
+      discogsToken = data?.discogs_token
+      discogsUsername = data?.discogs_username
+    }
+
+    if (!discogsToken) {
+      setShowDiscogsModal(true)
+      return
+    }
+
+    setEnrichProgress(null)
+    try {
+      const count = await syncMutation.mutateAsync({
+        userId: user.id,
+        discogsToken,
+        discogsUsername,
+        onEnrichProgress: (done, total) => setEnrichProgress({ done, total }),
+      })
+      showToast('success', `✅ Sync terminée — ${count} vinyles importés.`)
+      updateProfile({ last_collection_sync_at: new Date().toISOString() })
+      // Préfixe partagé par toutes les variantes de requêtes collection
+      // (propre utilisateur ou vue publique par pseudo) : peu importe la
+      // page actuellement affichée, elle se rafraîchit après le sync.
+      qc.invalidateQueries({ queryKey: ['collection'] })
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || 'Erreur inconnue'
+      showToast('error', `Erreur : ${msg}`)
+    }
+    setEnrichProgress(null)
   }
 
   // Sur les pages sans :username dans l'URL (ex: l'accueil), on retombe
@@ -81,6 +136,25 @@ export default function Header() {
 
           {/* Actions droite */}
           <div className="flex items-center gap-2">
+
+            {/* Sync Discogs — icône seule sur mobile */}
+            {user && (
+              <button
+                onClick={() => handleSync()}
+                disabled={syncMutation.isPending}
+                title={profile?.last_collection_sync_at ? `Dernière sync : ${timeAgo(profile.last_collection_sync_at)}` : undefined}
+                className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#111] px-3 py-1.5 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50 md:px-4"
+              >
+                <span className={syncMutation.isPending ? 'animate-spin inline-block' : ''}>🔄</span>
+                <span className="hidden md:inline">
+                  {syncMutation.isPending
+                    ? enrichProgress
+                      ? `Sync… (${enrichProgress.done}/${enrichProgress.total})`
+                      : 'Sync…'
+                    : 'Sync Discogs'}
+                </span>
+              </button>
+            )}
 
             {/* "What should I listen to?" — icône seule sur mobile */}
             {user && ownCollection.length > 0 && (
@@ -153,6 +227,16 @@ export default function Header() {
           </div>
         </div>
 
+        {/* Progression du sync — barre pleine largeur */}
+        {syncMutation.isPending && enrichProgress && (
+          <div className="h-0.5 w-full overflow-hidden bg-[#1a1a1a]">
+            <div
+              className="h-full bg-[#f5a623] transition-all"
+              style={{ width: `${(enrichProgress.done / enrichProgress.total) * 100}%` }}
+            />
+          </div>
+        )}
+
         {/* Menu mobile déroulant */}
         {showMobileMenu && (
           <div className="border-t border-[#222] bg-[#0a0a0a] px-4 pb-4 pt-2 md:hidden">
@@ -171,11 +255,25 @@ export default function Header() {
         )}
       </header>
 
+      {toast && (
+        <div className={`fixed bottom-6 left-4 right-4 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-xl sm:left-1/2 sm:right-auto sm:w-auto sm:-translate-x-1/2 sm:px-5 ${
+          toast.type === 'success' ? 'bg-green-900/90 text-green-200' : 'bg-red-900/90 text-red-200'
+        }`}>
+          {toast.message}
+        </div>
+      )}
+
       {showSuggest && (
         <ListenSuggestionModal collection={ownCollection} onClose={() => setShowSuggest(false)} />
       )}
       {showAuth && (
         <AuthModal onClose={() => setShowAuth(false)} />
+      )}
+      {showDiscogsModal && (
+        <DiscogsTokenModal
+          onClose={() => setShowDiscogsModal(false)}
+          onSuccess={(freshValues) => { setShowDiscogsModal(false); handleSync(freshValues) }}
+        />
       )}
     </>
   )

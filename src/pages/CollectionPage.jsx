@@ -1,14 +1,12 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import Header from '../components/layout/Header'
 import VinylGrid from '../components/vinyl/VinylGrid'
 import VinylDetailModal from '../components/vinyl/VinylDetailModal'
-import DiscogsTokenModal from '../components/modals/DiscogsTokenModal'
 import { useAuth } from '../hooks/useAuth'
-import { useCollectionByUsername, useSyncDiscogs } from '../hooks/useCollection'
+import { useCollectionByUsername } from '../hooks/useCollection'
 import { supabase } from '../lib/supabase'
 import { searchDiscogs } from '../lib/discogs'
-import { timeAgo } from '../lib/format'
 
 // Décennie basée sur l'année de sortie originale de l'album, pas celle du
 // pressage possédé (peut être une réédition tardive) — cf. DashboardPage.
@@ -33,7 +31,7 @@ function getCountries(records) {
 
 export default function CollectionPage() {
   const { username } = useParams()
-  const { user, profile, updateProfile } = useAuth()
+  const { user, profile } = useAuth()
   const isOwner = user && profile?.username === username
 
   const { data: collection = [], isLoading, refetch } = useCollectionByUsername(username)
@@ -44,13 +42,8 @@ export default function CollectionPage() {
   const [filterCountry, setFilterCountry] = useState('')
   const [cardSize, setCardSize] = useState('lg')
   const [showFilters, setShowFilters] = useState(false)
-  const [showDiscogsModal, setShowDiscogsModal] = useState(false)
   const [showAddSearch, setShowAddSearch] = useState(false)
   const [selectedVinyl, setSelectedVinyl] = useState(null)
-  const [toast, setToast] = useState(null)
-  const [enrichProgress, setEnrichProgress] = useState(null) // { done, total }
-
-  const syncMutation = useSyncDiscogs()
 
   const decades = useMemo(() => getDecades(collection), [collection])
   const genres = useMemo(() => getGenres(collection), [collection])
@@ -76,11 +69,6 @@ export default function CollectionPage() {
     })
   }, [collection, search, filterGenre, filterDecade, filterCountry])
 
-  function showToast(type, message) {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 5000)
-  }
-
   function resetFilters() {
     setSearch('')
     setFilterGenre('')
@@ -88,58 +76,12 @@ export default function CollectionPage() {
     setFilterCountry('')
   }
 
-  const handleSync = useCallback(async (freshValues = null) => {
-    let discogsToken = freshValues?.token || profile?.discogs_token
-    let discogsUsername = freshValues?.discogsUsername || profile?.discogs_username
-
-    if (!discogsToken && user?.id) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('discogs_token, discogs_username')
-        .eq('id', user.id)
-        .single()
-      discogsToken = data?.discogs_token
-      discogsUsername = data?.discogs_username
-    }
-
-    if (!discogsToken) {
-      setShowDiscogsModal(true)
-      return
-    }
-
-    setEnrichProgress(null)
-    try {
-      const count = await syncMutation.mutateAsync({
-        userId: user.id,
-        discogsToken,
-        discogsUsername,
-        onEnrichProgress: (done, total) => setEnrichProgress({ done, total }),
-      })
-      showToast('success', `✅ Sync terminée — ${count} vinyles importés.`)
-      updateProfile({ last_collection_sync_at: new Date().toISOString() })
-      refetch()
-    } catch (err) {
-      const msg = err?.response?.data?.message || err.message || 'Erreur inconnue'
-      showToast('error', `Erreur : ${msg}`)
-    }
-    setEnrichProgress(null)
-  }, [profile, user, syncMutation, refetch, updateProfile])
-
   const hasFilters = search || filterGenre || filterDecade || filterCountry
   const activeFilterCount = [filterGenre, filterDecade, filterCountry].filter(Boolean).length
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       <Header />
-
-      {/* Toast */}
-      {toast && (
-        <div className={`fixed bottom-6 left-4 right-4 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-xl sm:left-1/2 sm:right-auto sm:w-auto sm:-translate-x-1/2 sm:px-5 ${
-          toast.type === 'success' ? 'bg-green-900/90 text-green-200' : 'bg-red-900/90 text-red-200'
-        }`}>
-          {toast.message}
-        </div>
-      )}
 
       <main className="mx-auto max-w-7xl px-4 py-6">
 
@@ -160,41 +102,12 @@ export default function CollectionPage() {
           </div>
 
           {isOwner && (
-            <div className="flex flex-col gap-1">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleSync()}
-                  disabled={syncMutation.isPending}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50 sm:flex-none sm:px-4"
-                >
-                  <span className={syncMutation.isPending ? 'animate-spin inline-block' : ''}>🔄</span>
-                  {syncMutation.isPending
-                    ? enrichProgress
-                      ? `Pays/année… (${enrichProgress.done}/${enrichProgress.total})`
-                      : 'Sync…'
-                    : 'Sync Discogs'}
-                </button>
-                <button
-                  onClick={() => setShowAddSearch(true)}
-                  className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#f5a623] px-3 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] sm:flex-none sm:px-4"
-                >
-                  + Ajouter
-                </button>
-              </div>
-              {syncMutation.isPending && enrichProgress && (
-                <div className="h-1 overflow-hidden rounded-full bg-[#1a1a1a]">
-                  <div
-                    className="h-full rounded-full bg-[#f5a623] transition-all"
-                    style={{ width: `${(enrichProgress.done / enrichProgress.total) * 100}%` }}
-                  />
-                </div>
-              )}
-              {!syncMutation.isPending && profile?.last_collection_sync_at && (
-                <p className="text-center text-[10px] text-[#888] sm:text-left">
-                  Dernière sync : {timeAgo(profile.last_collection_sync_at)}
-                </p>
-              )}
-            </div>
+            <button
+              onClick={() => setShowAddSearch(true)}
+              className="flex items-center justify-center gap-1 rounded-lg bg-[#f5a623] px-3 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] sm:px-4"
+            >
+              + Ajouter
+            </button>
           )}
         </div>
 
@@ -269,13 +182,6 @@ export default function CollectionPage() {
           currentUserId={user?.id}
         />
       </main>
-
-      {showDiscogsModal && (
-        <DiscogsTokenModal
-          onClose={() => setShowDiscogsModal(false)}
-          onSuccess={(freshValues) => { setShowDiscogsModal(false); handleSync(freshValues) }}
-        />
-      )}
 
       {selectedVinyl && (
         <VinylDetailModal
