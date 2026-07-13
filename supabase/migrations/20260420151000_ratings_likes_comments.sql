@@ -1,7 +1,6 @@
 -- ============================================================
 -- WaxShelf — Migration v2
 -- Nouvelles fonctionnalités : rating, likes, commentaires
--- À exécuter dans l'éditeur SQL Supabase
 -- ============================================================
 
 -- ── 1. Colonne rating sur vinyl_records ──────────────────────
@@ -22,14 +21,17 @@ create index if not exists vinyl_likes_vinyl_id_idx on public.vinyl_likes(vinyl_
 alter table public.vinyl_likes enable row level security;
 
 -- Tout le monde peut lire (pour afficher le compteur)
+drop policy if exists "likes: lecture publique" on public.vinyl_likes;
 create policy "likes: lecture publique"
   on public.vinyl_likes for select using (true);
 
 -- Seul l'utilisateur peut liker / déliker
+drop policy if exists "likes: insertion" on public.vinyl_likes;
 create policy "likes: insertion"
   on public.vinyl_likes for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "likes: suppression" on public.vinyl_likes;
 create policy "likes: suppression"
   on public.vinyl_likes for delete
   using (auth.uid() = user_id);
@@ -48,15 +50,18 @@ create index if not exists vinyl_comments_vinyl_id_idx on public.vinyl_comments(
 alter table public.vinyl_comments enable row level security;
 
 -- Tout le monde peut lire les commentaires
+drop policy if exists "comments: lecture publique" on public.vinyl_comments;
 create policy "comments: lecture publique"
   on public.vinyl_comments for select using (true);
 
 -- Utilisateur connecté peut commenter
+drop policy if exists "comments: insertion" on public.vinyl_comments;
 create policy "comments: insertion"
   on public.vinyl_comments for insert
   with check (auth.uid() = user_id);
 
 -- Seul l'auteur peut supprimer son commentaire
+drop policy if exists "comments: suppression auteur" on public.vinyl_comments;
 create policy "comments: suppression auteur"
   on public.vinyl_comments for delete
   using (auth.uid() = user_id);

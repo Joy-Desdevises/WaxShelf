@@ -3,7 +3,6 @@
 -- master_id Discogs : permet de retrouver l'année de sortie
 -- originale de l'album (distincte de l'année du pressage possédé),
 -- utilisée pour générer des anecdotes cohérentes avec l'histoire réelle.
--- À exécuter dans l'éditeur SQL Supabase
 -- ============================================================
 
 alter table public.vinyl_records

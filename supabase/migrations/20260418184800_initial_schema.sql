@@ -1,6 +1,5 @@
 -- ============================================================
--- WaxShelf — Schéma Supabase
--- À exécuter dans l'éditeur SQL de ton projet Supabase
+-- WaxShelf — Schéma initial
 -- ============================================================
 
 -- ──────────────────────────────────────────────
@@ -131,11 +130,13 @@ alter table public.wantlist_items enable row level security;
 
 -- ── profiles ──
 -- Lecture : profil public visible par tous | profil privé visible par le propriétaire
+drop policy if exists "profiles: lecture publique" on public.profiles;
 create policy "profiles: lecture publique"
   on public.profiles for select
   using (is_public = true or auth.uid() = id);
 
 -- Modification : uniquement son propre profil
+drop policy if exists "profiles: modification propriétaire" on public.profiles;
 create policy "profiles: modification propriétaire"
   on public.profiles for update
   using (auth.uid() = id);
@@ -145,6 +146,7 @@ create policy "profiles: modification propriétaire"
 
 -- ── vinyl_records ──
 -- Lecture : si le profil du propriétaire est public, ou si c'est le propriétaire
+drop policy if exists "vinyl_records: lecture publique" on public.vinyl_records;
 create policy "vinyl_records: lecture publique"
   on public.vinyl_records for select
   using (
@@ -155,32 +157,39 @@ create policy "vinyl_records: lecture publique"
     )
   );
 
+drop policy if exists "vinyl_records: insertion propriétaire" on public.vinyl_records;
 create policy "vinyl_records: insertion propriétaire"
   on public.vinyl_records for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "vinyl_records: modification propriétaire" on public.vinyl_records;
 create policy "vinyl_records: modification propriétaire"
   on public.vinyl_records for update
   using (auth.uid() = user_id);
 
+drop policy if exists "vinyl_records: suppression propriétaire" on public.vinyl_records;
 create policy "vinyl_records: suppression propriétaire"
   on public.vinyl_records for delete
   using (auth.uid() = user_id);
 
 -- ── wantlist_items ──
 -- La wantlist est privée par défaut (visible uniquement par le propriétaire)
+drop policy if exists "wantlist: lecture propriétaire" on public.wantlist_items;
 create policy "wantlist: lecture propriétaire"
   on public.wantlist_items for select
   using (auth.uid() = user_id);
 
+drop policy if exists "wantlist: insertion propriétaire" on public.wantlist_items;
 create policy "wantlist: insertion propriétaire"
   on public.wantlist_items for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "wantlist: modification propriétaire" on public.wantlist_items;
 create policy "wantlist: modification propriétaire"
   on public.wantlist_items for update
   using (auth.uid() = user_id);
 
+drop policy if exists "wantlist: suppression propriétaire" on public.wantlist_items;
 create policy "wantlist: suppression propriétaire"
   on public.wantlist_items for delete
   using (auth.uid() = user_id);

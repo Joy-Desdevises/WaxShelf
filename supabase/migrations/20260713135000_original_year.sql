@@ -5,7 +5,6 @@
 -- Utilisée pour la répartition "Par décennie" et l'affichage,
 -- afin de refléter l'époque réelle de la musique plutôt que celle
 -- du pressage/de la réédition.
--- À exécuter dans l'éditeur SQL Supabase
 -- ============================================================
 
 alter table public.vinyl_records

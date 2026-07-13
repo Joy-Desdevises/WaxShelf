@@ -18,6 +18,7 @@ create index if not exists play_logs_played_at_idx on public.play_logs(played_at
 alter table public.play_logs enable row level security;
 
 -- Lecture : lecture publique si le profil du propriétaire est public
+drop policy if exists "play_logs: lecture publique" on public.play_logs;
 create policy "play_logs: lecture publique"
   on public.play_logs for select
   using (
@@ -29,11 +30,13 @@ create policy "play_logs: lecture publique"
   );
 
 -- Insert : uniquement soi-même
+drop policy if exists "play_logs: insertion propriétaire" on public.play_logs;
 create policy "play_logs: insertion propriétaire"
   on public.play_logs for insert
   with check (auth.uid() = user_id);
 
 -- Delete : uniquement soi-même
+drop policy if exists "play_logs: suppression propriétaire" on public.play_logs;
 create policy "play_logs: suppression propriétaire"
   on public.play_logs for delete
   using (auth.uid() = user_id);
