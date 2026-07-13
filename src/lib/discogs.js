@@ -226,9 +226,13 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
     }
     onProgress?.(i + 1, withDiscogs.length)
     if (i < withDiscogs.length - 1) {
-      // 1500ms ~ 40 req/min, marge confortable sous la limite Discogs (60/min)
-      // pour absorber les 2 requêtes initiales (devise du compte) sans y coller.
-      await new Promise((r) => setTimeout(r, 1500))
+      // Chaque itération fait 2 requêtes vers 2 quotas séparés : /releases (avec
+      // token, 60 req/min) et /masters pour l'année d'album (anonyme, ~25
+      // req/min seulement). C'est ce deuxième quota, bien plus strict, qui
+      // dimensionne le délai — sinon la plupart des appels /masters se font
+      // rate-limiter en silence et original_year reste vide pour presque tout
+      // le monde. 2600ms ~ 23 req/min, marge confortable sous 25/min.
+      await new Promise((r) => setTimeout(r, 2600))
     }
   }
 
@@ -246,7 +250,8 @@ export async function fetchMasterYear(masterId) {
       headers: { 'User-Agent': 'WaxShelf/1.0 +https://waxshelf.app' },
     })
     return data.year || null
-  } catch {
+  } catch (err) {
+    console.error('[Discogs] Échec récupération master', masterId, ':', err.response?.status, err.response?.data || err.message)
     return null
   }
 }
