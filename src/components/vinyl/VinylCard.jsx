@@ -226,11 +226,11 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
         </button>
       )}
 
-      {/* ── Boutons flip + détails : le survol ne marche pas au tactile, donc
-          on donne un moyen tap-friendly (en plus du swipe) de voir le verso
-          (anecdote/style), et un raccourci direct vers la fiche complète ── */}
+      {/* ── Boutons flip + détails : uniquement sur mobile. Sur desktop, le
+          survol retourne déjà la carte et le curseur indique le clic, ces
+          boutons seraient redondants. ── */}
       {size === 'lg' && (
-        <div className="absolute bottom-1.5 left-1.5 z-10 flex gap-1.5">
+        <div className="absolute bottom-1.5 left-1.5 z-10 flex gap-1.5 md:hidden">
           <button
             onClick={handleToggleFlip}
             title={flipped ? 'Voir la pochette' : "Voir l'anecdote"}
