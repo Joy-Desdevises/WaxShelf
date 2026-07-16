@@ -11,7 +11,7 @@
  *  - currentUserId : id de l'utilisateur connecté (permet de logger une écoute)
  */
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { generateAnecdote } from '../../lib/gemini'
 import { formatCurrency } from '../../lib/format'
 import { supabase } from '../../lib/supabase'
@@ -33,6 +33,11 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
 
   const logPlay = useLogPlay(vinyl.id)
   const [justLogged, setJustLogged] = useState(false)
+
+  // Swipe horizontal tactile = flip, en plus du bouton — geste plus naturel
+  // pour "retourner" un vinyle qu'un tap sur un petit bouton.
+  const touchStartRef = useRef(null)
+  const didSwipeRef = useRef(false)
 
   async function handleLogPlay(e) {
     e.stopPropagation()
@@ -66,6 +71,14 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
     }
   }
 
+  function toggleFlip() {
+    setFlipped((f) => {
+      const next = !f
+      if (next) maybeLoadAnecdote()
+      return next
+    })
+  }
+
   function handleMouseEnter() {
     setFlipped(true)
     maybeLoadAnecdote()
@@ -77,19 +90,49 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
 
   function handleToggleFlip(e) {
     e.stopPropagation()
-    setFlipped((f) => {
-      const next = !f
-      if (next) maybeLoadAnecdote()
-      return next
-    })
+    toggleFlip()
+  }
+
+  function handleShowDetails(e) {
+    e.stopPropagation()
+    onClick?.()
+  }
+
+  function handleTouchStart(e) {
+    const t = e.touches[0]
+    touchStartRef.current = { x: t.clientX, y: t.clientY }
+  }
+
+  function handleTouchEnd(e) {
+    if (!touchStartRef.current) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - touchStartRef.current.x
+    const dy = t.clientY - touchStartRef.current.y
+    touchStartRef.current = null
+    // Swipe surtout horizontal et assez ample pour ne pas confondre avec un
+    // scroll vertical ou un simple tap.
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      didSwipeRef.current = true
+      toggleFlip()
+    }
+  }
+
+  function handleCardClick(e) {
+    if (didSwipeRef.current) {
+      didSwipeRef.current = false
+      return
+    }
+    onClick?.(e)
   }
 
   return (
     <div
       className={`vinyl-card-container relative ${dim} cursor-pointer select-none ${flipped ? 'is-flipped' : ''}`}
-      onClick={onClick}
+      onClick={handleCardClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onClick?.()}
@@ -183,17 +226,28 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
         </button>
       )}
 
-      {/* ── Bouton flip explicite : le survol ne marche pas au tactile, donc on
-          donne un moyen tap-friendly de voir le verso (anecdote/style) ── */}
+      {/* ── Boutons flip + détails : le survol ne marche pas au tactile, donc
+          on donne un moyen tap-friendly (en plus du swipe) de voir le verso
+          (anecdote/style), et un raccourci direct vers la fiche complète ── */}
       {size === 'lg' && (
-        <button
-          onClick={handleToggleFlip}
-          title={flipped ? 'Voir la pochette' : "Voir l'anecdote"}
-          aria-label={flipped ? 'Voir la pochette' : "Voir l'anecdote"}
-          className="absolute bottom-1.5 left-1.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-[#f5a623] backdrop-blur-sm transition hover:bg-[#f5a623] hover:text-black"
-        >
-          <span className="text-xs">{flipped ? '🖼' : 'ℹ'}</span>
-        </button>
+        <div className="absolute bottom-1.5 left-1.5 z-10 flex gap-1.5">
+          <button
+            onClick={handleToggleFlip}
+            title={flipped ? 'Voir la pochette' : "Voir l'anecdote"}
+            aria-label={flipped ? 'Voir la pochette' : "Voir l'anecdote"}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-[#f5a623] backdrop-blur-sm transition hover:bg-[#f5a623] hover:text-black"
+          >
+            <span className="text-xs">{flipped ? '🖼' : '📖'}</span>
+          </button>
+          <button
+            onClick={handleShowDetails}
+            title="Voir tous les détails"
+            aria-label="Voir tous les détails"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-[#f5a623] backdrop-blur-sm transition hover:bg-[#f5a623] hover:text-black"
+          >
+            <span className="text-xs">ℹ</span>
+          </button>
+        </div>
       )}
     </div>
   )
