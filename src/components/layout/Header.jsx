@@ -85,15 +85,19 @@ export default function Header() {
           {/* Actions droite */}
           <div className="flex items-center gap-2">
 
-            {/* Sync Discogs (collection + wantlist) — légende courte sous l'icône sur mobile, texte complet sur desktop */}
+            {/* Sync Discogs (collection + wantlist) — sur mobile, icône dans un
+                cercle + légende dessous (même gabarit que l'avatar) ; sur
+                desktop, pilule icône+texte comme avant */}
             {user && (
               <button
                 onClick={() => handleSync()}
                 disabled={syncStep !== null}
                 title={profile?.last_collection_sync_at ? `Dernière sync : ${timeAgo(profile.last_collection_sync_at)}` : undefined}
-                className="flex flex-col items-center gap-0.5 rounded-lg border border-[#333] bg-[#111] px-2.5 py-1.5 text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50 md:flex-row md:gap-2 md:px-4"
+                className="flex flex-col items-center gap-0.5 disabled:opacity-50 md:flex-row md:gap-2 md:rounded-lg md:border md:border-[#333] md:bg-[#111] md:px-4 md:py-1.5 md:text-white md:transition md:hover:border-[#f5a623]/60 md:hover:bg-[#1a1a1a]"
               >
-                <span className={syncStep !== null ? 'animate-spin inline-block' : ''}>🔄</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#333] bg-[#111] transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] md:h-auto md:w-auto md:rounded-none md:border-0 md:bg-transparent md:hover:border-0 md:hover:bg-transparent">
+                  <span className={syncStep !== null ? 'animate-spin inline-block' : ''}>🔄</span>
+                </span>
                 <span className="text-[9px] leading-none text-[#999] md:hidden">
                   {syncStep === 'collection' ? 'Sync…' : syncStep === 'wantlist' ? 'Wantlist' : 'Sync'}
                 </span>
@@ -109,14 +113,17 @@ export default function Header() {
               </button>
             )}
 
-            {/* "What should I listen to?" — légende courte sous l'icône sur mobile */}
+            {/* "What should I listen to?" — même principe : cercle ambré +
+                légende dessous sur mobile, pilule ambrée pleine sur desktop */}
             {user && ownCollection.length > 0 && (
               <button
                 onClick={() => setShowSuggest(true)}
-                className="flex flex-col items-center gap-0.5 rounded-full bg-[#f5a623] px-2.5 py-1.5 font-medium text-black transition-all hover:bg-[#fbbf24] active:scale-95 md:flex-row md:gap-2 md:px-4"
+                className="flex flex-col items-center gap-0.5 md:flex-row md:gap-2 md:rounded-full md:bg-[#f5a623] md:px-4 md:py-1.5 md:font-medium md:text-black md:transition-all md:hover:bg-[#fbbf24] md:active:scale-95"
               >
-                <span>🎲</span>
-                <span className="text-[9px] leading-none md:hidden">Écouter</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f5a623] transition-all hover:bg-[#fbbf24] active:scale-95 md:h-auto md:w-auto md:rounded-none md:bg-transparent md:hover:bg-transparent md:active:scale-100">
+                  🎲
+                </span>
+                <span className="text-[9px] leading-none text-[#999] md:hidden">Écouter</span>
                 <span className="hidden md:inline md:text-sm">What should I listen to?</span>
               </button>
             )}
