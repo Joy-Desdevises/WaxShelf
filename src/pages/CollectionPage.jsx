@@ -10,6 +10,7 @@ import { useProfileByUsername } from '../hooks/useProfile'
 import { useFollowCounts, useIsFollowing, useToggleFollow, useFollowList } from '../hooks/useFollows'
 import { supabase } from '../lib/supabase'
 import { searchDiscogs } from '../lib/discogs'
+import { timeAgo } from '../lib/format'
 
 // Décennie basée sur l'année de sortie originale de l'album, pas celle du
 // pressage possédé (peut être une réédition tardive) — cf. DashboardPage.
@@ -119,6 +120,9 @@ export default function CollectionPage() {
               <p className="mt-0.5 text-sm text-[#999]">
                 {filtered.length} résultat{filtered.length !== 1 ? 's' : ''}
               </p>
+            )}
+            {isOwner && profile?.last_collection_sync_at && (
+              <p className="mt-0.5 text-[10px] text-[#888]">Dernière sync : {timeAgo(profile.last_collection_sync_at)}</p>
             )}
           </div>
 

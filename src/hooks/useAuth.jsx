@@ -1,7 +1,14 @@
-import { useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-export function useAuth() {
+// Contexte plutôt qu'un simple hook : plusieurs endroits de l'app (header,
+// accueil, wantlist, collection...) lisent et mettent à jour le même profil
+// (ex: last_collection_sync_at après une sync). Avec un hook local, chaque
+// composant aurait son propre état isolé et ne verrait pas les mises à jour
+// faites ailleurs sans recharger la page.
+const AuthContext = createContext(null)
+
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -79,5 +86,15 @@ export function useAuth() {
     return { data, error }
   }
 
-  return { user, profile, loading, passwordRecovery, signIn, signUp, signOut, updateProfile, resetPassword, updatePassword }
+  return (
+    <AuthContext.Provider
+      value={{ user, profile, loading, passwordRecovery, signIn, signUp, signOut, updateProfile, resetPassword, updatePassword }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth() {
+  return useContext(AuthContext)
 }
