@@ -121,33 +121,35 @@ export default function CollectionPage() {
                 {filtered.length} résultat{filtered.length !== 1 ? 's' : ''}
               </p>
             )}
-            {isOwner && profile?.last_collection_sync_at && (
-              <p className="mt-0.5 text-[10px] text-[#888]">Dernière sync : {timeAgo(profile.last_collection_sync_at)}</p>
-            )}
           </div>
 
-          {isOwner ? (
-            <button
-              onClick={() => setShowAddSearch(true)}
-              className="flex items-center justify-center gap-1 rounded-lg bg-[#f5a623] px-3 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] sm:px-4"
-            >
-              + Ajouter
-            </button>
-          ) : (
-            user && (
+          <div className="flex flex-col items-start gap-1 sm:items-end">
+            {isOwner && profile?.last_collection_sync_at && (
+              <p className="text-[10px] text-[#888]">Dernière sync : {timeAgo(profile.last_collection_sync_at)}</p>
+            )}
+            {isOwner ? (
               <button
-                onClick={handleToggleFollow}
-                disabled={toggleFollow.isPending}
-                className={`flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50 sm:px-4 ${
-                  isFollowing
-                    ? 'border border-[#333] text-white hover:border-red-500/50 hover:text-red-400'
-                    : 'bg-[#f5a623] text-black hover:bg-[#fbbf24]'
-                }`}
+                onClick={() => setShowAddSearch(true)}
+                className="flex items-center justify-center gap-1 rounded-lg bg-[#f5a623] px-3 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] sm:px-4"
               >
-                {isFollowing ? 'Suivi(e) ✓' : '+ Suivre'}
+                + Ajouter
               </button>
-            )
-          )}
+            ) : (
+              user && (
+                <button
+                  onClick={handleToggleFollow}
+                  disabled={toggleFollow.isPending}
+                  className={`flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50 sm:px-4 ${
+                    isFollowing
+                      ? 'border border-[#333] text-white hover:border-red-500/50 hover:text-red-400'
+                      : 'bg-[#f5a623] text-black hover:bg-[#fbbf24]'
+                  }`}
+                >
+                  {isFollowing ? 'Suivi(e) ✓' : '+ Suivre'}
+                </button>
+              )
+            )}
+          </div>
         </div>
 
         {/* Barre de recherche + contrôles */}
