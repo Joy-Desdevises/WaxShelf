@@ -219,6 +219,20 @@ function DiscogsSection({ profile, updateProfile }) {
     else setStatus({ type: 'success', msg: 'Connexion Discogs mise à jour ✓' })
   }
 
+  async function handleRemove() {
+    setSaving(true)
+    setStatus(null)
+    const { error } = await updateProfile({ discogs_token: null, discogs_username: null })
+    setSaving(false)
+    if (error) {
+      setStatus({ type: 'error', msg: error.message })
+    } else {
+      setToken('')
+      setDiscogsUsername('')
+      setStatus({ type: 'success', msg: 'Token Discogs supprimé ✓' })
+    }
+  }
+
   return (
     <Card title="Connexion Discogs">
       <p className="mb-4 text-sm text-[#999]">
@@ -263,7 +277,18 @@ function DiscogsSection({ profile, updateProfile }) {
         />
       </div>
       <StatusRow status={status} />
-      <SaveBtn onClick={handleSave} saving={saving} />
+      <div className="flex items-center gap-3">
+        <SaveBtn onClick={handleSave} saving={saving} />
+        {profile?.discogs_token && (
+          <button
+            onClick={handleRemove}
+            disabled={saving}
+            className="mt-5 rounded-lg border border-red-500/30 px-5 py-2.5 text-sm text-red-400 transition hover:border-red-500/60 hover:bg-red-500/10 disabled:opacity-50"
+          >
+            Supprimer le token
+          </button>
+        )}
+      </div>
     </Card>
   )
 }
