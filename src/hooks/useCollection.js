@@ -73,19 +73,19 @@ export function useSyncDiscogs() {
         if (error) throw error
       }
 
-      // 3. Compléter automatiquement le pays, l'année, la valeur marché, le
-      // master_id et l'année originale de l'album manquants : l'endpoint
-      // collection ne fournit rien de tout ça, seul le détail /releases/{id}
-      // (+ son master) les a. On ne retouche que les vinyles encore
-      // incomplets, pour rester rapide sur les resynchronisations une fois
-      // le rattrapage initial fait (la valeur peut ensuite être rafraîchie
-      // manuellement depuis le Dashboard puisqu'elle évolue dans le temps).
+      // 3. Compléter/rafraîchir le pays, l'année, la valeur marché, le
+      // master_id et l'année originale de l'album pour tous les vinyles :
+      // l'endpoint collection ne fournit rien de tout ça, seul le détail
+      // /releases/{id} (+ son master) les a. On revérifie systématiquement
+      // tout le monde à chaque sync (pas seulement les champs manquants),
+      // pour qu'un seul bouton suffise à garder pays/années/valeurs à jour —
+      // la valeur en particulier évolue dans le temps, donc même un disque
+      // déjà complet mérite d'être revérifié.
       const { data: toEnrich, error: selectError } = await supabase
         .from('vinyl_records')
         .select('id, discogs_id, year, value_manual')
         .eq('user_id', userId)
         .not('discogs_id', 'is', null)
-        .or('country.is.null,year.is.null,average_value.is.null,master_id.is.null,original_year.is.null')
       if (selectError) throw selectError
 
       if (toEnrich?.length) {
