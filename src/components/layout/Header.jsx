@@ -9,6 +9,7 @@ import { timeAgo } from '../../lib/format'
 import ListenSuggestionModal from '../modals/ListenSuggestionModal'
 import AuthModal from '../modals/AuthModal'
 import DiscogsTokenModal from '../modals/DiscogsTokenModal'
+import UpdatePasswordModal from '../modals/UpdatePasswordModal'
 import Avatar from './Avatar'
 
 // Header unique, affiché sur toutes les pages : mêmes onglets, même widget
@@ -19,7 +20,7 @@ export default function Header() {
   const { username } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, profile, updateProfile, signOut } = useAuth()
+  const { user, profile, updateProfile, signOut, passwordRecovery } = useAuth()
   const { data: ownCollection = [] } = useCollection(user?.id)
   const syncMutation = useSyncDiscogs()
   const wantlistSyncMutation = useSyncWantlist()
@@ -285,6 +286,7 @@ export default function Header() {
       {showAuth && (
         <AuthModal onClose={() => setShowAuth(false)} />
       )}
+      {passwordRecovery && <UpdatePasswordModal />}
       {showDiscogsModal && (
         <DiscogsTokenModal
           onClose={() => setShowDiscogsModal(false)}

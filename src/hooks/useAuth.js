@@ -5,6 +5,7 @@ export function useAuth() {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [passwordRecovery, setPasswordRecovery] = useState(false)
 
   useEffect(() => {
     // Session initiale
@@ -15,7 +16,8 @@ export function useAuth() {
     })
 
     // Écoute les changements d'auth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true)
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
       else { setProfile(null); setLoading(false) }
@@ -53,6 +55,18 @@ export function useAuth() {
     return supabase.auth.signOut()
   }
 
+  async function resetPassword(email) {
+    return supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/`,
+    })
+  }
+
+  async function updatePassword(password) {
+    const result = await supabase.auth.updateUser({ password })
+    if (!result.error) setPasswordRecovery(false)
+    return result
+  }
+
   async function updateProfile(updates) {
     if (!user) return
     const { data, error } = await supabase
@@ -65,5 +79,5 @@ export function useAuth() {
     return { data, error }
   }
 
-  return { user, profile, loading, signIn, signUp, signOut, updateProfile }
+  return { user, profile, loading, passwordRecovery, signIn, signUp, signOut, updateProfile, resetPassword, updatePassword }
 }

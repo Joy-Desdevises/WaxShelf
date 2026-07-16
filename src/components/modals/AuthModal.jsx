@@ -2,14 +2,20 @@ import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 
 export default function AuthModal({ onClose }) {
-  const { signIn, signUp } = useAuth()
-  const [mode, setMode] = useState('signin') // 'signin' | 'signup'
+  const { signIn, signUp, resetPassword } = useAuth()
+  const [mode, setMode] = useState('signin') // 'signin' | 'signup' | 'reset'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  function switchMode(newMode) {
+    setMode(newMode)
+    setError('')
+    setSuccess('')
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -21,10 +27,14 @@ export default function AuthModal({ onClose }) {
       const { error: err } = await signIn(email, password)
       if (err) setError(err.message)
       else onClose()
-    } else {
+    } else if (mode === 'signup') {
       const { error: err } = await signUp(email, password, username)
       if (err) setError(err.message)
       else setSuccess('Compte créé ! Vérifie ton email pour confirmer ton inscription.')
+    } else {
+      const { error: err } = await resetPassword(email)
+      if (err) setError(err.message)
+      else setSuccess('Un e-mail avec un lien de réinitialisation vient de t’être envoyé.')
     }
     setLoading(false)
   }
@@ -39,7 +49,7 @@ export default function AuthModal({ onClose }) {
         <button onClick={onClose} className="absolute right-4 top-4 text-[#999] hover:text-white">✕</button>
 
         <h2 className="mb-6 text-xl font-semibold text-white">
-          {mode === 'signin' ? 'Connexion' : 'Créer un compte'}
+          {mode === 'signin' ? 'Connexion' : mode === 'signup' ? 'Créer un compte' : 'Mot de passe oublié'}
         </h2>
 
         {success ? (
@@ -64,12 +74,24 @@ export default function AuthModal({ onClose }) {
               placeholder="you@example.com"
               required
             />
-            <PasswordField
-              label="Mot de passe"
-              value={password}
-              onChange={setPassword}
-              required
-            />
+            {mode !== 'reset' && (
+              <PasswordField
+                label="Mot de passe"
+                value={password}
+                onChange={setPassword}
+                required
+              />
+            )}
+
+            {mode === 'signin' && (
+              <button
+                type="button"
+                onClick={() => switchMode('reset')}
+                className="text-sm text-[#999] hover:text-[#f5a623] hover:underline"
+              >
+                J'ai perdu mon mot de passe
+              </button>
+            )}
 
             {error && <p className="text-sm text-red-400">{error}</p>}
 
@@ -78,19 +100,33 @@ export default function AuthModal({ onClose }) {
               disabled={loading}
               className="w-full rounded-lg bg-[#f5a623] py-2.5 font-medium text-black transition hover:bg-[#fbbf24] disabled:opacity-50"
             >
-              {loading ? 'Chargement…' : mode === 'signin' ? 'Se connecter' : 'Créer le compte'}
+              {loading
+                ? 'Chargement…'
+                : mode === 'signin'
+                ? 'Se connecter'
+                : mode === 'signup'
+                ? 'Créer le compte'
+                : 'Envoyer le lien de réinitialisation'}
             </button>
           </form>
         )}
 
         <p className="mt-4 text-center text-sm text-[#999]">
-          {mode === 'signin' ? 'Pas encore de compte ? ' : 'Déjà un compte ? '}
-          <button
-            onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-            className="text-[#f5a623] hover:underline"
-          >
-            {mode === 'signin' ? 'Créer un compte' : 'Se connecter'}
-          </button>
+          {mode === 'reset' ? (
+            <button onClick={() => switchMode('signin')} className="text-[#f5a623] hover:underline">
+              Retour à la connexion
+            </button>
+          ) : (
+            <>
+              {mode === 'signin' ? 'Pas encore de compte ? ' : 'Déjà un compte ? '}
+              <button
+                onClick={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
+                className="text-[#f5a623] hover:underline"
+              >
+                {mode === 'signin' ? 'Créer un compte' : 'Se connecter'}
+              </button>
+            </>
+          )}
         </p>
       </div>
     </div>
