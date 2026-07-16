@@ -1,8 +1,13 @@
-import { useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import Header from '../components/layout/Header'
+import FollowListModal from '../components/modals/FollowListModal'
+import LikedVinylsModal from '../components/modals/LikedVinylsModal'
 import { useCollectionByUsername } from '../hooks/useCollection'
 import { useAuth } from '../hooks/useAuth'
+import { useProfileByUsername } from '../hooks/useProfile'
+import { useFollowCounts } from '../hooks/useFollows'
+import { useMyLikesCount } from '../hooks/useSocial'
 import { formatCurrency } from '../lib/format'
 
 export default function DashboardPage() {
@@ -11,6 +16,12 @@ export default function DashboardPage() {
   const isOwner = user && profile?.username === username
 
   const { data: collection = [], isLoading } = useCollectionByUsername(username)
+  const { data: viewedProfile } = useProfileByUsername(username)
+  const { data: followCounts } = useFollowCounts(viewedProfile?.id)
+  const { data: likesCount } = useMyLikesCount(viewedProfile?.id)
+
+  const [showFollowList, setShowFollowList] = useState(null) // 'followers' | 'following' | null
+  const [showLikes, setShowLikes] = useState(false)
 
   // ── Stats calculées ────────────────────────────────────────────────────────
   const stats = useMemo(() => {
@@ -58,7 +69,7 @@ export default function DashboardPage() {
       <main className="mx-auto max-w-5xl px-4 py-8">
         <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-xl font-bold text-white sm:text-2xl">
-            Statistiques
+            Stat &amp; Social
             <span className="ml-2 text-sm font-normal text-[#999]">· @{username}</span>
           </h1>
 
@@ -67,6 +78,13 @@ export default function DashboardPage() {
               {stats?.withValue}/{collection.length} vinyles avec une valeur connue
             </p>
           )}
+        </div>
+
+        {/* ── Social ── */}
+        <div className="mb-6 grid grid-cols-3 gap-3">
+          <SocialCard icon="👥" label="Abonnés" value={followCounts?.followers ?? 0} onClick={() => setShowFollowList('followers')} />
+          <SocialCard icon="➕" label="Abonnements" value={followCounts?.following ?? 0} onClick={() => setShowFollowList('following')} />
+          <SocialCard icon="❤️" label="Likes donnés" value={likesCount ?? 0} onClick={() => setShowLikes(true)} />
         </div>
 
         {isLoading ? (
@@ -156,11 +174,36 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
+
+      {showFollowList && (
+        <FollowListModal
+          userId={viewedProfile?.id}
+          direction={showFollowList}
+          onClose={() => setShowFollowList(null)}
+        />
+      )}
+
+      {showLikes && (
+        <LikedVinylsModal userId={viewedProfile?.id} onClose={() => setShowLikes(false)} />
+      )}
     </div>
   )
 }
 
 // ── Composants ────────────────────────────────────────────────────────────────
+
+function SocialCard({ icon, label, value, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded-xl border border-[#1a1a1a] bg-[#111] p-4 text-left transition hover:border-[#333] sm:p-5"
+    >
+      <div className="mb-2 text-xl sm:text-2xl">{icon}</div>
+      <p className="text-xl font-bold text-white sm:text-2xl">{value}</p>
+      <p className="mt-0.5 text-xs text-[#999]">{label}</p>
+    </button>
+  )
+}
 
 function StatCard({ icon, label, value, sub }) {
   return (

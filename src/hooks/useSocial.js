@@ -43,6 +43,42 @@ export function useLikes(vinylId) {
   return { likes, toggleLike }
 }
 
+// Compteur léger (HEAD request) pour l'affichage type "Stat & Social" — la
+// liste complète n'est chargée que si l'utilisateur ouvre la modale.
+export function useMyLikesCount(userId) {
+  return useQuery({
+    queryKey: ['my-likes-count', userId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('vinyl_likes')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+      return count || 0
+    },
+    enabled: !!userId,
+  })
+}
+
+// Vinyles likés par userId, avec les infos nécessaires pour les afficher et
+// retrouver le profil propriétaire. Si le propriétaire est repassé en privé
+// entre-temps, la ligne vinyl_records devient invisible via RLS — on la
+// filtre plutôt que d'afficher un like sur un disque fantôme.
+export function useMyLikes(userId, enabled = true) {
+  return useQuery({
+    queryKey: ['my-likes', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('vinyl_likes')
+        .select('id, vinyl_records(id, title, artist, thumb_image, cover_image, profiles(username, display_name))')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data.filter((l) => l.vinyl_records)
+    },
+    enabled: enabled && !!userId,
+  })
+}
+
 // ── Commentaires ──────────────────────────────────────────────────────────────
 
 export function useComments(vinylId) {
