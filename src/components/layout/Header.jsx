@@ -82,8 +82,9 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Actions droite */}
-          <div className="flex items-center gap-2">
+          {/* Actions droite — plus d'écart entre les 3 cercles sur mobile pour
+              des zones de clic bien distinctes, resserré sur desktop */}
+          <div className="flex items-center gap-4 md:gap-2">
 
             {/* Sync Discogs (collection + wantlist) — sur mobile, icône dans un
                 cercle + légende dessous (même gabarit que l'avatar) ; sur
