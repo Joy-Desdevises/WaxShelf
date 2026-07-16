@@ -18,3 +18,13 @@ export function timeAgo(dateStr) {
   if (days === 1) return 'hier'
   return `il y a ${days} jours`
 }
+
+// Formate un timestamp en "JJ/MM/AA à HHhMM".
+export function formatDateTime(dateStr) {
+  if (!dateStr) return null
+  const d = new Date(dateStr)
+  const date = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  return `${date} à ${hours}h${minutes}`
+}

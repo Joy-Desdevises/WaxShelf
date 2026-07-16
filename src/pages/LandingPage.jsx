@@ -7,9 +7,10 @@ import Header from '../components/layout/Header'
 import Avatar from '../components/layout/Avatar'
 import { useAuth } from '../hooks/useAuth'
 import { useDiscogsSync } from '../hooks/useDiscogsSync'
+import { formatDateTime } from '../lib/format'
 
 export default function LandingPage() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const { handleSync, syncStep, enrichProgress, toast, showDiscogsModal, setShowDiscogsModal } = useDiscogsSync()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -47,20 +48,27 @@ export default function LandingPage() {
           ce que tu devrais écouter ce soir.
         </p>
         {user ? (
-          <button
-            onClick={() => handleSync()}
-            disabled={syncStep !== null}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#f5a623] px-6 py-3 font-semibold text-black shadow-lg transition hover:bg-[#fbbf24] hover:scale-105 active:scale-95 disabled:opacity-60 disabled:hover:scale-100 sm:px-8 sm:py-3.5"
-          >
-            <span className={syncStep !== null ? 'animate-spin inline-block' : ''}>🔄</span>
-            {syncStep === 'collection'
-              ? enrichProgress
-                ? `Sync… (${enrichProgress.done}/${enrichProgress.total})`
-                : 'Synchronisation…'
-              : syncStep === 'wantlist'
-                ? 'Wantlist…'
-                : 'Synchroniser avec Discogs'}
-          </button>
+          <div>
+            <button
+              onClick={() => handleSync()}
+              disabled={syncStep !== null}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#f5a623] px-6 py-3 font-semibold text-black shadow-lg transition hover:bg-[#fbbf24] hover:scale-105 active:scale-95 disabled:opacity-60 disabled:hover:scale-100 sm:px-8 sm:py-3.5"
+            >
+              <span className={syncStep !== null ? 'animate-spin inline-block' : ''}>🔄</span>
+              {syncStep === 'collection'
+                ? enrichProgress
+                  ? `Sync… (${enrichProgress.done}/${enrichProgress.total})`
+                  : 'Synchronisation…'
+                : syncStep === 'wantlist'
+                  ? 'Wantlist…'
+                  : 'Synchroniser avec Discogs'}
+            </button>
+            {profile?.last_collection_sync_at && (
+              <p className="mt-2 text-xs text-[#999]">
+                Dernière sync : {formatDateTime(profile.last_collection_sync_at)}
+              </p>
+            )}
+          </div>
         ) : (
           <button
             onClick={() => setShowAuth(true)}
