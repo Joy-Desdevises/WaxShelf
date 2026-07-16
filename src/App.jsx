@@ -9,7 +9,7 @@ import Footer from './components/layout/Footer'
 
 export default function App() {
   return (
-    <BrowserRouter basename="/WaxShelf">
+    <BrowserRouter>
       <Routes>
         {/* Landing — liste des utilisateurs publics */}
         <Route path="/" element={<LandingPage />} />
