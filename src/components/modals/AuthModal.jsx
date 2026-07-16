@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 
-export default function AuthModal({ onClose }) {
+export default function AuthModal({ onClose, initialMode = 'signin' }) {
   const { signIn, signUp, resetPassword } = useAuth()
-  const [mode, setMode] = useState('signin') // 'signin' | 'signup' | 'reset'
+  const [mode, setMode] = useState(initialMode) // 'signin' | 'signup' | 'reset'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')

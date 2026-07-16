@@ -81,7 +81,7 @@ export default function LandingPage() {
         )}
       </section>
 
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} initialMode="signup" />}
     </div>
   )
 }
