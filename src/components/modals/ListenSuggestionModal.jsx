@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { formatCurrency } from '../../lib/format'
 
-const MOODS = ['Détente', 'Énergie', 'Mélancolie', 'Fête', 'Concentration', 'Surprise moi']
+const MOODS = ['Détente', 'Énergie', 'Mélancolie', 'Fête', 'Concentration', 'Surprends moi']
 const DURATIONS = ['< 30 min', '30-45 min', '45-60 min', 'Peu importe']
 const GENRES_OPTIONS = ['Rock', 'Jazz', 'Electronic', 'Hip-Hop', 'Soul', 'Classical', 'Pop', 'Folk', 'Reggae', 'Metal', 'Peu importe']
 
@@ -25,7 +25,7 @@ export default function ListenSuggestionModal({ collection, onClose }) {
     }
 
     // Si "Surprise moi", on ignore les autres filtres
-    if (!mood || mood === 'Surprise moi') {
+    if (!mood || mood === 'Surprends moi') {
       setSuggestion(pool[Math.floor(Math.random() * pool.length)])
       return
     }

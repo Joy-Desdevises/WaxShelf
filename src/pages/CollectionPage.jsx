@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Header from '../components/layout/Header'
 import Avatar from '../components/layout/Avatar'
@@ -255,16 +255,61 @@ export default function CollectionPage() {
 // ── Utilitaires ────────────────────────────────────────────────────────────
 
 function Select({ value, onChange, placeholder, options }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
   const normalized = options.map((o) => typeof o === 'string' ? { value: o, label: o } : o)
+  const selected = normalized.find((o) => o.value === value)
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  function pick(v) {
+    onChange(v)
+    setOpen(false)
+  }
+
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-lg border border-[#222] bg-[#0a0a0a] px-3 py-2 text-sm text-white outline-none transition sm:w-auto sm:bg-[#111]"
-    >
-      <option value="">{placeholder}</option>
-      {normalized.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
+    <div className="relative w-full sm:w-auto" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm outline-none transition sm:w-auto sm:min-w-[8.5rem] ${
+          value
+            ? 'border-[#f5a623]/50 bg-[#f5a623]/10 text-[#f5a623]'
+            : 'border-[#222] bg-[#0a0a0a] text-white sm:bg-[#111]'
+        }`}
+      >
+        <span className="truncate">{selected ? selected.label : placeholder}</span>
+        <span className={`text-[10px] text-[#999] transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-30 mt-1 max-h-64 w-full min-w-[10rem] overflow-y-auto rounded-lg border border-[#222] bg-[#111] py-1 shadow-2xl sm:w-max">
+          <button
+            type="button"
+            onClick={() => pick('')}
+            className={`block w-full px-3 py-2 text-left text-sm transition hover:bg-[#1a1a1a] ${!value ? 'text-[#f5a623]' : 'text-[#999]'}`}
+          >
+            {placeholder}
+          </button>
+          {normalized.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => pick(o.value)}
+              className={`block w-full px-3 py-2 text-left text-sm transition hover:bg-[#1a1a1a] ${value === o.value ? 'text-[#f5a623]' : 'text-white'}`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
