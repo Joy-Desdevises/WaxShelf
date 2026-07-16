@@ -1,10 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../hooks/useAuth'
-import { useCollection, useSyncDiscogs } from '../../hooks/useCollection'
-import { useSyncWantlist } from '../../hooks/useWantlist'
-import { supabase } from '../../lib/supabase'
+import { useCollection } from '../../hooks/useCollection'
+import { useDiscogsSync } from '../../hooks/useDiscogsSync'
 import { timeAgo } from '../../lib/format'
 import ListenSuggestionModal from '../modals/ListenSuggestionModal'
 import AuthModal from '../modals/AuthModal'
@@ -20,20 +18,14 @@ export default function Header() {
   const { username } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, profile, updateProfile, signOut, passwordRecovery } = useAuth()
+  const { user, profile, signOut, passwordRecovery } = useAuth()
   const { data: ownCollection = [] } = useCollection(user?.id)
-  const syncMutation = useSyncDiscogs()
-  const wantlistSyncMutation = useSyncWantlist()
-  const qc = useQueryClient()
+  const { handleSync, syncStep, enrichProgress, toast, showDiscogsModal, setShowDiscogsModal } = useDiscogsSync()
 
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
-  const [showDiscogsModal, setShowDiscogsModal] = useState(false)
-  const [enrichProgress, setEnrichProgress] = useState(null) // { done, total }
-  const [syncStep, setSyncStep] = useState(null) // 'collection' | 'wantlist'
-  const [toast, setToast] = useState(null)
 
   const userMenuRef = useRef(null)
 
@@ -57,62 +49,6 @@ export default function Header() {
   async function handleSignOut() {
     await signOut()
     navigate('/')
-  }
-
-  function showToast(type, message) {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 5000)
-  }
-
-  async function handleSync(freshValues = null) {
-    let discogsToken = freshValues?.token || profile?.discogs_token
-    let discogsUsername = freshValues?.discogsUsername || profile?.discogs_username
-
-    if (!discogsToken && user?.id) {
-      const { data } = await supabase
-        .from('profiles')
-        .select('discogs_token, discogs_username')
-        .eq('id', user.id)
-        .single()
-      discogsToken = data?.discogs_token
-      discogsUsername = data?.discogs_username
-    }
-
-    if (!discogsToken) {
-      setShowDiscogsModal(true)
-      return
-    }
-
-    setEnrichProgress(null)
-    setSyncStep('collection')
-    try {
-      const count = await syncMutation.mutateAsync({
-        userId: user.id,
-        discogsToken,
-        discogsUsername,
-        onEnrichProgress: (done, total) => setEnrichProgress({ done, total }),
-      })
-      updateProfile({ last_collection_sync_at: new Date().toISOString() })
-      // Préfixe partagé par toutes les variantes de requêtes collection
-      // (propre utilisateur ou vue publique par pseudo) : peu importe la
-      // page actuellement affichée, elle se rafraîchit après le sync.
-      qc.invalidateQueries({ queryKey: ['collection'] })
-
-      // Un seul bouton fait aussi la wantlist à la suite : rapide (peu de
-      // pages, pas d'enrichissement par disque), ça ne vaut pas la peine de
-      // faire deux boutons distincts pour ça.
-      setSyncStep('wantlist')
-      setEnrichProgress(null)
-      const wantlistCount = await wantlistSyncMutation.mutateAsync({ userId: user.id, discogsToken, discogsUsername })
-      updateProfile({ last_wantlist_sync_at: new Date().toISOString() })
-
-      showToast('success', `✅ Sync terminée — ${count} vinyles, ${wantlistCount} envies.`)
-    } catch (err) {
-      const msg = err?.response?.data?.message || err.message || 'Erreur inconnue'
-      showToast('error', `Erreur : ${msg}`)
-    }
-    setEnrichProgress(null)
-    setSyncStep(null)
   }
 
   // Sur les pages sans :username dans l'URL (ex: l'accueil), on retombe

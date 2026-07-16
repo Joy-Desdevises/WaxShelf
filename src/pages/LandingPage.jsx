@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import AuthModal from '../components/modals/AuthModal'
+import DiscogsTokenModal from '../components/modals/DiscogsTokenModal'
 import Header from '../components/layout/Header'
 import Avatar from '../components/layout/Avatar'
 import { useAuth } from '../hooks/useAuth'
+import { useDiscogsSync } from '../hooks/useDiscogsSync'
 
 export default function LandingPage() {
   const { user } = useAuth()
+  const { handleSync, syncStep, enrichProgress, toast, showDiscogsModal, setShowDiscogsModal } = useDiscogsSync()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAuth, setShowAuth] = useState(false)
@@ -43,7 +46,22 @@ export default function LandingPage() {
           Importe ta collection Discogs, explore celle des autres, et laisse WaxShelf choisir
           ce que tu devrais écouter ce soir.
         </p>
-        {!user && (
+        {user ? (
+          <button
+            onClick={() => handleSync()}
+            disabled={syncStep !== null}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#f5a623] px-6 py-3 font-semibold text-black shadow-lg transition hover:bg-[#fbbf24] hover:scale-105 active:scale-95 disabled:opacity-60 disabled:hover:scale-100 sm:px-8 sm:py-3.5"
+          >
+            <span className={syncStep !== null ? 'animate-spin inline-block' : ''}>🔄</span>
+            {syncStep === 'collection'
+              ? enrichProgress
+                ? `Sync… (${enrichProgress.done}/${enrichProgress.total})`
+                : 'Synchronisation…'
+              : syncStep === 'wantlist'
+                ? 'Wantlist…'
+                : 'Synchroniser avec Discogs'}
+          </button>
+        ) : (
           <button
             onClick={() => setShowAuth(true)}
             className="inline-flex items-center gap-2 rounded-xl bg-[#f5a623] px-6 py-3 font-semibold text-black shadow-lg transition hover:bg-[#fbbf24] hover:scale-105 active:scale-95 sm:px-8 sm:py-3.5"
@@ -82,6 +100,21 @@ export default function LandingPage() {
       </section>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} initialMode="signup" />}
+
+      {showDiscogsModal && (
+        <DiscogsTokenModal
+          onClose={() => setShowDiscogsModal(false)}
+          onSuccess={(freshValues) => { setShowDiscogsModal(false); handleSync(freshValues) }}
+        />
+      )}
+
+      {toast && (
+        <div className={`fixed bottom-6 left-4 right-4 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-xl sm:left-1/2 sm:right-auto sm:w-auto sm:-translate-x-1/2 sm:px-5 ${
+          toast.type === 'success' ? 'bg-green-900/90 text-green-200' : 'bg-red-900/90 text-red-200'
+        }`}>
+          {toast.message}
+        </div>
+      )}
     </div>
   )
 }
