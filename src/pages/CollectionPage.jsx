@@ -11,6 +11,7 @@ import { useFollowCounts, useIsFollowing, useToggleFollow, useFollowList } from 
 import { supabase } from '../lib/supabase'
 import { searchDiscogs } from '../lib/discogs'
 import { timeAgo } from '../lib/format'
+import { useLockBodyScroll } from '../hooks/useLockBodyScroll'
 
 // Décennie basée sur l'année de sortie originale de l'album, pas celle du
 // pressage possédé (peut être une réédition tardive) — cf. DashboardPage.
@@ -328,6 +329,7 @@ function SizeBtn({ active, onClick, label, title }) {
 // ── Modal liste abonnés / abonnements ──────────────────────────────────────
 
 function FollowListModal({ userId, direction, onClose }) {
+  useLockBodyScroll()
   const { data: list = [], isLoading } = useFollowList(userId, direction)
   const title = direction === 'followers' ? 'Abonnés' : 'Abonnements'
 
@@ -336,11 +338,11 @@ function FollowListModal({ userId, direction, onClose }) {
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="relative flex w-full max-h-[70vh] flex-col rounded-t-2xl bg-[#111] shadow-2xl sm:max-h-[80vh] sm:max-w-sm sm:rounded-xl">
+      <div className="safe-bottom relative flex w-full max-h-[70vh] flex-col rounded-t-2xl bg-[#111] shadow-2xl sm:max-h-[80vh] sm:max-w-sm sm:rounded-xl">
         <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
         <div className="flex items-center justify-between border-b border-[#222] p-4">
           <h2 className="font-semibold text-white">{title}</h2>
-          <button onClick={onClose} className="text-[#999] hover:text-white">✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="-mr-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white">✕</button>
         </div>
         <div className="flex-1 overflow-y-auto p-2">
           {isLoading ? (
@@ -374,6 +376,7 @@ function FollowListModal({ userId, direction, onClose }) {
 // ── Modal ajout manuel ─────────────────────────────────────────────────────
 
 function AddVinylModal({ userId, profileId, onClose, onAdded }) {
+  useLockBodyScroll()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
@@ -417,13 +420,13 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="relative flex w-full flex-col rounded-t-2xl bg-[#111] shadow-2xl sm:h-[80vh] sm:max-w-lg sm:rounded-xl">
+      <div className="safe-bottom relative flex w-full flex-col rounded-t-2xl bg-[#111] shadow-2xl sm:h-[80vh] sm:max-w-lg sm:rounded-xl">
         {/* Handle mobile */}
         <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
 
         <div className="flex items-center justify-between border-b border-[#222] p-4">
           <h2 className="font-semibold text-white">Ajouter un vinyle</h2>
-          <button onClick={onClose} className="text-[#999] hover:text-white">✕</button>
+          <button onClick={onClose} aria-label="Fermer" className="-mr-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white">✕</button>
         </div>
 
         <form onSubmit={handleSearch} className="flex gap-2 p-4">

@@ -15,7 +15,7 @@ export default function VinylGrid({ records = [], size = 'lg', loading = false, 
     return (
       <div className={`grid gap-3 ${gridCols(size)}`}>
         {Array.from({ length: 12 }).map((_, i) => (
-          <SkeletonCard key={i} size={size} />
+          <SkeletonCard key={i} />
         ))}
       </div>
     )
@@ -46,12 +46,15 @@ export default function VinylGrid({ records = [], size = 'lg', loading = false, 
   )
 }
 
+// En dessous de `sm` (mobile), un nombre de colonnes fixe pour que les
+// cartes remplissent toute la largeur (au lieu d'un track auto-fill qui les
+// laisse alignées à gauche avec de l'espace mort à droite). À partir de
+// `sm`, on repasse en auto-fill classique.
 function gridCols(size) {
-  if (size === 'sm') return 'grid-cols-[repeat(auto-fill,minmax(128px,1fr))]'
-  return 'grid-cols-[repeat(auto-fill,minmax(200px,1fr))]'
+  if (size === 'sm') return 'grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(128px,1fr))]'
+  return 'grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]'
 }
 
-function SkeletonCard({ size }) {
-  const dim = size === 'sm' ? 'w-32 h-32' : 'w-full aspect-square'
-  return <div className={`${dim} animate-pulse rounded-lg bg-[#1a1a1a]`} />
+function SkeletonCard() {
+  return <div className="aspect-square w-full animate-pulse rounded-lg bg-[#1a1a1a]" />
 }

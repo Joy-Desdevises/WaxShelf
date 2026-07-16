@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { formatCurrency } from '../../lib/format'
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 
 const MOODS = ['Détente', 'Énergie', 'Mélancolie', 'Fête', 'Concentration', 'Surprends moi']
 const DURATIONS = ['< 30 min', '30-45 min', '45-60 min', 'Peu importe']
 const GENRES_OPTIONS = ['Rock', 'Jazz', 'Electronic', 'Hip-Hop', 'Soul', 'Classical', 'Pop', 'Folk', 'Reggae', 'Metal', 'Peu importe']
 
 export default function ListenSuggestionModal({ collection, onClose }) {
+  useLockBodyScroll()
   const [mood, setMood] = useState('')
   const [duration, setDuration] = useState('')
   const [genre, setGenre] = useState('')
@@ -58,11 +60,12 @@ export default function ListenSuggestionModal({ collection, onClose }) {
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="relative max-h-[90vh] w-full overflow-y-auto rounded-t-2xl bg-[#111] p-6 shadow-2xl sm:max-w-lg sm:rounded-xl">
+      <div className="safe-bottom relative max-h-[90vh] w-full overflow-y-auto rounded-t-2xl bg-[#111] p-6 shadow-2xl sm:max-w-lg sm:rounded-xl">
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-[#999] hover:text-white"
+          aria-label="Fermer"
+          className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white"
         >
           ✕
         </button>

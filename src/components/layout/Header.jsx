@@ -68,7 +68,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-[#222] bg-[#0a0a0a]/95 backdrop-blur-md">
+      <header className="safe-top sticky top-0 z-40 border-b border-[#222] bg-[#0a0a0a]/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
 
           {/* Logo */}
@@ -87,16 +87,19 @@ export default function Header() {
           {/* Actions droite */}
           <div className="flex items-center gap-2">
 
-            {/* Sync Discogs (collection + wantlist) — icône seule sur mobile */}
+            {/* Sync Discogs (collection + wantlist) — légende courte sous l'icône sur mobile, texte complet sur desktop */}
             {user && (
               <button
                 onClick={() => handleSync()}
                 disabled={syncStep !== null}
                 title={profile?.last_collection_sync_at ? `Dernière sync : ${timeAgo(profile.last_collection_sync_at)}` : undefined}
-                className="flex items-center gap-2 rounded-lg border border-[#333] bg-[#111] px-3 py-1.5 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50 md:px-4"
+                className="flex flex-col items-center gap-0.5 rounded-lg border border-[#333] bg-[#111] px-2.5 py-1.5 text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50 md:flex-row md:gap-2 md:px-4"
               >
                 <span className={syncStep !== null ? 'animate-spin inline-block' : ''}>🔄</span>
-                <span className="hidden md:inline">
+                <span className="text-[9px] leading-none text-[#999] md:hidden">
+                  {syncStep === 'collection' ? 'Sync…' : syncStep === 'wantlist' ? 'Wantlist' : 'Sync'}
+                </span>
+                <span className="hidden md:inline md:text-sm">
                   {syncStep === 'collection'
                     ? enrichProgress
                       ? `Sync… (${enrichProgress.done}/${enrichProgress.total})`
@@ -108,29 +111,33 @@ export default function Header() {
               </button>
             )}
 
-            {/* "What should I listen to?" — icône seule sur mobile */}
+            {/* "What should I listen to?" — légende courte sous l'icône sur mobile */}
             {user && ownCollection.length > 0 && (
               <button
                 onClick={() => setShowSuggest(true)}
-                className="flex items-center gap-2 rounded-full bg-[#f5a623] px-3 py-1.5 text-sm font-medium text-black transition-all hover:bg-[#fbbf24] active:scale-95 md:px-4"
+                className="flex flex-col items-center gap-0.5 rounded-full bg-[#f5a623] px-2.5 py-1.5 font-medium text-black transition-all hover:bg-[#fbbf24] active:scale-95 md:flex-row md:gap-2 md:px-4"
               >
                 <span>🎲</span>
-                <span className="hidden md:inline">What should I listen to?</span>
+                <span className="text-[9px] leading-none md:hidden">Écouter</span>
+                <span className="hidden md:inline md:text-sm">What should I listen to?</span>
               </button>
             )}
 
-            {/* Avatar + menu utilisateur */}
+            {/* Avatar + menu utilisateur — légende "Profil" sous l'icône sur mobile */}
             {user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setShowUserMenu((v) => !v)}
-                  className="rounded-full border border-[#333] transition hover:border-[#555]"
+                  className="flex flex-col items-center gap-0.5"
                 >
-                  <Avatar
-                    avatarUrl={profile?.avatar_url}
-                    fallbackLetter={profile?.username?.[0]}
-                    className="h-8 w-8 rounded-full text-sm text-white"
-                  />
+                  <span className="rounded-full border border-[#333] transition hover:border-[#555]">
+                    <Avatar
+                      avatarUrl={profile?.avatar_url}
+                      fallbackLetter={profile?.username?.[0]}
+                      className="h-8 w-8 rounded-full text-sm text-white"
+                    />
+                  </span>
+                  <span className="text-[9px] leading-none text-[#999] md:hidden">Profil</span>
                 </button>
 
                 {showUserMenu && (
@@ -166,16 +173,19 @@ export default function Header() {
               </button>
             )}
 
-            {/* Hamburger — mobile uniquement */}
-            <button
-              onClick={() => setShowMobileMenu((v) => !v)}
-              className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 rounded-lg border border-[#333] md:hidden"
-              aria-label="Menu"
-            >
-              <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? 'translate-y-2 rotate-45' : ''}`} />
-              <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? 'opacity-0' : ''}`} />
-              <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? '-translate-y-2 -rotate-45' : ''}`} />
-            </button>
+            {/* Hamburger — mobile uniquement, et seulement si connecté (sinon
+                seule la page d'accueil existe, pas besoin de menu) */}
+            {user && (
+              <button
+                onClick={() => setShowMobileMenu((v) => !v)}
+                className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 rounded-lg border border-[#333] md:hidden"
+                aria-label="Menu"
+              >
+                <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? 'translate-y-2 rotate-45' : ''}`} />
+                <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? 'opacity-0' : ''}`} />
+                <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? '-translate-y-2 -rotate-45' : ''}`} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -190,7 +200,7 @@ export default function Header() {
         )}
 
         {/* Menu mobile déroulant */}
-        {showMobileMenu && (
+        {user && showMobileMenu && (
           <div className="border-t border-[#222] bg-[#0a0a0a] px-4 pb-4 pt-2 md:hidden">
             <nav className="flex flex-col gap-1">
               {navLinks.map((l) => (

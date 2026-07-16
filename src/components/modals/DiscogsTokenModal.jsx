@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 
 const STEPS = [
   {
@@ -36,6 +37,7 @@ const STEPS = [
 ]
 
 export default function DiscogsTokenModal({ onClose, onSuccess }) {
+  useLockBodyScroll()
   const { profile, updateProfile } = useAuth()
   const [step, setStep] = useState(0)
   const [token, setToken] = useState('')
@@ -74,7 +76,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
       <div className="relative w-full max-w-md rounded-xl bg-[#111] p-6 shadow-2xl">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-[#999] hover:text-white"
+          className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white"
           aria-label="Fermer"
         >
           ✕

@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 
 // Affichée quand Supabase détecte un lien de réinitialisation de mot de
 // passe dans l'URL (événement PASSWORD_RECOVERY) — pas de bouton pour la
 // fermer volontairement, il faut définir un nouveau mot de passe pour
 // terminer le flux.
 export default function UpdatePasswordModal() {
+  useLockBodyScroll()
   const { updatePassword } = useAuth()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -28,7 +30,7 @@ export default function UpdatePasswordModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className="relative w-full rounded-t-2xl bg-[#111] p-6 shadow-2xl sm:max-w-sm sm:rounded-xl">
+      <div className="safe-bottom relative w-full rounded-t-2xl bg-[#111] p-6 shadow-2xl sm:max-w-sm sm:rounded-xl">
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
         <h2 className="mb-2 text-xl font-semibold text-white">Nouveau mot de passe</h2>
         <p className="mb-6 text-sm text-[#999]">Choisis un nouveau mot de passe pour ton compte.</p>

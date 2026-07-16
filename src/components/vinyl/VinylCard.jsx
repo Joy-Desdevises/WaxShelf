@@ -21,12 +21,15 @@ const PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
 export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }) {
-  const dim = size === 'sm' ? 'w-32 h-32' : 'w-52 h-52'
+  const dim = 'w-full aspect-square'
   const titleSize = size === 'sm' ? 'text-xs' : 'text-sm'
   const artistSize = size === 'sm' ? 'text-[10px]' : 'text-xs'
 
   const [anecdote, setAnecdote] = useState(vinyl.anecdote || null)
   const [loading, setLoading] = useState(false)
+  // Le flip est piloté en JS (plutôt que par un simple `:hover` CSS) pour
+  // fonctionner aussi bien au survol (desktop) qu'au tap (tactile, pas de hover fiable).
+  const [flipped, setFlipped] = useState(false)
 
   const logPlay = useLogPlay(vinyl.id)
   const [justLogged, setJustLogged] = useState(false)
@@ -39,7 +42,7 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
     setTimeout(() => setJustLogged(false), 2000)
   }
 
-  async function handleMouseEnter() {
+  async function maybeLoadAnecdote() {
     if (size === 'sm' || anecdote || loading) return
     setLoading(true)
     try {
@@ -63,11 +66,30 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
     }
   }
 
+  function handleMouseEnter() {
+    setFlipped(true)
+    maybeLoadAnecdote()
+  }
+
+  function handleMouseLeave() {
+    setFlipped(false)
+  }
+
+  function handleToggleFlip(e) {
+    e.stopPropagation()
+    setFlipped((f) => {
+      const next = !f
+      if (next) maybeLoadAnecdote()
+      return next
+    })
+  }
+
   return (
     <div
-      className={`vinyl-card-container relative ${dim} cursor-pointer select-none`}
+      className={`vinyl-card-container relative ${dim} cursor-pointer select-none ${flipped ? 'is-flipped' : ''}`}
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onClick?.()}
@@ -151,13 +173,26 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
           disabled={logPlay.isPending}
           title="J'écoute ça"
           aria-label="J'écoute ça"
-          className={`absolute right-1.5 top-1.5 z-10 flex h-6 w-6 items-center justify-center rounded-full backdrop-blur-sm transition disabled:opacity-60 ${
+          className={`absolute right-1.5 top-1.5 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition disabled:opacity-60 ${
             justLogged
               ? 'bg-[#f5a623] text-black'
               : 'bg-black/70 text-[#f5a623] hover:bg-[#f5a623] hover:text-black'
           }`}
         >
-          <span className="text-[10px]">{justLogged ? '✓' : '▶'}</span>
+          <span className="text-xs">{justLogged ? '✓' : '▶'}</span>
+        </button>
+      )}
+
+      {/* ── Bouton flip explicite : le survol ne marche pas au tactile, donc on
+          donne un moyen tap-friendly de voir le verso (anecdote/style) ── */}
+      {size === 'lg' && (
+        <button
+          onClick={handleToggleFlip}
+          title={flipped ? 'Voir la pochette' : "Voir l'anecdote"}
+          aria-label={flipped ? 'Voir la pochette' : "Voir l'anecdote"}
+          className="absolute bottom-1.5 left-1.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-[#f5a623] backdrop-blur-sm transition hover:bg-[#f5a623] hover:text-black"
+        >
+          <span className="text-xs">{flipped ? '🖼' : 'ℹ'}</span>
         </button>
       )}
     </div>

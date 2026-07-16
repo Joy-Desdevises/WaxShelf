@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 
 export default function AuthModal({ onClose, initialMode = 'signin' }) {
+  useLockBodyScroll()
   const { signIn, signUp, resetPassword } = useAuth()
   const [mode, setMode] = useState(initialMode) // 'signin' | 'signup' | 'reset'
   const [email, setEmail] = useState('')
@@ -44,9 +46,15 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="relative w-full rounded-t-2xl bg-[#111] p-6 shadow-2xl sm:max-w-sm sm:rounded-xl">
+      <div className="safe-bottom relative w-full rounded-t-2xl bg-[#111] p-6 shadow-2xl sm:max-w-sm sm:rounded-xl">
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
-        <button onClick={onClose} className="absolute right-4 top-4 text-[#999] hover:text-white">✕</button>
+        <button
+          onClick={onClose}
+          aria-label="Fermer"
+          className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white"
+        >
+          ✕
+        </button>
 
         <h2 className="mb-6 text-xl font-semibold text-white">
           {mode === 'signin' ? 'Connexion' : mode === 'signup' ? 'Créer un compte' : 'Mot de passe oublié'}

@@ -46,7 +46,9 @@ body { margin: 0; min-height: 100dvh; }
   transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.vinyl-card-container:hover .vinyl-card-inner {
+/* Piloté en JS (classe .is-flipped) plutôt que par :hover pur, pour
+   fonctionner aussi bien au tap (tactile) qu'au survol (souris). */
+.vinyl-card-container.is-flipped .vinyl-card-inner {
   transform: rotateY(180deg);
 }
 
@@ -61,6 +63,10 @@ body { margin: 0; min-height: 100dvh; }
 }
 
 .vinyl-card-back { transform: rotateY(180deg); }
+
+/* ── Safe areas (encoche / indicateur d'accueil iPhone) ─────────── */
+.safe-top { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
 /* ── Line clamp ───────────────────────────────────────────────── */
 .line-clamp-1 {

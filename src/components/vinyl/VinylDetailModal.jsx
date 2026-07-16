@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useLikes, useComments, useVinylMeta } from '../../hooks/useSocial'
 import { usePlayCount, useLogPlay } from '../../hooks/usePlayLog'
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 import { formatCurrency } from '../../lib/format'
 
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
 export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
+  useLockBodyScroll()
   const { user, profile } = useAuth()
   const { likes, toggleLike } = useLikes(vinyl.id)
   const { comments, addComment, deleteComment } = useComments(vinyl.id)
@@ -87,14 +89,15 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/80 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="relative flex max-h-[95dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-[#111] shadow-2xl sm:max-w-2xl sm:rounded-xl">
+      <div className="safe-bottom relative flex max-h-[95dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-[#111] shadow-2xl sm:max-w-2xl sm:rounded-xl">
         {/* Handle mobile */}
         <div className="mx-auto mt-3 h-1 w-10 shrink-0 rounded-full bg-[#333] sm:hidden" />
 
         {/* Bouton fermer */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-[#888] hover:text-white"
+          aria-label="Fermer"
+          className="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-[#888] hover:text-white"
         >
           ✕
         </button>
@@ -176,14 +179,14 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
               )}
 
               {/* ── Étoiles (owner = modifiable, sinon lecture seule) ── */}
-              <div className="mt-3 flex items-center gap-1">
+              <div className="-ml-2 mt-3 flex items-center">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     onClick={() => isOwner && handleRating(star)}
                     onMouseEnter={() => isOwner && setHoverRating(star)}
                     onMouseLeave={() => isOwner && setHoverRating(0)}
-                    className={`text-xl transition-transform ${isOwner ? 'cursor-pointer hover:scale-110' : 'cursor-default'} ${
+                    className={`flex h-9 w-9 items-center justify-center text-xl transition-transform ${isOwner ? 'cursor-pointer hover:scale-110' : 'cursor-default'} ${
                       star <= (hoverRating || rating) ? 'text-[#f5a623]' : 'text-[#333]'
                     }`}
                     aria-label={`${star} étoile${star > 1 ? 's' : ''}`}
