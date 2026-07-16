@@ -141,9 +141,12 @@ export async function fetchWantlist(token, discogsUsername) {
 // average_value représente le prix de l'annonce la moins chère actuellement en
 // vente sur Discogs — pas une moyenne ni une médiane (non exposées par l'API
 // publique sans compte vendeur configuré). Sur /releases/{id}, lowest_price est
-// un simple nombre (pas un objet { value, currency } comme sur /marketplace/stats)
-// et ne précise pas sa devise : on la récupère une seule fois via le profil
-// Discogs du token (curr_abbr) et on la fixe explicitement sur chaque requête.
+// un simple nombre (pas un objet { value, currency } comme sur /marketplace/stats),
+// exprimé automatiquement dans la devise acheteur du compte Discogs tant qu'on
+// ne force pas curr_abbr sur la requête (forcer une devise convertit réellement
+// le montant, ça ne fait pas que changer son étiquette — d'où l'importance de ne
+// PAS le faire ici). curr_abbr récupéré via le profil ne sert donc plus qu'à
+// étiqueter ce nombre, jamais à le forcer.
 
 async function fetchAccountCurrency(client) {
   try {
@@ -198,7 +201,7 @@ export async function enrichCollectionMetadata(token, records, onProgress) {
   for (let i = 0; i < withDiscogs.length; i++) {
     const record = withDiscogs[i]
     try {
-      const { data } = await client.get(`/releases/${record.discogs_id}`, { params: { curr_abbr: currency } })
+      const { data } = await client.get(`/releases/${record.discogs_id}`)
       const price = extractLowestPrice(data.lowest_price, currency)
       const masterId = data.master_id || null
       const originalYear = await fetchMasterYear(client, masterId)
