@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './hooks/useAuth'
+import { DiscogsSyncProvider } from './hooks/useDiscogsSync'
 import LandingPage from './pages/LandingPage'
 import CollectionPage from './pages/CollectionPage'
 import DashboardPage from './pages/DashboardPage'
@@ -12,26 +13,28 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          {/* Landing — liste des utilisateurs publics */}
-          <Route path="/" element={<LandingPage />} />
+        <DiscogsSyncProvider>
+          <Routes>
+            {/* Landing — liste des utilisateurs publics */}
+            <Route path="/" element={<LandingPage />} />
 
-          {/* Paramètres du compte connecté */}
-          <Route path="/settings" element={<SettingsPage />} />
+            {/* Paramètres du compte connecté */}
+            <Route path="/settings" element={<SettingsPage />} />
 
-          {/* Collection publique/privée d'un utilisateur */}
-          <Route path="/:username" element={<CollectionPage />} />
+            {/* Collection publique/privée d'un utilisateur */}
+            <Route path="/:username" element={<CollectionPage />} />
 
-          {/* Dashboard statistiques */}
-          <Route path="/:username/dashboard" element={<DashboardPage />} />
+            {/* Dashboard statistiques */}
+            <Route path="/:username/dashboard" element={<DashboardPage />} />
 
-          {/* Wantlist */}
-          <Route path="/:username/wantlist" element={<WantlistPage />} />
+            {/* Wantlist */}
+            <Route path="/:username/wantlist" element={<WantlistPage />} />
 
-          {/* Journal d'écoute */}
-          <Route path="/:username/journal" element={<JournalPage />} />
-        </Routes>
-        <Footer />
+            {/* Journal d'écoute */}
+            <Route path="/:username/journal" element={<JournalPage />} />
+          </Routes>
+          <Footer />
+        </DiscogsSyncProvider>
       </BrowserRouter>
     </AuthProvider>
   )

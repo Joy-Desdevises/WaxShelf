@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import AuthModal from '../components/modals/AuthModal'
-import DiscogsTokenModal from '../components/modals/DiscogsTokenModal'
 import Header from '../components/layout/Header'
 import Avatar from '../components/layout/Avatar'
 import { useAuth } from '../hooks/useAuth'
@@ -11,7 +10,7 @@ import { formatDateTime } from '../lib/format'
 
 export default function LandingPage() {
   const { user, profile } = useAuth()
-  const { handleSync, syncStep, enrichProgress, toast, showDiscogsModal, setShowDiscogsModal } = useDiscogsSync()
+  const { handleSync, syncStep, enrichProgress } = useDiscogsSync()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAuth, setShowAuth] = useState(false)
@@ -108,21 +107,6 @@ export default function LandingPage() {
       </section>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} initialMode="signup" />}
-
-      {showDiscogsModal && (
-        <DiscogsTokenModal
-          onClose={() => setShowDiscogsModal(false)}
-          onSuccess={(freshValues) => { setShowDiscogsModal(false); handleSync(freshValues) }}
-        />
-      )}
-
-      {toast && (
-        <div className={`fixed bottom-6 left-4 right-4 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-xl sm:left-1/2 sm:right-auto sm:w-auto sm:-translate-x-1/2 sm:px-5 ${
-          toast.type === 'success' ? 'bg-green-900/90 text-green-200' : 'bg-red-900/90 text-red-200'
-        }`}>
-          {toast.message}
-        </div>
-      )}
     </div>
   )
 }

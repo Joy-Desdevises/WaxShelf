@@ -6,7 +6,6 @@ import { useDiscogsSync } from '../../hooks/useDiscogsSync'
 import { timeAgo } from '../../lib/format'
 import ListenSuggestionModal from '../modals/ListenSuggestionModal'
 import AuthModal from '../modals/AuthModal'
-import DiscogsTokenModal from '../modals/DiscogsTokenModal'
 import UpdatePasswordModal from '../modals/UpdatePasswordModal'
 import Avatar from './Avatar'
 
@@ -20,7 +19,7 @@ export default function Header() {
   const location = useLocation()
   const { user, profile, signOut, passwordRecovery } = useAuth()
   const { data: ownCollection = [] } = useCollection(user?.id)
-  const { handleSync, syncStep, enrichProgress, toast, showDiscogsModal, setShowDiscogsModal } = useDiscogsSync()
+  const { handleSync, syncStep, enrichProgress } = useDiscogsSync()
 
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
@@ -208,14 +207,6 @@ export default function Header() {
         )}
       </header>
 
-      {toast && (
-        <div className={`fixed bottom-6 left-4 right-4 z-50 rounded-xl px-4 py-3 text-sm font-medium shadow-xl sm:left-1/2 sm:right-auto sm:w-auto sm:-translate-x-1/2 sm:px-5 ${
-          toast.type === 'success' ? 'bg-green-900/90 text-green-200' : 'bg-red-900/90 text-red-200'
-        }`}>
-          {toast.message}
-        </div>
-      )}
-
       {showSuggest && (
         <ListenSuggestionModal collection={ownCollection} onClose={() => setShowSuggest(false)} />
       )}
@@ -223,12 +214,6 @@ export default function Header() {
         <AuthModal onClose={() => setShowAuth(false)} />
       )}
       {passwordRecovery && <UpdatePasswordModal />}
-      {showDiscogsModal && (
-        <DiscogsTokenModal
-          onClose={() => setShowDiscogsModal(false)}
-          onSuccess={(freshValues) => { setShowDiscogsModal(false); handleSync(freshValues) }}
-        />
-      )}
     </>
   )
 }
