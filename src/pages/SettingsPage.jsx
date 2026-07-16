@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import Header from '../components/layout/Header'
@@ -197,11 +198,13 @@ function ProfileSection({ profile, updateProfile }) {
 // ── Section Discogs ────────────────────────────────────────────────────────
 
 function DiscogsSection({ profile, updateProfile }) {
+  const qc = useQueryClient()
   const [token, setToken] = useState(profile?.discogs_token || '')
   const [discogsUsername, setDiscogsUsername] = useState(profile?.discogs_username || '')
   const [showToken, setShowToken] = useState(false)
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState(null)
+  const [confirmingRemove, setConfirmingRemove] = useState(false)
 
   async function handleSave() {
     if (!token.trim() || !discogsUsername.trim()) {
@@ -222,15 +225,27 @@ function DiscogsSection({ profile, updateProfile }) {
   async function handleRemove() {
     setSaving(true)
     setStatus(null)
+    setConfirmingRemove(false)
+
+    // La collection et la wantlist ne viennent que de Discogs (pas d'ajout
+    // manuel pour l'instant) — déconnecter le compte doit donc aussi les vider,
+    // sans quoi elles resteraient affichées alors que la source a disparu.
+    const [{ error: vinylError }, { error: wantlistError }] = await Promise.all([
+      supabase.from('vinyl_records').delete().eq('user_id', profile.id),
+      supabase.from('wantlist_items').delete().eq('user_id', profile.id),
+    ])
     const { error } = await updateProfile({ discogs_token: null, discogs_username: null })
     setSaving(false)
-    if (error) {
-      setStatus({ type: 'error', msg: error.message })
-    } else {
-      setToken('')
-      setDiscogsUsername('')
-      setStatus({ type: 'success', msg: 'Token Discogs supprimé ✓' })
+
+    if (error || vinylError || wantlistError) {
+      setStatus({ type: 'error', msg: (error || vinylError || wantlistError).message })
+      return
     }
+    setToken('')
+    setDiscogsUsername('')
+    qc.invalidateQueries({ queryKey: ['collection'] })
+    qc.invalidateQueries({ queryKey: ['wantlist'] })
+    setStatus({ type: 'success', msg: 'Token Discogs et collection supprimés ✓' })
   }
 
   return (
@@ -276,17 +291,40 @@ function DiscogsSection({ profile, updateProfile }) {
           hint="Sensible à la casse — copie-le exactement depuis discogs.com/my"
         />
       </div>
+      {confirmingRemove && (
+        <p className="mt-4 rounded-lg bg-red-900/30 px-3 py-2 text-sm text-red-400">
+          Ça supprimera aussi ta collection et ta wantlist importées de Discogs. Confirmer ?
+        </p>
+      )}
       <StatusRow status={status} />
       <div className="flex items-center gap-3">
         <SaveBtn onClick={handleSave} saving={saving} />
         {profile?.discogs_token && (
-          <button
-            onClick={handleRemove}
-            disabled={saving}
-            className="mt-5 rounded-lg border border-red-500/30 px-5 py-2.5 text-sm text-red-400 transition hover:border-red-500/60 hover:bg-red-500/10 disabled:opacity-50"
-          >
-            Supprimer le token
-          </button>
+          confirmingRemove ? (
+            <>
+              <button
+                onClick={handleRemove}
+                disabled={saving}
+                className="mt-5 rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-red-500 disabled:opacity-50"
+              >
+                {saving ? 'Suppression…' : 'Confirmer'}
+              </button>
+              <button
+                onClick={() => setConfirmingRemove(false)}
+                disabled={saving}
+                className="mt-5 rounded-lg px-5 py-2.5 text-sm text-[#999] transition hover:text-white"
+              >
+                Annuler
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setConfirmingRemove(true)}
+              className="mt-5 rounded-lg border border-red-500/30 px-5 py-2.5 text-sm text-red-400 transition hover:border-red-500/60 hover:bg-red-500/10"
+            >
+              Supprimer le token
+            </button>
+          )
         )}
       </div>
     </Card>
