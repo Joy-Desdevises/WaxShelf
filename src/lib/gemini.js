@@ -1,44 +1,23 @@
-const API_KEY = import.meta.env.VITE_GROQ_API_KEY
+import { supabase } from './supabase'
 
 let queue = Promise.resolve()
 
 export function generateAnecdote(artist, title, year) {
-  if (!API_KEY) {
-    console.warn('[Groq] Clé API manquante — vérifie .env.local')
-    return Promise.resolve(null)
-  }
   queue = queue.then(() => delay(500))
   return (queue = queue.then(() => fetchAnecdote(artist, title, year)))
 }
 
 async function fetchAnecdote(artist, title, year) {
   console.log('[Groq] Génération pour', artist, title)
-  const yearPart = year ? ` (${year})` : ''
-  const prompt = `En UNE phrase très courte (maximum 15 mots), donne une anecdote vraie et surprenante sur l'album "${title}" de ${artist}${yearPart}. Priorité absolue : une anecdote spécifique à CET album précis (enregistrement, sortie, réception critique, un titre qui y figure...) — utilise ta meilleure estimation si tu n'es pas sûr à 100%, plutôt que de jouer la sécurité. Cet album existe réellement et fait partie de la collection de l'utilisateur : ne remets jamais en question son existence, sa date de sortie ou son authenticité. Ne bascule sur une anecdote générale à propos de l'artiste ${artist} qu'en tout dernier recours, si tu ne reconnais vraiment aucun élément permettant de parler de cet album précis (sans jamais dire que tu ne le connais pas). Réponds uniquement avec cette phrase, sans introduction ni guillemets.`
-
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 80,
-        temperature: 0.8,
-      }),
+    const { data, error } = await supabase.functions.invoke('generate-anecdote', {
+      body: { artist, title, year },
     })
-
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      console.error('[Groq] Erreur HTTP', res.status, JSON.stringify(body))
+    if (error) {
+      console.error('[Groq] Erreur:', error.message)
       return null
     }
-
-    const data = await res.json()
-    return data.choices?.[0]?.message?.content?.trim() || null
+    return data?.anecdote || null
   } catch (err) {
     console.error('[Groq] Erreur réseau:', err)
     return null
