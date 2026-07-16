@@ -24,13 +24,11 @@ export default function Header() {
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
-  const [showMobileMenu, setShowMobileMenu] = useState(false)
 
   const userMenuRef = useRef(null)
 
-  // Ferme les menus au changement de page
+  // Ferme le menu au changement de page
   useEffect(() => {
-    setShowMobileMenu(false)
     setShowUserMenu(false)
   }, [location.pathname])
 
@@ -123,7 +121,8 @@ export default function Header() {
               </button>
             )}
 
-            {/* Avatar + menu utilisateur — légende "Profil" sous l'icône sur mobile */}
+            {/* Avatar + menu utilisateur — fait aussi office de menu de navigation
+                sur mobile (légende "Menu" sous l'icône), plus besoin de burger séparé */}
             {user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
@@ -137,7 +136,7 @@ export default function Header() {
                       className="h-8 w-8 rounded-full text-sm text-white"
                     />
                   </span>
-                  <span className="text-[9px] leading-none text-[#999] md:hidden">Profil</span>
+                  <span className="text-[9px] leading-none text-[#999] md:hidden">Menu</span>
                 </button>
 
                 {showUserMenu && (
@@ -172,20 +171,6 @@ export default function Header() {
                 Connexion
               </button>
             )}
-
-            {/* Hamburger — mobile uniquement, et seulement si connecté (sinon
-                seule la page d'accueil existe, pas besoin de menu) */}
-            {user && (
-              <button
-                onClick={() => setShowMobileMenu((v) => !v)}
-                className="flex h-8 w-8 flex-col items-center justify-center gap-1.5 rounded-lg border border-[#333] md:hidden"
-                aria-label="Menu"
-              >
-                <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? 'translate-y-2 rotate-45' : ''}`} />
-                <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? 'opacity-0' : ''}`} />
-                <span className={`block h-0.5 w-4 bg-white transition-all ${showMobileMenu ? '-translate-y-2 -rotate-45' : ''}`} />
-              </button>
-            )}
           </div>
         </div>
 
@@ -196,23 +181,6 @@ export default function Header() {
               className="h-full bg-[#f5a623] transition-all"
               style={{ width: `${(enrichProgress.done / enrichProgress.total) * 100}%` }}
             />
-          </div>
-        )}
-
-        {/* Menu mobile déroulant */}
-        {user && showMobileMenu && (
-          <div className="border-t border-[#222] bg-[#0a0a0a] px-4 pb-4 pt-2 md:hidden">
-            <nav className="flex flex-col gap-1">
-              {navLinks.map((l) => (
-                <Link
-                  key={l.to}
-                  to={l.to}
-                  className="rounded-lg px-3 py-2.5 text-sm text-[#888] transition hover:bg-[#1a1a1a] hover:text-white"
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </nav>
           </div>
         )}
       </header>
