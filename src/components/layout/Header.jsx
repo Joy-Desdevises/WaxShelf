@@ -48,9 +48,11 @@ export default function Header() {
     navigate('/')
   }
 
-  // Sur les pages sans :username dans l'URL (ex: l'accueil), on retombe
-  // sur le profil connecté pour garder les mêmes onglets partout.
-  const navUsername = username || profile?.username
+  // Toujours basé sur le profil connecté, jamais sur celui affiché à l'écran
+  // (ex: on visite le profil de quelqu'un) — sinon les onglets Collection/
+  // Stats/Wantlist/Journal restent bloqués sur ce profil visité tant qu'on
+  // navigue via ces onglets. Repli sur :username seulement si déconnecté.
+  const navUsername = profile?.username || username
 
   const navLinks = [
     { to: '/', label: 'Accueil' },
