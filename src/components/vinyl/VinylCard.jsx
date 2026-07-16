@@ -228,26 +228,27 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
 
       {/* ── Boutons flip + détails : uniquement sur mobile. Sur desktop, le
           survol retourne déjà la carte et le curseur indique le clic, ces
-          boutons seraient redondants. ── */}
+          boutons seraient redondants. Écartés (coin bas-gauche / centré) au
+          lieu d'être collés, pour des zones de clic plus généreuses. ── */}
       {size === 'lg' && (
-        <div className="absolute bottom-1.5 left-1.5 z-10 flex gap-1.5 md:hidden">
+        <>
           <button
             onClick={handleToggleFlip}
             title={flipped ? 'Voir la pochette' : "Voir l'anecdote"}
             aria-label={flipped ? 'Voir la pochette' : "Voir l'anecdote"}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-[#f5a623] backdrop-blur-sm transition hover:bg-[#f5a623] hover:text-black"
+            className="absolute bottom-1.5 left-1.5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-[#f5a623] backdrop-blur-sm transition hover:bg-[#f5a623] hover:text-black md:hidden"
           >
-            <span className="text-xs">{flipped ? '🖼' : '📖'}</span>
+            <span className="text-sm">{flipped ? '🖼' : '📖'}</span>
           </button>
           <button
             onClick={handleShowDetails}
             title="Voir tous les détails"
             aria-label="Voir tous les détails"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-[#f5a623] backdrop-blur-sm transition hover:bg-[#f5a623] hover:text-black"
+            className="absolute bottom-1.5 left-1/2 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full bg-black/70 text-[#f5a623] backdrop-blur-sm transition hover:bg-[#f5a623] hover:text-black md:hidden"
           >
-            <span className="text-xs">ℹ</span>
+            <span className="text-sm">ℹ</span>
           </button>
-        </div>
+        </>
       )}
     </div>
   )
