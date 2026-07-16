@@ -34,12 +34,11 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function fetchProfile(userId) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    setProfile(data)
+    const [{ data }, { data: secret }] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', userId).single(),
+      supabase.from('profile_secrets').select('discogs_token').eq('user_id', userId).maybeSingle(),
+    ])
+    setProfile(data ? { ...data, discogs_token: secret?.discogs_token ?? null } : null)
     setLoading(false)
   }
 
@@ -76,14 +75,33 @@ export function AuthProvider({ children }) {
 
   async function updateProfile(updates) {
     if (!user) return
+    // discogs_token vit dans profile_secrets (RLS propriétaire uniquement),
+    // pas dans profiles (lisible publiquement si is_public = true) — voir
+    // migration 20260716150000_profile_secrets.
+    const hasToken = 'discogs_token' in updates
+    const { discogs_token, ...profileUpdates } = updates
+
+    let secretError = null
+    if (hasToken) {
+      const { error } = await supabase
+        .from('profile_secrets')
+        .upsert({ user_id: user.id, discogs_token })
+      secretError = error
+    }
+
+    if (Object.keys(profileUpdates).length === 0) {
+      if (!secretError) setProfile((p) => (p ? { ...p, discogs_token } : p))
+      return { data: profile, error: secretError }
+    }
+
     const { data, error } = await supabase
       .from('profiles')
-      .update(updates)
+      .update(profileUpdates)
       .eq('id', user.id)
       .select()
       .single()
-    if (!error) setProfile(data)
-    return { data, error }
+    if (!error) setProfile({ ...data, discogs_token: hasToken ? discogs_token : profile?.discogs_token ?? null })
+    return { data, error: error || secretError }
   }
 
   return (

@@ -384,7 +384,7 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
   const [error, setError] = useState('')
 
   async function getToken() {
-    const { data } = await supabase.from('profiles').select('discogs_token').eq('id', profileId).single()
+    const { data } = await supabase.from('profile_secrets').select('discogs_token').eq('user_id', profileId).maybeSingle()
     return data?.discogs_token || null
   }
 

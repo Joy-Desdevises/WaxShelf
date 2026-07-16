@@ -37,12 +37,11 @@ export function DiscogsSyncProvider({ children }) {
 
     if (!discogsToken && user?.id) {
       const { data } = await supabase
-        .from('profiles')
-        .select('discogs_token, discogs_username')
-        .eq('id', user.id)
-        .single()
+        .from('profile_secrets')
+        .select('discogs_token')
+        .eq('user_id', user.id)
+        .maybeSingle()
       discogsToken = data?.discogs_token
-      discogsUsername = data?.discogs_username
     }
 
     if (!discogsToken) {
