@@ -192,14 +192,14 @@ export default function Header() {
               </button>
             )}
 
-            {/* Sélecteur de langue FR/EN */}
+            {/* Sélecteur de langue : drapeau de la langue actuellement affichée */}
             <button
               onClick={toggleLanguage}
               title={t('header.language')}
               aria-label={t('header.language')}
-              className="rounded-lg border border-[#333] px-2 py-1.5 text-xs font-medium text-[#999] transition hover:border-[#555] hover:text-white"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#333] text-base transition hover:border-[#555]"
             >
-              {i18n.language === 'fr' ? 'EN' : 'FR'}
+              {i18n.language === 'fr' ? '🇫🇷' : '🇬🇧'}
             </button>
           </div>
         </div>
