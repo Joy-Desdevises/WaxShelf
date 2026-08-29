@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
+import LanguageToggle from '../layout/LanguageToggle'
 
 export default function AuthModal({ onClose, initialMode = 'signin' }) {
   useLockBodyScroll()
@@ -50,6 +51,7 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
     >
       <div className="safe-bottom relative w-full rounded-t-2xl bg-[#111] p-6 shadow-2xl sm:max-w-sm sm:rounded-xl">
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
+        <LanguageToggle className="absolute left-2 top-2" />
         <button
           onClick={onClose}
           aria-label={t('common.close')}

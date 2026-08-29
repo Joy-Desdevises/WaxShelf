@@ -9,6 +9,7 @@ import ListenSuggestionModal from '../modals/ListenSuggestionModal'
 import AuthModal from '../modals/AuthModal'
 import UpdatePasswordModal from '../modals/UpdatePasswordModal'
 import Avatar from './Avatar'
+import LanguageToggle from './LanguageToggle'
 import waxshelfLogoText from '../../assets/waxshelf_logo_texte.svg'
 
 // Header unique, affiché sur toutes les pages : mêmes onglets, même widget
@@ -16,7 +17,7 @@ import waxshelfLogoText from '../../assets/waxshelf_logo_texte.svg'
 // sur l'utilisateur connecté plutôt que sur la page actuellement affichée —
 // synchroniser sa collection ne devrait pas nécessiter d'être sur une page en particulier.
 export default function Header() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { username } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -68,10 +69,6 @@ export default function Header() {
         ]
       : []),
   ]
-
-  function toggleLanguage() {
-    i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr')
-  }
 
   return (
     <>
@@ -192,15 +189,7 @@ export default function Header() {
               </button>
             )}
 
-            {/* Sélecteur de langue : drapeau de la langue actuellement affichée */}
-            <button
-              onClick={toggleLanguage}
-              title={t('header.language')}
-              aria-label={t('header.language')}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#333] text-base transition hover:border-[#555]"
-            >
-              {i18n.language === 'fr' ? '🇫🇷' : '🇬🇧'}
-            </button>
+            <LanguageToggle />
           </div>
         </div>
 
