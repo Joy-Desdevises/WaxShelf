@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Header from '../components/layout/Header'
@@ -8,6 +9,7 @@ import { supabase } from '../lib/supabase'
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
 export default function JournalPage() {
+  const { t, i18n } = useTranslation()
   const { username } = useParams()
   const { user, profile } = useAuth()
   const isOwner = user && profile?.username === username
@@ -48,21 +50,21 @@ export default function JournalPage() {
 
         {/* ── Titre ── */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">Journal d'écoute</h1>
+          <h1 className="text-2xl font-bold">{t('journalPage.title')}</h1>
           <p className="mt-1 text-sm text-[#999]">
-            {isOwner ? "Toutes tes sessions d'écoute" : `Les écoutes de @${username}`}
+            {isOwner ? t('journalPage.subtitleOwner') : t('journalPage.subtitleOther', { username })}
           </p>
         </div>
 
         {/* ── Stats ── */}
         {stats && stats.total > 0 && (
           <div className="mb-8 grid grid-cols-3 gap-3">
-            <StatCard label="Total écoutes" value={stats.total} />
-            <StatCard label="Cette semaine" value={stats.thisWeek} />
+            <StatCard label={t('journalPage.statTotal')} value={stats.total} />
+            <StatCard label={t('journalPage.statThisWeek')} value={stats.thisWeek} />
             <StatCard
-              label="Le plus joué"
+              label={t('journalPage.statMostPlayed')}
               value={stats.mostPlayed?.vinyl?.title ?? '—'}
-              sub={stats.mostPlayed ? `${stats.mostPlayed.count} fois` : null}
+              sub={stats.mostPlayed ? t('journalPage.statTimes', { count: stats.mostPlayed.count }) : null}
               small
             />
           </div>
@@ -77,9 +79,7 @@ export default function JournalPage() {
           <div className="rounded-xl border border-[#1a1a1a] bg-[#111] py-16 text-center">
             <p className="text-4xl">🎵</p>
             <p className="mt-4 text-[#999]">
-              {isOwner
-                ? "Aucune écoute pour l'instant. Ouvre un vinyle et clique sur 'J'écoute ça' !"
-                : "Aucune écoute enregistrée."}
+              {isOwner ? t('journalPage.emptyOwner') : t('journalPage.emptyOther')}
             </p>
           </div>
         ) : (
@@ -87,7 +87,7 @@ export default function JournalPage() {
             {grouped.map(({ day, entries }) => (
               <div key={day}>
                 <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#888]">
-                  {formatDay(day)}
+                  {formatDay(day, t, i18n.language)}
                 </h2>
                 <div className="space-y-2">
                   {entries.map((log) => (
@@ -110,6 +110,7 @@ export default function JournalPage() {
 }
 
 function LogEntry({ log, isOwner, onDelete, deleting }) {
+  const { i18n } = useTranslation()
   const v = log.vinyl_records
   if (!v) return null
 
@@ -126,7 +127,7 @@ function LogEntry({ log, isOwner, onDelete, deleting }) {
       </div>
       <div className="flex items-center gap-3">
         <span className="text-xs text-[#888]">
-          {new Date(log.played_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+          {new Date(log.played_at).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
         </span>
         {isOwner && (
           <button
@@ -166,13 +167,13 @@ function groupByDay(logs) {
     .map(([day, entries]) => ({ day, entries }))
 }
 
-function formatDay(isoDate) {
+function formatDay(isoDate, t, language) {
   const d = new Date(isoDate + 'T12:00:00')
   const today = new Date()
   const yesterday = new Date()
   yesterday.setDate(today.getDate() - 1)
 
-  if (isoDate === today.toISOString().slice(0, 10)) return "Aujourd'hui"
-  if (isoDate === yesterday.toISOString().slice(0, 10)) return 'Hier'
-  return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+  if (isoDate === today.toISOString().slice(0, 10)) return t('journalPage.today')
+  if (isoDate === yesterday.toISOString().slice(0, 10)) return t('journalPage.yesterday')
+  return d.toLocaleDateString(language, { weekday: 'long', day: 'numeric', month: 'long' })
 }

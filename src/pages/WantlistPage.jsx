@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import Header from '../components/layout/Header'
 import { useAuth } from '../hooks/useAuth'
@@ -8,6 +9,7 @@ import { timeAgo } from '../lib/format'
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
 export default function WantlistPage() {
+  const { t } = useTranslation()
   const { username } = useParams()
   const { user, profile } = useAuth()
   const isOwner = user && profile?.username === username
@@ -26,11 +28,11 @@ export default function WantlistPage() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-xl font-bold text-white sm:text-2xl">
-            Wantlist
+            {t('wantlistPage.title')}
             <span className="ml-2 text-sm font-normal text-[#999]">· @{username}</span>
           </h1>
           {isOwner && profile?.last_wantlist_sync_at && (
-            <p className="text-[10px] text-[#888]">Dernière sync : {timeAgo(profile.last_wantlist_sync_at)}</p>
+            <p className="text-[10px] text-[#888]">{t('wantlistPage.lastSync', { date: timeAgo(profile.last_wantlist_sync_at) })}</p>
           )}
         </div>
 
@@ -43,10 +45,10 @@ export default function WantlistPage() {
         ) : items.length === 0 ? (
           <div className="py-24 text-center">
             <p className="text-5xl">🎵</p>
-            <p className="mt-4 text-[#888]">La wantlist est vide.</p>
+            <p className="mt-4 text-[#888]">{t('wantlistPage.empty')}</p>
             {isOwner && (
               <p className="mt-1 text-sm text-[#999]">
-                Clique sur "Sync Discogs" en haut de page pour importer tes envies.
+                {t('wantlistPage.emptySyncHint')}
               </p>
             )}
           </div>
@@ -74,14 +76,14 @@ export default function WantlistPage() {
                   rel="noopener noreferrer"
                   className="shrink-0 rounded-lg border border-[#2a2a2a] px-3 py-1.5 text-xs text-[#888] transition hover:border-[#444] hover:text-white"
                 >
-                  Discogs ↗
+                  {t('wantlistPage.discogsLink')}
                 </a>
                 {isOwner && (
                   <button
                     onClick={() => handleRemove(item.id)}
                     className="shrink-0 rounded-lg border border-[#2a2a2a] px-3 py-1.5 text-xs text-[#888] transition hover:border-red-500/40 hover:text-red-400"
                   >
-                    Retirer
+                    {t('wantlistPage.remove')}
                   </button>
                 )}
               </div>

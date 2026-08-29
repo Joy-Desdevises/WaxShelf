@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, Link } from 'react-router-dom'
 import Header from '../components/layout/Header'
 import VinylGrid from '../components/vinyl/VinylGrid'
@@ -35,6 +36,7 @@ function getCountries(records) {
 }
 
 export default function CollectionPage() {
+  const { t } = useTranslation()
   const { username } = useParams()
   const { user, profile } = useAuth()
   const isOwner = user && profile?.username === username
@@ -106,34 +108,34 @@ export default function CollectionPage() {
             <h1 className="text-xl font-bold text-white sm:text-2xl">
               {username}
               <span className="ml-2 text-sm font-normal text-[#999]">
-                · {collection.length} vinyle{collection.length !== 1 ? 's' : ''}
+                · {t('collectionPage.vinylCount', { count: collection.length })}
               </span>
             </h1>
             <div className="mt-1 flex gap-3 text-sm text-[#999]">
               <button onClick={() => setShowFollowList('followers')} className="hover:text-white hover:underline">
-                <span className="font-semibold text-white">{followCounts?.followers ?? 0}</span> abonnés
+                <span className="font-semibold text-white">{followCounts?.followers ?? 0}</span> {t('collectionPage.followers')}
               </button>
               <button onClick={() => setShowFollowList('following')} className="hover:text-white hover:underline">
-                <span className="font-semibold text-white">{followCounts?.following ?? 0}</span> abonnements
+                <span className="font-semibold text-white">{followCounts?.following ?? 0}</span> {t('collectionPage.following')}
               </button>
             </div>
             {hasFilters && (
               <p className="mt-0.5 text-sm text-[#999]">
-                {filtered.length} résultat{filtered.length !== 1 ? 's' : ''}
+                {t('collectionPage.resultCount', { count: filtered.length })}
               </p>
             )}
           </div>
 
           <div className="flex flex-col items-start gap-1 sm:items-end">
             {isOwner && profile?.last_collection_sync_at && (
-              <p className="text-[10px] text-[#888]">Dernière sync : {timeAgo(profile.last_collection_sync_at)}</p>
+              <p className="text-[10px] text-[#888]">{t('collectionPage.lastSync', { date: timeAgo(profile.last_collection_sync_at) })}</p>
             )}
             {isOwner ? (
               <button
                 onClick={() => setShowAddSearch(true)}
                 className="flex items-center justify-center gap-1 rounded-lg bg-[#f5a623] px-3 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] sm:px-4"
               >
-                + Ajouter
+                {t('collectionPage.add')}
               </button>
             ) : (
               user && (
@@ -146,7 +148,7 @@ export default function CollectionPage() {
                       : 'bg-[#f5a623] text-black hover:bg-[#fbbf24]'
                   }`}
                 >
-                  {isFollowing ? 'Suivi(e) ✓' : '+ Suivre'}
+                  {isFollowing ? t('collectionPage.following2') : t('collectionPage.follow')}
                 </button>
               )
             )}
@@ -160,7 +162,7 @@ export default function CollectionPage() {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]">🔍</span>
             <input
               type="text"
-              placeholder="Artiste, titre, style…"
+              placeholder={t('collectionPage.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-lg border border-[#222] bg-[#111] py-2.5 pl-10 pr-8 text-sm text-white placeholder-[#888] outline-none focus:border-[#333] transition"
@@ -181,7 +183,7 @@ export default function CollectionPage() {
                 : 'border-[#222] bg-[#111] text-[#888]'
             }`}
           >
-            ⚡ Filtres
+            {t('collectionPage.filters')}
             {activeFilterCount > 0 && (
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#f5a623] text-[10px] font-bold text-black">
                 {activeFilterCount}
@@ -191,27 +193,27 @@ export default function CollectionPage() {
 
           {/* Toggle taille cartes */}
           <div className="flex rounded-lg border border-[#222] bg-[#111] p-0.5">
-            <SizeBtn active={cardSize === 'lg'} onClick={() => setCardSize('lg')} label="⊞" title="Grande" />
-            <SizeBtn active={cardSize === 'sm'} onClick={() => setCardSize('sm')} label="⊟" title="Petite" />
+            <SizeBtn active={cardSize === 'lg'} onClick={() => setCardSize('lg')} label="⊞" title={t('collectionPage.sizeLarge')} />
+            <SizeBtn active={cardSize === 'sm'} onClick={() => setCardSize('sm')} label="⊟" title={t('collectionPage.sizeSmall')} />
           </div>
         </div>
 
         {/* Filtres desktop (toujours visibles) + mobile (toggle) */}
         <div className={`mb-5 ${showFilters || 'hidden sm:flex'} flex flex-col gap-2 rounded-lg border border-[#1a1a1a] bg-[#111] p-3 sm:flex-row sm:flex-wrap sm:items-center sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0`}>
-          <Select value={filterGenre} onChange={setFilterGenre} placeholder="Genre" options={genres} />
+          <Select value={filterGenre} onChange={setFilterGenre} placeholder={t('collectionPage.genrePlaceholder')} options={genres} />
           <Select
             value={filterDecade}
             onChange={setFilterDecade}
-            placeholder="Décennie"
+            placeholder={t('collectionPage.decadePlaceholder')}
             options={decades.map((d) => ({ value: String(d), label: `${d}s` }))}
           />
-          <Select value={filterCountry} onChange={setFilterCountry} placeholder="Pays" options={countries} />
+          <Select value={filterCountry} onChange={setFilterCountry} placeholder={t('collectionPage.countryPlaceholder')} options={countries} />
           {hasFilters && (
             <button
               onClick={() => { resetFilters(); setShowFilters(false) }}
               className="rounded-lg border border-[#333] px-3 py-2 text-xs text-[#888] transition hover:border-[#555] hover:text-white"
             >
-              Réinitialiser
+              {t('collectionPage.reset')}
             </button>
           )}
         </div>
@@ -330,6 +332,7 @@ function SizeBtn({ active, onClick, label, title }) {
 
 function AddVinylModal({ userId, profileId, onClose, onAdded }) {
   useLockBodyScroll()
+  const { t } = useTranslation()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
@@ -348,12 +351,12 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
     setError('')
     try {
       const token = await getToken()
-      if (!token) { setError('Configure d\'abord ton token Discogs.'); setSearching(false); return }
+      if (!token) { setError(t('collectionPage.addModal.configureTokenFirst')); setSearching(false); return }
       const res = await searchDiscogs(token, query)
-      if (res.length === 0) setError('Aucun résultat.')
+      if (res.length === 0) setError(t('collectionPage.addModal.noResults'))
       setResults(res)
     } catch (err) {
-      setError(`Erreur : ${err?.response?.data?.message || err.message}`)
+      setError(t('collectionPage.addModal.errorPrefix', { message: err?.response?.data?.message || err.message }))
     }
     setSearching(false)
   }
@@ -378,8 +381,8 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
         <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
 
         <div className="flex items-center justify-between border-b border-[#222] p-4">
-          <h2 className="font-semibold text-white">Ajouter un vinyle</h2>
-          <button onClick={onClose} aria-label="Fermer" className="-mr-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white">✕</button>
+          <h2 className="font-semibold text-white">{t('collectionPage.addModal.title')}</h2>
+          <button onClick={onClose} aria-label={t('common.close')} className="-mr-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white">✕</button>
         </div>
 
         <form onSubmit={handleSearch} className="flex gap-2 p-4">
@@ -387,7 +390,7 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Artiste, titre, label…"
+            placeholder={t('collectionPage.addModal.searchPlaceholder')}
             className="flex-1 rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#888] outline-none focus:border-[#f5a623] transition"
           />
           <button
@@ -395,7 +398,7 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
             disabled={searching}
             className="rounded-lg bg-[#f5a623] px-4 py-2 text-sm font-medium text-black hover:bg-[#fbbf24] disabled:opacity-50"
           >
-            {searching ? '…' : 'Chercher'}
+            {searching ? t('collectionPage.addModal.searching') : t('collectionPage.addModal.search')}
           </button>
         </form>
 
@@ -416,7 +419,7 @@ function AddVinylModal({ userId, profileId, onClose, onAdded }) {
                 disabled={adding === r.discogs_id}
                 className="flex-shrink-0 rounded-lg bg-[#f5a623] px-3 py-1.5 text-xs font-medium text-black hover:bg-[#fbbf24] disabled:opacity-50"
               >
-                {adding === r.discogs_id ? '…' : '+ Ajouter'}
+                {adding === r.discogs_id ? t('collectionPage.addModal.adding') : t('collectionPage.addModal.add')}
               </button>
             </div>
           ))}

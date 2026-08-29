@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import VinylCard from './VinylCard'
 
 /**
@@ -11,6 +12,7 @@ import VinylCard from './VinylCard'
  *  - currentUserId : id de l'utilisateur connecté (permet de logger une écoute depuis la carte)
  */
 export default function VinylGrid({ records = [], size = 'lg', loading = false, onCardClick, currentUserId }) {
+  const { t } = useTranslation()
   if (loading) {
     return (
       <div className={`grid gap-3 ${gridCols(size)}`}>
@@ -25,8 +27,8 @@ export default function VinylGrid({ records = [], size = 'lg', loading = false, 
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <span className="mb-4 text-5xl">🎶</span>
-        <p className="text-lg font-medium text-[#888]">Aucun vinyle trouvé</p>
-        <p className="mt-1 text-sm text-[#999]">Essaie d&apos;ajuster les filtres ou synchro ta collection Discogs.</p>
+        <p className="text-lg font-medium text-[#888]">{t('vinylGrid.noVinylFound')}</p>
+        <p className="mt-1 text-sm text-[#999]">{t('vinylGrid.tryAdjustFilters')}</p>
       </div>
     )
   }

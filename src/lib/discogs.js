@@ -1,4 +1,5 @@
 import axios from 'axios'
+import i18n from './i18n'
 
 const BASE_URL = 'https://api.discogs.com'
 
@@ -47,7 +48,7 @@ function normalizeRelease(release) {
   return {
     discogs_id: info.id,
     title: info.title,
-    artist: info.artists?.map((a) => a.name).join(', ') || 'Artiste inconnu',
+    artist: info.artists?.map((a) => a.name).join(', ') || i18n.t('discogs.unknownArtist'),
     year: info.year || null,
     genres: info.genres || [],
     styles: info.styles || [],

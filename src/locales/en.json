@@ -1,0 +1,358 @@
+{
+  "header": {
+    "ariaHome": "WaxShelf home",
+    "nav": {
+      "home": "Home",
+      "collection": "Collection",
+      "dashboard": "Stats",
+      "wantlist": "Wantlist",
+      "journal": "Journal"
+    },
+    "sync": {
+      "syncing": "Syncing…",
+      "syncingProgress": "Syncing… ({{done}}/{{total}})",
+      "wantlist": "Wantlist…",
+      "sync": "Sync Discogs",
+      "lastSync": "Last sync: {{date}}"
+    },
+    "listen": {
+      "label": "Listen",
+      "cta": "What should I listen to?"
+    },
+    "menu": {
+      "label": "Menu",
+      "collection": "My collection",
+      "stats": "Statistics",
+      "wantlist": "Wantlist",
+      "journal": "🎵 Journal",
+      "settings": "⚙️ Settings",
+      "signOut": "Sign out"
+    },
+    "login": "Log in",
+    "language": "Language"
+  },
+  "footer": {
+    "disclaimer": "This application uses Discogs' API but is not affiliated with, sponsored or endorsed by Discogs."
+  },
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "loading": "Loading…",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next"
+  },
+  "auth": {
+    "title": {
+      "signin": "Sign in",
+      "signup": "Create an account",
+      "reset": "Forgot password"
+    },
+    "username": "Username",
+    "usernamePlaceholder": "your-username",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "I forgot my password",
+    "loading": "Loading…",
+    "submit": {
+      "signin": "Sign in",
+      "signup": "Create account",
+      "reset": "Send reset link"
+    },
+    "backToSignin": "Back to sign in",
+    "noAccount": "No account yet? ",
+    "hasAccount": "Already have an account? ",
+    "signupSuccess": "Account created! Check your email to confirm your registration.",
+    "resetSuccess": "An email with a reset link has just been sent to you.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
+  },
+  "discogsToken": {
+    "steps": {
+      "create": {
+        "title": "Create a Discogs token",
+        "instructions": "Log in to your Discogs account, then go to:",
+        "path": "Settings → Developers → Generate new token",
+        "openDiscogs": "Open Discogs →"
+      },
+      "paste": {
+        "title": "Paste your Discogs token",
+        "instructions": "Paste your Discogs token below:"
+      },
+      "username": {
+        "title": "Your Discogs username",
+        "instructions": "Your Discogs username (the one shown on your profile):",
+        "caseWarning": "Careful: it's case-sensitive — copy it exactly from"
+      },
+      "visibility": {
+        "title": "Your collection's visibility",
+        "instructions": "Once synced, your collection will be visible at {{url}}. You can change this anytime from Settings.",
+        "public": "Public collection — visible to everyone",
+        "private": "Private collection — visible only to you"
+      }
+    },
+    "tokenPlaceholder": "xxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "usernamePlaceholder": "MyDiscogsUsername",
+    "errorRequired": "Token and username are required.",
+    "errorSave": "Error while saving. Try again.",
+    "finish": "Finish ✓",
+    "yourPseudo": "your-username"
+  },
+  "followList": {
+    "followers": "Followers",
+    "following": "Following",
+    "loading": "Loading…",
+    "emptyFollowers": "No followers yet.",
+    "emptyFollowing": "Not following anyone yet."
+  },
+  "likedVinyls": {
+    "title": "Likes given",
+    "loading": "Loading…",
+    "empty": "No likes yet."
+  },
+  "listenSuggestion": {
+    "title": "🎲 What should I listen to?",
+    "subtitle": "Answer a few questions and I'll pick something from your collection.",
+    "moodLabel": "Mood",
+    "durationLabel": "Time available",
+    "genreLabel": "Favorite genre",
+    "cta": "Find me a record 🎵",
+    "moods": {
+      "relax": "Chill",
+      "energy": "Energy",
+      "melancholy": "Melancholy",
+      "party": "Party",
+      "focus": "Focus",
+      "surprise": "Surprise me"
+    },
+    "durations": {
+      "short": "< 30 min",
+      "medium": "30-45 min",
+      "long": "45-60 min"
+    },
+    "any": "Doesn't matter",
+    "forTonight": "For you tonight 🎵",
+    "priceTooltip": "Discogs lowest price (cheapest listing currently for sale)",
+    "otherSuggestion": "Another suggestion",
+    "letsGo": "Let's go! 🎶"
+  },
+  "updatePassword": {
+    "title": "New password",
+    "subtitle": "Choose a new password for your account.",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "mismatchError": "The two passwords don't match.",
+    "save": "Save password",
+    "saving": "Saving…"
+  },
+  "vinylCard": {
+    "generating": "Generating…",
+    "priceTooltip": "Discogs lowest price (cheapest listing currently for sale)",
+    "listenToThis": "Listening to this",
+    "clickForDetails": "Click for details",
+    "viewCover": "View cover",
+    "viewAnecdote": "View anecdote",
+    "viewAllDetails": "View all details"
+  },
+  "vinylDetail": {
+    "releaseDate": "Album release date:",
+    "pressingDate": "Pressing date:",
+    "notSpecified": "Not specified",
+    "valuePlaceholder": "Value (empty = auto)",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "manualValueTooltip": "Manually entered value",
+    "autoValueTooltip": "Price of the cheapest listing currently for sale on Discogs",
+    "manualValueTag": "(manual entry)",
+    "autoValueTag": "(Discogs lowest price)",
+    "noKnownValue": "No known value",
+    "edit": "edit",
+    "starLabel": "{{count}} star",
+    "starLabel_other": "{{count}} stars",
+    "personalNotes": "Personal notes",
+    "private": "(private)",
+    "notesPlaceholder": "Where you found it, what it means to you…",
+    "notesSaved": "✓ Saved",
+    "saving": "Saving…",
+    "save": "Save",
+    "like_one": "{{count}} like",
+    "like_other": "{{count}} likes",
+    "loggedToJournal": "Added to journal!",
+    "listenToThis": "Listening to this",
+    "playCount_one": "{{count}} play",
+    "playCount_other": "{{count}} plays",
+    "loginToInteract": "Log in to interact",
+    "comments": "Comments",
+    "noComments": "No comments yet.",
+    "deleteComment": "delete",
+    "commentPlaceholder": "Leave a comment…",
+    "send": "Send",
+    "loginToComment": "Log in",
+    "loginToCommentSuffix": "to comment."
+  },
+  "vinylGrid": {
+    "noVinylFound": "No records found",
+    "tryAdjustFilters": "Try adjusting the filters or syncing your Discogs collection."
+  },
+  "collectionPage": {
+    "vinylCount_one": "{{count}} record",
+    "vinylCount_other": "{{count}} records",
+    "followers": "followers",
+    "following": "following",
+    "resultCount_one": "{{count}} result",
+    "resultCount_other": "{{count}} results",
+    "lastSync": "Last sync: {{date}}",
+    "add": "+ Add",
+    "follow": "+ Follow",
+    "following2": "Following ✓",
+    "searchPlaceholder": "Artist, title, style…",
+    "filters": "⚡ Filters",
+    "sizeLarge": "Large",
+    "sizeSmall": "Small",
+    "genrePlaceholder": "Genre",
+    "decadePlaceholder": "Decade",
+    "countryPlaceholder": "Country",
+    "reset": "Reset",
+    "addModal": {
+      "title": "Add a record",
+      "searchPlaceholder": "Artist, title, label…",
+      "search": "Search",
+      "searching": "…",
+      "noResults": "No results.",
+      "configureTokenFirst": "Set up your Discogs token first.",
+      "errorPrefix": "Error: {{message}}",
+      "add": "+ Add",
+      "adding": "…"
+    }
+  },
+  "dashboardPage": {
+    "title": "Stat & Social",
+    "vinylsWithValue": "{{withValue}}/{{total}} records with a known value",
+    "followers": "Followers",
+    "following": "Following",
+    "likesGiven": "Likes given",
+    "noData": "No data available.",
+    "kpiVinyls": "Records",
+    "kpiMinPrice": "Minimum resale value",
+    "kpiMinPriceSub": "sum of the lowest price found per record",
+    "kpiCountries": "Different countries",
+    "mostPrecious": "💰 Most valuable",
+    "mostPreciousSub": "Price of the cheapest listing currently for sale on Discogs (not an average)",
+    "topGenres": "🎸 Top genres",
+    "byDecade": "📅 By decade",
+    "byDecadeSub": "Album original release year",
+    "originCountries": "🌍 Countries of origin"
+  },
+  "journalPage": {
+    "title": "Listening journal",
+    "subtitleOwner": "All your listening sessions",
+    "subtitleOther": "@{{username}}'s listens",
+    "statTotal": "Total plays",
+    "statThisWeek": "This week",
+    "statMostPlayed": "Most played",
+    "statTimes_one": "{{count}} time",
+    "statTimes_other": "{{count}} times",
+    "emptyOwner": "No plays yet. Open a record and click 'Listening to this'!",
+    "emptyOther": "No plays logged.",
+    "today": "Today",
+    "yesterday": "Yesterday"
+  },
+  "settingsPage": {
+    "title": "Settings",
+    "profile": {
+      "cardTitle": "Profile",
+      "photoLabel": "Profile picture",
+      "defaultInitial": "Default initial",
+      "uploadPhoto": "Upload a photo (2 MB max)",
+      "displayName": "Display name",
+      "displayNamePlaceholder": "Your public name",
+      "username": "Username",
+      "usernamePlaceholder": "your-username",
+      "usernameHint": "Changes your collection's URL. Case-sensitive.",
+      "bio": "Bio",
+      "bioPlaceholder": "A few words about your collection…",
+      "publicCollection": "Public collection — {{visibility}}",
+      "visiblePublic": "visible to everyone",
+      "visiblePrivate": "visible only to you",
+      "imageTooLarge": "Image too large (2 MB maximum).",
+      "updated": "Profile updated ✓"
+    },
+    "discogs": {
+      "cardTitle": "Discogs connection",
+      "generateToken": "Generate a token at",
+      "tokenLabel": "Personal token",
+      "tokenPlaceholder": "Paste your token here",
+      "usernameLabel": "Discogs username",
+      "usernamePlaceholder": "MyDiscogsUsername",
+      "usernameHint": "Case-sensitive — copy it exactly from discogs.com/my",
+      "requiredError": "Discogs token and username are required.",
+      "updated": "Discogs connection updated ✓",
+      "removeConfirm": "This will also delete your collection and wantlist imported from Discogs. Confirm?",
+      "removing": "Removing…",
+      "removeToken": "Remove token",
+      "removed": "Discogs token and collection removed ✓"
+    },
+    "password": {
+      "cardTitle": "Password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "tooShort": "The new password must be at least 6 characters.",
+      "mismatch": "The passwords don't match.",
+      "updated": "Password updated ✓",
+      "changeButton": "Change password"
+    },
+    "session": {
+      "cardTitle": "Session",
+      "signOut": "Sign out"
+    },
+    "deleteAccount": {
+      "cardTitle": "Danger zone",
+      "button": "Delete my account",
+      "warning": "Irreversible action: your collection, comments, likes and follows will be permanently deleted.",
+      "typeToConfirmPrefix": "Type",
+      "typeToConfirmSuffix": "to confirm.",
+      "confirmButton": "Confirm deletion",
+      "deleting": "Deleting…",
+      "error": "Error while deleting. Try again or contact support."
+    }
+  },
+  "wantlistPage": {
+    "title": "Wantlist",
+    "lastSync": "Last sync: {{date}}",
+    "empty": "The wantlist is empty.",
+    "emptySyncHint": "Click \"Sync Discogs\" at the top of the page to import your wants.",
+    "discogsLink": "Discogs ↗",
+    "remove": "Remove"
+  },
+  "landingPage": {
+    "badge": "Your records, indexed and shared",
+    "heroTitle1": "Your record collection,",
+    "heroTitle2": "always within reach",
+    "heroSubtitle": "Import your Discogs collection, browse others', and let WaxShelf pick what you should listen to tonight.",
+    "syncing": "Syncing…",
+    "syncingProgress": "Syncing… ({{done}}/{{total}})",
+    "wantlistSyncing": "Wantlist…",
+    "syncButton": "Sync with Discogs",
+    "lastSync": "Last sync: {{date}}",
+    "createSpace": "Create my space",
+    "publicCollections": "Public collections",
+    "empty": "Be the first to share your collection!"
+  },
+  "discogsSync": {
+    "success": "✅ Sync complete — {{count}} records, {{wantlistCount}} wants.",
+    "error": "Error: {{message}}",
+    "unknownError": "Unknown error"
+  },
+  "format": {
+    "today": "today",
+    "yesterday": "yesterday",
+    "daysAgo_one": "{{count}} day ago",
+    "daysAgo_other": "{{count}} days ago",
+    "at": "at {{time}}"
+  },
+  "discogs": {
+    "unknownArtist": "Unknown artist"
+  }
+}

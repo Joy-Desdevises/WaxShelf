@@ -1,44 +1,47 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 
-const STEPS = [
-  {
-    title: 'Créer un token Discogs',
-    description: (
-      <>
-        <p className="text-sm text-[#888]">
-          Connecte-toi à ton compte Discogs, puis va dans :{' '}
-          <strong className="text-white">Paramètres → Développeurs → Générer un token personnel</strong>
-        </p>
-        <a
-          href="https://www.discogs.com/settings/developers"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#f5a623]/40 px-4 py-2 text-sm text-[#f5a623] transition hover:bg-[#f5a623]/10"
-        >
-          Ouvrir Discogs →
-        </a>
-      </>
-    ),
-  },
-  {
-    title: 'Colle ton token Discogs',
-    description: null,
-  },
-  {
-    title: 'Ton nom d\'utilisateur Discogs',
-    description: null,
-  },
-  {
-    title: 'Visibilité de ta collection',
-    description: null,
-  },
-]
-
 export default function DiscogsTokenModal({ onClose, onSuccess }) {
   useLockBodyScroll()
+  const { t } = useTranslation()
   const { profile, updateProfile } = useAuth()
+
+  const STEPS = [
+    {
+      title: t('discogsToken.steps.create.title'),
+      description: (
+        <>
+          <p className="text-sm text-[#888]">
+            {t('discogsToken.steps.create.instructions')}{' '}
+            <strong className="text-white">{t('discogsToken.steps.create.path')}</strong>
+          </p>
+          <a
+            href="https://www.discogs.com/settings/developers"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#f5a623]/40 px-4 py-2 text-sm text-[#f5a623] transition hover:bg-[#f5a623]/10"
+          >
+            {t('discogsToken.steps.create.openDiscogs')}
+          </a>
+        </>
+      ),
+    },
+    {
+      title: t('discogsToken.steps.paste.title'),
+      description: null,
+    },
+    {
+      title: t('discogsToken.steps.username.title'),
+      description: null,
+    },
+    {
+      title: t('discogsToken.steps.visibility.title'),
+      description: null,
+    },
+  ]
+
   const [step, setStep] = useState(0)
   const [token, setToken] = useState('')
   const [showToken, setShowToken] = useState(false)
@@ -51,7 +54,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
     const cleanToken = token.trim()
     const cleanUsername = discogsUsername.trim()
     if (!cleanToken || !cleanUsername) {
-      setError('Token et nom d\'utilisateur requis.')
+      setError(t('discogsToken.errorRequired'))
       return
     }
     setSaving(true)
@@ -63,7 +66,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
     })
     setSaving(false)
     if (err) {
-      setError('Erreur lors de la sauvegarde. Réessaie.')
+      setError(t('discogsToken.errorSave'))
     } else {
       // On passe les valeurs fraîches directement — pas de dépendance au profil React
       onSuccess?.({ token: cleanToken, discogsUsername: cleanUsername })
@@ -77,7 +80,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
         <button
           onClick={onClose}
           className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white"
-          aria-label="Fermer"
+          aria-label={t('common.close')}
         >
           ✕
         </button>
@@ -113,11 +116,11 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
           {/* Étape 1 — Token avec œil */}
           {step === 1 && (
             <div>
-              <p className="mb-3 text-sm text-[#888]">Colle ton token Discogs ci-dessous :</p>
+              <p className="mb-3 text-sm text-[#888]">{t('discogsToken.steps.paste.instructions')}</p>
               <div className="relative">
                 <input
                   type={showToken ? 'text' : 'password'}
-                  placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  placeholder={t('discogsToken.tokenPlaceholder')}
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
                   className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 pr-11 text-sm text-white placeholder-[#999] outline-none focus:border-[#f5a623] transition"
@@ -137,10 +140,10 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
           {step === 2 && (
             <div>
               <p className="mb-1 text-sm text-[#888]">
-                Ton nom d&apos;utilisateur Discogs (celui affiché sur ton profil) :
+                {t('discogsToken.steps.username.instructions')}
               </p>
               <p className="mb-3 text-xs text-[#999]">
-                Attention : c&apos;est sensible à la casse — copie-le exactement depuis{' '}
+                {t('discogsToken.steps.username.caseWarning')}{' '}
                 <a
                   href="https://www.discogs.com/my"
                   target="_blank"
@@ -152,7 +155,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
               </p>
               <input
                 type="text"
-                placeholder="MonPseudoDiscogs"
+                placeholder={t('discogsToken.usernamePlaceholder')}
                 value={discogsUsername}
                 onChange={(e) => setDiscogsUsername(e.target.value)}
                 className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#999] outline-none focus:border-[#f5a623] transition"
@@ -164,9 +167,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
           {step === 3 && (
             <div>
               <p className="mb-4 text-sm text-[#888]">
-                Une fois synchronisée, ta collection sera visible à l'adresse{' '}
-                <span className="text-white">waxshelf.app/{profile?.username || 'ton-pseudo'}</span>.
-                Tu peux changer ce choix à tout moment depuis Paramètres.
+                {t('discogsToken.steps.visibility.instructions', { url: `waxshelf.app/${profile?.username || t('discogsToken.yourPseudo')}` })}
               </p>
               <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#333] bg-[#0a0a0a] p-3">
                 <div
@@ -178,7 +179,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
                   />
                 </div>
                 <span className="text-sm text-white">
-                  {isPublic ? 'Collection publique — visible par tous' : 'Collection privée — visible uniquement par toi'}
+                  {isPublic ? t('discogsToken.steps.visibility.public') : t('discogsToken.steps.visibility.private')}
                 </span>
               </label>
             </div>
@@ -196,7 +197,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
             disabled={step === 0}
             className="rounded-lg px-4 py-2 text-sm text-[#999] transition hover:text-white disabled:opacity-0"
           >
-            ← Retour
+            ← {t('common.back')}
           </button>
 
           {step < STEPS.length - 1 ? (
@@ -205,7 +206,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
               disabled={step === 1 && !token.trim()}
               className="rounded-lg bg-[#f5a623] px-5 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] disabled:opacity-40"
             >
-              Suivant →
+              {t('common.next')} →
             </button>
           ) : (
             <button
@@ -213,7 +214,7 @@ export default function DiscogsTokenModal({ onClose, onSuccess }) {
               disabled={saving || !token.trim() || !discogsUsername.trim()}
               className="rounded-lg bg-[#f5a623] px-5 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] disabled:opacity-40"
             >
-              {saving ? 'Sauvegarde…' : 'Terminer ✓'}
+              {saving ? t('common.saving') : t('discogsToken.finish')}
             </button>
           )}
         </div>

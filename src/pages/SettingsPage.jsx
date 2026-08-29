@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../hooks/useAuth'
@@ -8,6 +9,7 @@ import Avatar from '../components/layout/Avatar'
 import { AVATAR_PRESETS, presetToAvatarUrl } from '../lib/avatars'
 
 export default function SettingsPage() {
+  const { t } = useTranslation()
   const { user, profile, loading, updateProfile, signOut } = useAuth()
   const navigate = useNavigate()
 
@@ -20,7 +22,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-[#0a0a0a]">
       <Header />
       <main className="mx-auto max-w-2xl px-4 py-10">
-        <h1 className="mb-8 text-2xl font-bold text-white">Paramètres</h1>
+        <h1 className="mb-8 text-2xl font-bold text-white">{t('settingsPage.title')}</h1>
 
         {loading || !profile ? (
           <div className="space-y-6">
@@ -46,6 +48,7 @@ export default function SettingsPage() {
 // ── Section Profil ─────────────────────────────────────────────────────────
 
 function ProfileSection({ profile, updateProfile }) {
+  const { t } = useTranslation()
   const [displayName, setDisplayName] = useState(profile?.display_name || '')
   const [username, setUsername] = useState(profile?.username || '')
   const [bio, setBio] = useState(profile?.bio || '')
@@ -61,7 +64,7 @@ function ProfileSection({ profile, updateProfile }) {
     const { error } = await updateProfile({ display_name: displayName, username, bio, is_public: isPublic })
     setSaving(false)
     if (error) setStatus({ type: 'error', msg: error.message })
-    else setStatus({ type: 'success', msg: 'Profil mis à jour ✓' })
+    else setStatus({ type: 'success', msg: t('settingsPage.profile.updated') })
   }
 
   async function handleSelectAvatar(avatarUrl) {
@@ -75,7 +78,7 @@ function ProfileSection({ profile, updateProfile }) {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 2 * 1024 * 1024) {
-      setAvatarError('Image trop lourde (2 Mo maximum).')
+      setAvatarError(t('settingsPage.profile.imageTooLarge'))
       e.target.value = ''
       return
     }
@@ -103,18 +106,18 @@ function ProfileSection({ profile, updateProfile }) {
   }
 
   return (
-    <Card title="Profil">
+    <Card title={t('settingsPage.profile.cardTitle')}>
       <div className="space-y-4">
         <div>
           <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-[#999]">
-            Photo de profil
+            {t('settingsPage.profile.photoLabel')}
           </label>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => handleSelectAvatar(null)}
               disabled={avatarSaving}
-              title="Initiale par défaut"
+              title={t('settingsPage.profile.defaultInitial')}
               className={`rounded-full transition disabled:opacity-50 ${
                 !profile?.avatar_url ? 'ring-2 ring-[#f5a623] ring-offset-2 ring-offset-[#111]' : 'opacity-60 hover:opacity-100'
               }`}
@@ -140,7 +143,7 @@ function ProfileSection({ profile, updateProfile }) {
               )
             })}
             <label
-              title="Importer une photo (2 Mo max)"
+              title={t('settingsPage.profile.uploadPhoto')}
               className={`flex h-11 w-11 items-center justify-center rounded-full border-2 border-dashed border-[#333] text-base text-[#888] transition hover:border-[#f5a623] hover:text-[#f5a623] ${
                 avatarSaving ? 'pointer-events-none opacity-50' : 'cursor-pointer'
               }`}
@@ -157,20 +160,20 @@ function ProfileSection({ profile, updateProfile }) {
           </div>
           {avatarError && <p className="mt-2 text-xs text-red-400">{avatarError}</p>}
         </div>
-        <Field label="Nom d'affichage" value={displayName} onChange={setDisplayName} placeholder="Ton nom public" />
+        <Field label={t('settingsPage.profile.displayName')} value={displayName} onChange={setDisplayName} placeholder={t('settingsPage.profile.displayNamePlaceholder')} />
         <Field
-          label="Nom d'utilisateur"
+          label={t('settingsPage.profile.username')}
           value={username}
           onChange={setUsername}
-          placeholder="ton-pseudo"
-          hint="Modifie l'URL de ta collection. Sensible à la casse."
+          placeholder={t('settingsPage.profile.usernamePlaceholder')}
+          hint={t('settingsPage.profile.usernameHint')}
         />
         <div>
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#999]">Bio</label>
+          <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#999]">{t('settingsPage.profile.bio')}</label>
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="Quelques mots sur ta collection…"
+            placeholder={t('settingsPage.profile.bioPlaceholder')}
             rows={3}
             className="w-full resize-none rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#888] outline-none focus:border-[#f5a623] transition"
           />
@@ -185,7 +188,7 @@ function ProfileSection({ profile, updateProfile }) {
             />
           </div>
           <span className="text-sm text-[#888]">
-            Collection publique — {isPublic ? 'visible par tous' : 'visible uniquement par toi'}
+            {t('settingsPage.profile.publicCollection', { visibility: isPublic ? t('settingsPage.profile.visiblePublic') : t('settingsPage.profile.visiblePrivate') })}
           </span>
         </label>
       </div>
@@ -198,6 +201,7 @@ function ProfileSection({ profile, updateProfile }) {
 // ── Section Discogs ────────────────────────────────────────────────────────
 
 function DiscogsSection({ profile, updateProfile }) {
+  const { t } = useTranslation()
   const qc = useQueryClient()
   const [token, setToken] = useState(profile?.discogs_token || '')
   const [discogsUsername, setDiscogsUsername] = useState(profile?.discogs_username || '')
@@ -208,7 +212,7 @@ function DiscogsSection({ profile, updateProfile }) {
 
   async function handleSave() {
     if (!token.trim() || !discogsUsername.trim()) {
-      setStatus({ type: 'error', msg: 'Token et nom d\'utilisateur Discogs requis.' })
+      setStatus({ type: 'error', msg: t('settingsPage.discogs.requiredError') })
       return
     }
     setSaving(true)
@@ -219,7 +223,7 @@ function DiscogsSection({ profile, updateProfile }) {
     })
     setSaving(false)
     if (error) setStatus({ type: 'error', msg: error.message })
-    else setStatus({ type: 'success', msg: 'Connexion Discogs mise à jour ✓' })
+    else setStatus({ type: 'success', msg: t('settingsPage.discogs.updated') })
   }
 
   async function handleRemove() {
@@ -245,13 +249,13 @@ function DiscogsSection({ profile, updateProfile }) {
     setDiscogsUsername('')
     qc.invalidateQueries({ queryKey: ['collection'] })
     qc.invalidateQueries({ queryKey: ['wantlist'] })
-    setStatus({ type: 'success', msg: 'Token Discogs et collection supprimés ✓' })
+    setStatus({ type: 'success', msg: t('settingsPage.discogs.removed') })
   }
 
   return (
-    <Card title="Connexion Discogs">
+    <Card title={t('settingsPage.discogs.cardTitle')}>
       <p className="mb-4 text-sm text-[#999]">
-        Génère un token sur{' '}
+        {t('settingsPage.discogs.generateToken')}{' '}
         <a
           href="https://www.discogs.com/settings/developers"
           target="_blank"
@@ -264,14 +268,14 @@ function DiscogsSection({ profile, updateProfile }) {
       <div className="space-y-4">
         <div>
           <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#999]">
-            Token personnel
+            {t('settingsPage.discogs.tokenLabel')}
           </label>
           <div className="relative">
             <input
               type={showToken ? 'text' : 'password'}
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              placeholder="Colle ton token ici"
+              placeholder={t('settingsPage.discogs.tokenPlaceholder')}
               className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 pr-11 text-sm text-white placeholder-[#888] outline-none focus:border-[#f5a623] transition"
             />
             <button
@@ -284,16 +288,16 @@ function DiscogsSection({ profile, updateProfile }) {
           </div>
         </div>
         <Field
-          label="Nom d'utilisateur Discogs"
+          label={t('settingsPage.discogs.usernameLabel')}
           value={discogsUsername}
           onChange={setDiscogsUsername}
-          placeholder="MonPseudoDiscogs"
-          hint="Sensible à la casse — copie-le exactement depuis discogs.com/my"
+          placeholder={t('settingsPage.discogs.usernamePlaceholder')}
+          hint={t('settingsPage.discogs.usernameHint')}
         />
       </div>
       {confirmingRemove && (
         <p className="mt-4 rounded-lg bg-red-900/30 px-3 py-2 text-sm text-red-400">
-          Ça supprimera aussi ta collection et ta wantlist importées de Discogs. Confirmer ?
+          {t('settingsPage.discogs.removeConfirm')}
         </p>
       )}
       <StatusRow status={status} />
@@ -307,14 +311,14 @@ function DiscogsSection({ profile, updateProfile }) {
                 disabled={saving}
                 className="mt-5 rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-red-500 disabled:opacity-50"
               >
-                {saving ? 'Suppression…' : 'Confirmer'}
+                {saving ? t('settingsPage.discogs.removing') : t('common.confirm')}
               </button>
               <button
                 onClick={() => setConfirmingRemove(false)}
                 disabled={saving}
                 className="mt-5 rounded-lg px-5 py-2.5 text-sm text-[#999] transition hover:text-white"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
             </>
           ) : (
@@ -322,7 +326,7 @@ function DiscogsSection({ profile, updateProfile }) {
               onClick={() => setConfirmingRemove(true)}
               className="mt-5 rounded-lg border border-red-500/30 px-5 py-2.5 text-sm text-red-400 transition hover:border-red-500/60 hover:bg-red-500/10"
             >
-              Supprimer le token
+              {t('settingsPage.discogs.removeToken')}
             </button>
           )
         )}
@@ -334,6 +338,7 @@ function DiscogsSection({ profile, updateProfile }) {
 // ── Section Mot de passe ───────────────────────────────────────────────────
 
 function PasswordSection() {
+  const { t } = useTranslation()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -342,11 +347,11 @@ function PasswordSection() {
 
   async function handleSave() {
     if (!next || next.length < 6) {
-      setStatus({ type: 'error', msg: 'Le nouveau mot de passe doit faire au moins 6 caractères.' })
+      setStatus({ type: 'error', msg: t('settingsPage.password.tooShort') })
       return
     }
     if (next !== confirm) {
-      setStatus({ type: 'error', msg: 'Les mots de passe ne correspondent pas.' })
+      setStatus({ type: 'error', msg: t('settingsPage.password.mismatch') })
       return
     }
     setSaving(true)
@@ -355,19 +360,19 @@ function PasswordSection() {
     setSaving(false)
     if (error) setStatus({ type: 'error', msg: error.message })
     else {
-      setStatus({ type: 'success', msg: 'Mot de passe mis à jour ✓' })
+      setStatus({ type: 'success', msg: t('settingsPage.password.updated') })
       setCurrent(''); setNext(''); setConfirm('')
     }
   }
 
   return (
-    <Card title="Mot de passe">
+    <Card title={t('settingsPage.password.cardTitle')}>
       <div className="space-y-4">
-        <PasswordField label="Nouveau mot de passe" value={next} onChange={setNext} placeholder="••••••••" />
-        <PasswordField label="Confirmer le mot de passe" value={confirm} onChange={setConfirm} placeholder="••••••••" />
+        <PasswordField label={t('settingsPage.password.newPassword')} value={next} onChange={setNext} placeholder="••••••••" />
+        <PasswordField label={t('settingsPage.password.confirmPassword')} value={confirm} onChange={setConfirm} placeholder="••••••••" />
       </div>
       <StatusRow status={status} />
-      <SaveBtn onClick={handleSave} saving={saving} label="Changer le mot de passe" />
+      <SaveBtn onClick={handleSave} saving={saving} label={t('settingsPage.password.changeButton')} />
     </Card>
   )
 }
@@ -375,6 +380,7 @@ function PasswordSection() {
 // ── Section Danger ─────────────────────────────────────────────────────────
 
 function DangerSection({ signOut, navigate, profile }) {
+  const { t } = useTranslation()
   async function handleSignOut() {
     await signOut()
     navigate('/')
@@ -382,12 +388,12 @@ function DangerSection({ signOut, navigate, profile }) {
 
   return (
     <>
-      <Card title="Session">
+      <Card title={t('settingsPage.session.cardTitle')}>
         <button
           onClick={handleSignOut}
           className="rounded-lg border border-red-500/30 px-5 py-2.5 text-sm text-red-400 transition hover:border-red-500/60 hover:bg-red-500/10"
         >
-          Se déconnecter
+          {t('settingsPage.session.signOut')}
         </button>
       </Card>
       <DeleteAccountSection username={profile?.username} signOut={signOut} navigate={navigate} />
@@ -398,6 +404,7 @@ function DangerSection({ signOut, navigate, profile }) {
 // ── Section suppression de compte ────────────────────────────────────────────
 
 function DeleteAccountSection({ username, signOut, navigate }) {
+  const { t } = useTranslation()
   const [showConfirm, setShowConfirm] = useState(false)
   const [confirmText, setConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -408,7 +415,7 @@ function DeleteAccountSection({ username, signOut, navigate }) {
     setError('')
     const { error: err } = await supabase.functions.invoke('delete-account')
     if (err) {
-      setError('Erreur lors de la suppression. Réessaie ou contacte le support.')
+      setError(t('settingsPage.deleteAccount.error'))
       setDeleting(false)
       return
     }
@@ -417,19 +424,19 @@ function DeleteAccountSection({ username, signOut, navigate }) {
   }
 
   return (
-    <Card title="Zone de danger">
+    <Card title={t('settingsPage.deleteAccount.cardTitle')}>
       {!showConfirm ? (
         <button
           onClick={() => setShowConfirm(true)}
           className="rounded-lg border border-red-500/30 px-5 py-2.5 text-sm text-red-400 transition hover:border-red-500/60 hover:bg-red-500/10"
         >
-          Supprimer mon compte
+          {t('settingsPage.deleteAccount.button')}
         </button>
       ) : (
         <div className="space-y-3">
           <p className="text-sm text-red-400">
-            Action irréversible : ta collection, tes commentaires, likes et abonnements seront supprimés définitivement.
-            Tape <strong className="text-white">{username}</strong> pour confirmer.
+            {t('settingsPage.deleteAccount.warning')}{' '}
+            {t('settingsPage.deleteAccount.typeToConfirmPrefix')} <strong className="text-white">{username}</strong> {t('settingsPage.deleteAccount.typeToConfirmSuffix')}
           </p>
           <input
             type="text"
@@ -445,13 +452,13 @@ function DeleteAccountSection({ username, signOut, navigate }) {
               disabled={confirmText !== username || deleting}
               className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-red-500 disabled:opacity-40"
             >
-              {deleting ? 'Suppression…' : 'Confirmer la suppression'}
+              {deleting ? t('settingsPage.deleteAccount.deleting') : t('settingsPage.deleteAccount.confirmButton')}
             </button>
             <button
               onClick={() => { setShowConfirm(false); setConfirmText(''); setError('') }}
               className="rounded-lg px-5 py-2.5 text-sm text-[#999] transition hover:text-white"
             >
-              Annuler
+              {t('common.cancel')}
             </button>
           </div>
         </div>
@@ -525,14 +532,15 @@ function StatusRow({ status }) {
   )
 }
 
-function SaveBtn({ onClick, saving, label = 'Enregistrer' }) {
+function SaveBtn({ onClick, saving, label }) {
+  const { t } = useTranslation()
   return (
     <button
       onClick={onClick}
       disabled={saving}
       className="mt-5 rounded-lg bg-[#f5a623] px-5 py-2.5 text-sm font-medium text-black transition hover:bg-[#fbbf24] disabled:opacity-50"
     >
-      {saving ? 'Sauvegarde…' : label}
+      {saving ? t('common.saving') : (label ?? t('common.save'))}
     </button>
   )
 }

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useCollection } from '../../hooks/useCollection'
@@ -15,6 +16,7 @@ import waxshelfLogoText from '../../assets/waxshelf_logo_texte.svg'
 // sur l'utilisateur connecté plutôt que sur la page actuellement affichée —
 // synchroniser sa collection ne devrait pas nécessiter d'être sur une page en particulier.
 export default function Header() {
+  const { t, i18n } = useTranslation()
   const { username } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -56,16 +58,20 @@ export default function Header() {
   const navUsername = profile?.username || username
 
   const navLinks = [
-    { to: '/', label: 'Accueil' },
+    { to: '/', label: t('header.nav.home') },
     ...(navUsername
       ? [
-          { to: `/${navUsername}`, label: 'Collection' },
-          { to: `/${navUsername}/dashboard`, label: 'Stats' },
-          { to: `/${navUsername}/wantlist`, label: 'Wantlist' },
-          { to: `/${navUsername}/journal`, label: 'Journal' },
+          { to: `/${navUsername}`, label: t('header.nav.collection') },
+          { to: `/${navUsername}/dashboard`, label: t('header.nav.dashboard') },
+          { to: `/${navUsername}/wantlist`, label: t('header.nav.wantlist') },
+          { to: `/${navUsername}/journal`, label: t('header.nav.journal') },
         ]
       : []),
   ]
+
+  function toggleLanguage() {
+    i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr')
+  }
 
   return (
     <>
@@ -73,7 +79,7 @@ export default function Header() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center text-white" aria-label="WaxShelf home">
+          <Link to="/" className="flex items-center text-white" aria-label={t('header.ariaHome')}>
             <img
               src={waxshelfLogoText}
               alt="WaxShelf"
@@ -99,23 +105,23 @@ export default function Header() {
               <button
                 onClick={() => handleSync()}
                 disabled={syncStep !== null}
-                title={profile?.last_collection_sync_at ? `Dernière sync : ${timeAgo(profile.last_collection_sync_at)}` : undefined}
+                title={profile?.last_collection_sync_at ? t('header.sync.lastSync', { date: timeAgo(profile.last_collection_sync_at) }) : undefined}
                 className="flex flex-col items-center gap-0.5 disabled:opacity-50 md:flex-row md:gap-2 md:rounded-lg md:border md:border-[#333] md:bg-[#111] md:px-4 md:py-1.5 md:text-white md:transition md:hover:border-[#f5a623]/60 md:hover:bg-[#1a1a1a]"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#333] bg-[#111] transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] md:h-auto md:w-auto md:rounded-none md:border-0 md:bg-transparent md:hover:border-0 md:hover:bg-transparent">
                   <span className={syncStep !== null ? 'animate-spin inline-block' : ''}>🔄</span>
                 </span>
                 <span className="text-[9px] leading-none text-[#999] md:hidden">
-                  {syncStep === 'collection' ? 'Sync…' : syncStep === 'wantlist' ? 'Wantlist' : 'Sync'}
+                  {syncStep === 'collection' ? t('header.sync.syncing') : syncStep === 'wantlist' ? t('header.sync.wantlist') : t('header.sync.sync')}
                 </span>
                 <span className="hidden md:inline md:text-sm">
                   {syncStep === 'collection'
                     ? enrichProgress
-                      ? `Sync… (${enrichProgress.done}/${enrichProgress.total})`
-                      : 'Sync…'
+                      ? t('header.sync.syncingProgress', { done: enrichProgress.done, total: enrichProgress.total })
+                      : t('header.sync.syncing')
                     : syncStep === 'wantlist'
-                      ? 'Wantlist…'
-                      : 'Sync Discogs'}
+                      ? t('header.sync.wantlist')
+                      : t('header.sync.sync')}
                 </span>
               </button>
             )}
@@ -130,8 +136,8 @@ export default function Header() {
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f5a623] transition-all hover:bg-[#fbbf24] active:scale-95 md:h-auto md:w-auto md:rounded-none md:bg-transparent md:hover:bg-transparent md:active:scale-100">
                   🎲
                 </span>
-                <span className="text-[9px] leading-none text-[#999] md:hidden">Écouter</span>
-                <span className="hidden md:inline md:text-sm">What should I listen to?</span>
+                <span className="text-[9px] leading-none text-[#999] md:hidden">{t('header.listen.label')}</span>
+                <span className="hidden md:inline md:text-sm">{t('header.listen.cta')}</span>
               </button>
             )}
 
@@ -150,7 +156,7 @@ export default function Header() {
                       className="h-8 w-8 rounded-full text-sm text-white"
                     />
                   </span>
-                  <span className="text-[9px] leading-none text-[#999] md:hidden">Menu</span>
+                  <span className="text-[9px] leading-none text-[#999] md:hidden">{t('header.menu.label')}</span>
                 </button>
 
                 {showUserMenu && (
@@ -159,12 +165,12 @@ export default function Header() {
                       <>
                         <p className="px-4 py-2 text-xs text-[#999]">@{profile.username}</p>
                         <div className="my-1 border-t border-[#1a1a1a]" />
-                        <MenuItem to={`/${profile.username}`} onClick={() => setShowUserMenu(false)}>Ma collection</MenuItem>
-                        <MenuItem to={`/${profile.username}/dashboard`} onClick={() => setShowUserMenu(false)}>Statistiques</MenuItem>
-                        <MenuItem to={`/${profile.username}/wantlist`} onClick={() => setShowUserMenu(false)}>Wantlist</MenuItem>
-                        <MenuItem to={`/${profile.username}/journal`} onClick={() => setShowUserMenu(false)}>🎵 Journal</MenuItem>
+                        <MenuItem to={`/${profile.username}`} onClick={() => setShowUserMenu(false)}>{t('header.menu.collection')}</MenuItem>
+                        <MenuItem to={`/${profile.username}/dashboard`} onClick={() => setShowUserMenu(false)}>{t('header.menu.stats')}</MenuItem>
+                        <MenuItem to={`/${profile.username}/wantlist`} onClick={() => setShowUserMenu(false)}>{t('header.menu.wantlist')}</MenuItem>
+                        <MenuItem to={`/${profile.username}/journal`} onClick={() => setShowUserMenu(false)}>{t('header.menu.journal')}</MenuItem>
                         <div className="my-1 border-t border-[#1a1a1a]" />
-                        <MenuItem to="/settings" onClick={() => setShowUserMenu(false)}>⚙️ Paramètres</MenuItem>
+                        <MenuItem to="/settings" onClick={() => setShowUserMenu(false)}>{t('header.menu.settings')}</MenuItem>
                       </>
                     )}
                     <div className="my-1 border-t border-[#1a1a1a]" />
@@ -172,7 +178,7 @@ export default function Header() {
                       onClick={handleSignOut}
                       className="w-full px-4 py-2 text-left text-sm text-red-400 transition hover:bg-[#1a1a1a]"
                     >
-                      Déconnexion
+                      {t('header.menu.signOut')}
                     </button>
                   </div>
                 )}
@@ -182,9 +188,19 @@ export default function Header() {
                 onClick={() => setShowAuth(true)}
                 className="rounded-lg border border-[#333] px-3 py-1.5 text-sm text-white transition hover:border-[#555] hover:bg-[#1a1a1a]"
               >
-                Connexion
+                {t('header.login')}
               </button>
             )}
+
+            {/* Sélecteur de langue FR/EN */}
+            <button
+              onClick={toggleLanguage}
+              title={t('header.language')}
+              aria-label={t('header.language')}
+              className="rounded-lg border border-[#333] px-2 py-1.5 text-xs font-medium text-[#999] transition hover:border-[#555] hover:text-white"
+            >
+              {i18n.language === 'fr' ? 'EN' : 'FR'}
+            </button>
           </div>
         </div>
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useLikes, useComments, useVinylMeta } from '../../hooks/useSocial'
@@ -10,6 +11,7 @@ const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg
 
 export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
   useLockBodyScroll()
+  const { t, i18n } = useTranslation()
   const { user, profile } = useAuth()
   const { likes, toggleLike } = useLikes(vinyl.id)
   const { comments, addComment, deleteComment } = useComments(vinyl.id)
@@ -96,7 +98,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
         {/* Bouton fermer */}
         <button
           onClick={onClose}
-          aria-label="Fermer"
+          aria-label={t('common.close')}
           className="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-[#888] hover:text-white"
         >
           ✕
@@ -118,8 +120,8 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
               <p className="mt-1 text-sm text-[#888]">{vinyl.artist}</p>
 
               <div className="mt-2 space-y-0.5 text-xs text-[#888]">
-                <p>Date sortie album : <span className="text-[#ddd]">{vinyl.original_year || 'Non renseigné'}</span></p>
-                <p>Date de pressage : <span className="text-[#ddd]">{vinyl.year || 'Non renseigné'}</span></p>
+                <p>{t('vinylDetail.releaseDate')} <span className="text-[#ddd]">{vinyl.original_year || t('vinylDetail.notSpecified')}</span></p>
+                <p>{t('vinylDetail.pressingDate')} <span className="text-[#ddd]">{vinyl.year || t('vinylDetail.notSpecified')}</span></p>
               </div>
 
               <div className="mt-3 flex flex-wrap gap-1.5">
@@ -136,7 +138,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                     autoFocus
                     value={valueInput}
                     onChange={(e) => setValueInput(e.target.value)}
-                    placeholder="Valeur (vide = auto)"
+                    placeholder={t('vinylDetail.valuePlaceholder')}
                     className="w-32 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-2 py-1 text-sm text-white outline-none focus:border-[#f5a623]"
                   />
                   <button
@@ -144,34 +146,34 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                     disabled={saveMeta.isPending}
                     className="rounded-lg bg-[#f5a623] px-3 py-1 text-xs font-medium text-black transition hover:bg-[#fbbf24] disabled:opacity-50"
                   >
-                    OK
+                    {t('vinylDetail.ok')}
                   </button>
                   <button
                     onClick={() => { setEditingValue(false); setValueInput(vinyl.average_value ?? '') }}
                     className="text-xs text-[#888] hover:text-white"
                   >
-                    Annuler
+                    {t('vinylDetail.cancel')}
                   </button>
                 </div>
               ) : (
                 (vinyl.average_value != null || isOwner) && (
                   <p className="mt-3 flex items-center gap-2 text-sm font-medium text-[#f5a623]">
                     {vinyl.average_value != null ? (
-                      <span title={vinyl.value_manual ? 'Valeur saisie manuellement' : "Prix de l'annonce la moins chère actuellement en vente sur Discogs"}>
+                      <span title={vinyl.value_manual ? t('vinylDetail.manualValueTooltip') : t('vinylDetail.autoValueTooltip')}>
                         ~{formatCurrency(vinyl.average_value, vinyl.average_value_currency)}{' '}
                         <span className="font-normal text-[#888]">
-                          {vinyl.value_manual ? '(saisie manuelle)' : '(prix mini Discogs)'}
+                          {vinyl.value_manual ? t('vinylDetail.manualValueTag') : t('vinylDetail.autoValueTag')}
                         </span>
                       </span>
                     ) : (
-                      <span className="font-normal text-[#888]">Aucune valeur connue</span>
+                      <span className="font-normal text-[#888]">{t('vinylDetail.noKnownValue')}</span>
                     )}
                     {isOwner && (
                       <button
                         onClick={() => setEditingValue(true)}
                         className="text-xs text-[#888] underline decoration-dotted hover:text-white"
                       >
-                        modifier
+                        {t('vinylDetail.edit')}
                       </button>
                     )}
                   </p>
@@ -189,7 +191,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                     className={`flex h-9 w-9 items-center justify-center text-xl transition-transform ${isOwner ? 'cursor-pointer hover:scale-110' : 'cursor-default'} ${
                       star <= (hoverRating || rating) ? 'text-[#f5a623]' : 'text-[#333]'
                     }`}
-                    aria-label={`${star} étoile${star > 1 ? 's' : ''}`}
+                    aria-label={t('vinylDetail.starLabel', { count: star })}
                   >
                     ★
                   </button>
@@ -207,12 +209,12 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
           {isOwner && (
             <div className="p-5 sm:p-6">
               <h3 className="mb-2 text-xs font-medium uppercase tracking-wider text-[#999]">
-                Notes personnelles <span className="normal-case">(privées)</span>
+                {t('vinylDetail.personalNotes')} <span className="normal-case">{t('vinylDetail.private')}</span>
               </h3>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Où tu l'as trouvé, ce qu'il t'évoque…"
+                placeholder={t('vinylDetail.notesPlaceholder')}
                 rows={3}
                 className="w-full resize-none rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2.5 text-sm text-white placeholder-[#888] outline-none focus:border-[#f5a623] transition"
               />
@@ -221,7 +223,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                 disabled={saveMeta.isPending}
                 className="mt-2 rounded-lg bg-[#1a1a1a] px-4 py-1.5 text-xs text-[#888] transition hover:bg-[#2a2a2a] hover:text-white disabled:opacity-50"
               >
-                {notesSaved ? '✓ Sauvegardé' : saveMeta.isPending ? 'Sauvegarde…' : 'Enregistrer'}
+                {notesSaved ? t('vinylDetail.notesSaved') : saveMeta.isPending ? t('vinylDetail.saving') : t('vinylDetail.save')}
               </button>
             </div>
           )}
@@ -240,7 +242,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
               } disabled:cursor-default disabled:opacity-60`}
             >
               <span className="text-base">{hasLiked ? '❤️' : '🤍'}</span>
-              <span>{likes.length} j'aime{likes.length > 1 ? 's' : ''}</span>
+              <span>{t('vinylDetail.like', { count: likes.length })}</span>
             </button>
 
             {user && (
@@ -256,22 +258,22 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                 <span className="text-base">{justLogged ? '🎵' : '▶'}</span>
                 <span>
                   {justLogged
-                    ? 'Ajouté au journal !'
+                    ? t('vinylDetail.loggedToJournal')
                     : logPlay.isPending
                     ? '…'
-                    : "J'écoute ça"}
+                    : t('vinylDetail.listenToThis')}
                 </span>
               </button>
             )}
 
             {playCount > 0 && (
               <span className="text-xs text-[#888]">
-                {playCount} écoute{playCount > 1 ? 's' : ''}
+                {t('vinylDetail.playCount', { count: playCount })}
               </span>
             )}
 
             {!user && (
-              <p className="text-xs text-[#999]">Connecte-toi pour interagir</p>
+              <p className="text-xs text-[#999]">{t('vinylDetail.loginToInteract')}</p>
             )}
           </div>
 
@@ -280,14 +282,14 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
           {/* ── Commentaires ── */}
           <div className="p-5 sm:p-6">
             <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-[#999]">
-              Commentaires
+              {t('vinylDetail.comments')}
               {comments.length > 0 && (
                 <span className="ml-2 normal-case text-[#888]">· {comments.length}</span>
               )}
             </h3>
 
             {comments.length === 0 && (
-              <p className="mb-4 text-sm text-[#888]">Aucun commentaire pour l'instant.</p>
+              <p className="mb-4 text-sm text-[#888]">{t('vinylDetail.noComments')}</p>
             )}
 
             <div className="mb-4 space-y-3">
@@ -306,14 +308,14 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                         @{c.profiles?.username}
                       </Link>
                       <span className="text-[10px] text-[#888]">
-                        {new Date(c.created_at).toLocaleDateString('fr-FR')}
+                        {new Date(c.created_at).toLocaleDateString(i18n.language)}
                       </span>
                       {user?.id === c.user_id && (
                         <button
                           onClick={() => deleteComment.mutate(c.id)}
                           className="ml-auto text-[10px] text-[#888] hover:text-red-400"
                         >
-                          supprimer
+                          {t('vinylDetail.deleteComment')}
                         </button>
                       )}
                     </div>
@@ -329,7 +331,7 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                   type="text"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="Laisser un commentaire…"
+                  placeholder={t('vinylDetail.commentPlaceholder')}
                   maxLength={500}
                   className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm text-white placeholder-[#888] outline-none focus:border-[#f5a623] transition"
                 />
@@ -338,15 +340,15 @@ export default function VinylDetailModal({ vinyl, isOwner, onClose }) {
                   disabled={!comment.trim() || submitting}
                   className="rounded-lg bg-[#f5a623] px-4 py-2 text-sm font-medium text-black hover:bg-[#fbbf24] disabled:opacity-40"
                 >
-                  {submitting ? '…' : 'Envoyer'}
+                  {submitting ? '…' : t('vinylDetail.send')}
                 </button>
               </form>
             ) : (
               <p className="text-sm text-[#888]">
                 <button onClick={onClose} className="text-[#f5a623] hover:underline">
-                  Connecte-toi
+                  {t('vinylDetail.loginToComment')}
                 </button>{' '}
-                pour commenter.
+                {t('vinylDetail.loginToCommentSuffix')}
               </p>
             )}
           </div>

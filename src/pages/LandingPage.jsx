@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import AuthModal from '../components/modals/AuthModal'
@@ -9,6 +10,7 @@ import { useDiscogsSync } from '../hooks/useDiscogsSync'
 import { formatDateTime } from '../lib/format'
 
 export default function LandingPage() {
+  const { t } = useTranslation()
   const { user, profile } = useAuth()
   const { handleSync, syncStep, enrichProgress } = useDiscogsSync()
   const [users, setUsers] = useState([])
@@ -36,15 +38,14 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="mx-auto max-w-3xl px-4 pb-12 pt-10 text-center sm:pb-16 sm:pt-20">
         <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#f5a623]/30 bg-[#f5a623]/10 px-3 py-1 text-xs text-[#f5a623] sm:px-4 sm:py-1.5 sm:text-sm">
-          <span>🎶</span> Tes vinyles, indexés et partagés
+          <span>🎶</span> {t('landingPage.badge')}
         </div>
         <h1 className="mb-4 text-3xl font-bold tracking-tight text-white sm:text-5xl">
-          Ta collection de vinyles,{' '}
-          <span className="text-[#f5a623]">toujours à portée</span>
+          {t('landingPage.heroTitle1')}{' '}
+          <span className="text-[#f5a623]">{t('landingPage.heroTitle2')}</span>
         </h1>
         <p className="mb-7 text-base text-[#888] sm:text-lg">
-          Importe ta collection Discogs, explore celle des autres, et laisse WaxShelf choisir
-          ce que tu devrais écouter ce soir.
+          {t('landingPage.heroSubtitle')}
         </p>
         {user ? (
           <div>
@@ -56,15 +57,15 @@ export default function LandingPage() {
               <span className={syncStep !== null ? 'animate-spin inline-block' : ''}>🔄</span>
               {syncStep === 'collection'
                 ? enrichProgress
-                  ? `Sync… (${enrichProgress.done}/${enrichProgress.total})`
-                  : 'Synchronisation…'
+                  ? t('landingPage.syncingProgress', { done: enrichProgress.done, total: enrichProgress.total })
+                  : t('landingPage.syncing')
                 : syncStep === 'wantlist'
-                  ? 'Wantlist…'
-                  : 'Synchroniser avec Discogs'}
+                  ? t('landingPage.wantlistSyncing')
+                  : t('landingPage.syncButton')}
             </button>
             {profile?.last_collection_sync_at && (
               <p className="mt-2 text-xs text-[#999]">
-                Dernière sync : {formatDateTime(profile.last_collection_sync_at)}
+                {t('landingPage.lastSync', { date: formatDateTime(profile.last_collection_sync_at) })}
               </p>
             )}
           </div>
@@ -73,7 +74,7 @@ export default function LandingPage() {
             onClick={() => setShowAuth(true)}
             className="inline-flex items-center gap-2 rounded-xl bg-[#f5a623] px-6 py-3 font-semibold text-black shadow-lg transition hover:bg-[#fbbf24] hover:scale-105 active:scale-95 sm:px-8 sm:py-3.5"
           >
-            Créer mon espace
+            {t('landingPage.createSpace')}
           </button>
         )}
       </section>
@@ -81,7 +82,7 @@ export default function LandingPage() {
       {/* Utilisateurs publics */}
       <section className="mx-auto max-w-7xl px-4 pb-16">
         <h2 className="mb-5 text-lg font-semibold text-white sm:text-xl">
-          Collections publiques
+          {t('landingPage.publicCollections')}
           {!loading && <span className="ml-2 text-sm font-normal text-[#999]">· {users.length}</span>}
         </h2>
 
@@ -97,7 +98,7 @@ export default function LandingPage() {
         ) : users.length === 0 ? (
           <div className="py-12 text-center">
             <p className="text-4xl">📀</p>
-            <p className="mt-4 text-[#888]">Sois le premier à partager ta collection !</p>
+            <p className="mt-4 text-[#888]">{t('landingPage.empty')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">

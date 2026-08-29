@@ -1,0 +1,358 @@
+{
+  "header": {
+    "ariaHome": "Accueil WaxShelf",
+    "nav": {
+      "home": "Accueil",
+      "collection": "Collection",
+      "dashboard": "Stats",
+      "wantlist": "Wantlist",
+      "journal": "Journal"
+    },
+    "sync": {
+      "syncing": "Sync…",
+      "syncingProgress": "Sync… ({{done}}/{{total}})",
+      "wantlist": "Wantlist…",
+      "sync": "Sync Discogs",
+      "lastSync": "Dernière sync : {{date}}"
+    },
+    "listen": {
+      "label": "Écouter",
+      "cta": "What should I listen to?"
+    },
+    "menu": {
+      "label": "Menu",
+      "collection": "Ma collection",
+      "stats": "Statistiques",
+      "wantlist": "Wantlist",
+      "journal": "🎵 Journal",
+      "settings": "⚙️ Paramètres",
+      "signOut": "Déconnexion"
+    },
+    "login": "Connexion",
+    "language": "Langue"
+  },
+  "footer": {
+    "disclaimer": "This application uses Discogs' API but is not affiliated with, sponsored or endorsed by Discogs."
+  },
+  "common": {
+    "close": "Fermer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saving": "Sauvegarde…",
+    "loading": "Chargement…",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant"
+  },
+  "auth": {
+    "title": {
+      "signin": "Connexion",
+      "signup": "Créer un compte",
+      "reset": "Mot de passe oublié"
+    },
+    "username": "Nom d'utilisateur",
+    "usernamePlaceholder": "votre-pseudo",
+    "email": "Email",
+    "password": "Mot de passe",
+    "forgotPassword": "J'ai perdu mon mot de passe",
+    "loading": "Chargement…",
+    "submit": {
+      "signin": "Se connecter",
+      "signup": "Créer le compte",
+      "reset": "Envoyer le lien de réinitialisation"
+    },
+    "backToSignin": "Retour à la connexion",
+    "noAccount": "Pas encore de compte ? ",
+    "hasAccount": "Déjà un compte ? ",
+    "signupSuccess": "Compte créé ! Vérifie ton email pour confirmer ton inscription.",
+    "resetSuccess": "Un e-mail avec un lien de réinitialisation vient de t’être envoyé.",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe"
+  },
+  "discogsToken": {
+    "steps": {
+      "create": {
+        "title": "Créer un token Discogs",
+        "instructions": "Connecte-toi à ton compte Discogs, puis va dans :",
+        "path": "Paramètres → Développeurs → Générer un token personnel",
+        "openDiscogs": "Ouvrir Discogs →"
+      },
+      "paste": {
+        "title": "Colle ton token Discogs",
+        "instructions": "Colle ton token Discogs ci-dessous :"
+      },
+      "username": {
+        "title": "Ton nom d'utilisateur Discogs",
+        "instructions": "Ton nom d'utilisateur Discogs (celui affiché sur ton profil) :",
+        "caseWarning": "Attention : c'est sensible à la casse — copie-le exactement depuis"
+      },
+      "visibility": {
+        "title": "Visibilité de ta collection",
+        "instructions": "Une fois synchronisée, ta collection sera visible à l'adresse {{url}}. Tu peux changer ce choix à tout moment depuis Paramètres.",
+        "public": "Collection publique — visible par tous",
+        "private": "Collection privée — visible uniquement par toi"
+      }
+    },
+    "tokenPlaceholder": "xxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "usernamePlaceholder": "MonPseudoDiscogs",
+    "errorRequired": "Token et nom d'utilisateur requis.",
+    "errorSave": "Erreur lors de la sauvegarde. Réessaie.",
+    "finish": "Terminer ✓",
+    "yourPseudo": "ton-pseudo"
+  },
+  "followList": {
+    "followers": "Abonnés",
+    "following": "Abonnements",
+    "loading": "Chargement…",
+    "emptyFollowers": "Aucun abonné pour le moment.",
+    "emptyFollowing": "Ne suit personne pour le moment."
+  },
+  "likedVinyls": {
+    "title": "Likes donnés",
+    "loading": "Chargement…",
+    "empty": "Aucun like pour le moment."
+  },
+  "listenSuggestion": {
+    "title": "🎲 Que devrais-je écouter ?",
+    "subtitle": "Réponds à quelques questions et je choisis pour toi dans ta collection.",
+    "moodLabel": "Humeur",
+    "durationLabel": "Durée disponible",
+    "genreLabel": "Genre préféré",
+    "cta": "Trouve-moi un vinyle 🎵",
+    "moods": {
+      "relax": "Détente",
+      "energy": "Énergie",
+      "melancholy": "Mélancolie",
+      "party": "Fête",
+      "focus": "Concentration",
+      "surprise": "Surprends moi"
+    },
+    "durations": {
+      "short": "< 30 min",
+      "medium": "30-45 min",
+      "long": "45-60 min"
+    },
+    "any": "Peu importe",
+    "forTonight": "Pour toi ce soir 🎵",
+    "priceTooltip": "Prix mini Discogs (annonce la moins chère en vente actuellement)",
+    "otherSuggestion": "Autre suggestion",
+    "letsGo": "C'est parti ! 🎶"
+  },
+  "updatePassword": {
+    "title": "Nouveau mot de passe",
+    "subtitle": "Choisis un nouveau mot de passe pour ton compte.",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirme le mot de passe",
+    "mismatchError": "Les deux mots de passe ne correspondent pas.",
+    "save": "Enregistrer le mot de passe",
+    "saving": "Enregistrement…"
+  },
+  "vinylCard": {
+    "generating": "Génération…",
+    "priceTooltip": "Prix mini Discogs (annonce la moins chère en vente actuellement)",
+    "listenToThis": "J'écoute ça",
+    "clickForDetails": "Clic pour détails",
+    "viewCover": "Voir la pochette",
+    "viewAnecdote": "Voir l'anecdote",
+    "viewAllDetails": "Voir tous les détails"
+  },
+  "vinylDetail": {
+    "releaseDate": "Date sortie album :",
+    "pressingDate": "Date de pressage :",
+    "notSpecified": "Non renseigné",
+    "valuePlaceholder": "Valeur (vide = auto)",
+    "ok": "OK",
+    "cancel": "Annuler",
+    "manualValueTooltip": "Valeur saisie manuellement",
+    "autoValueTooltip": "Prix de l'annonce la moins chère actuellement en vente sur Discogs",
+    "manualValueTag": "(saisie manuelle)",
+    "autoValueTag": "(prix mini Discogs)",
+    "noKnownValue": "Aucune valeur connue",
+    "edit": "modifier",
+    "starLabel": "{{count}} étoile",
+    "starLabel_other": "{{count}} étoiles",
+    "personalNotes": "Notes personnelles",
+    "private": "(privées)",
+    "notesPlaceholder": "Où tu l'as trouvé, ce qu'il t'évoque…",
+    "notesSaved": "✓ Sauvegardé",
+    "saving": "Sauvegarde…",
+    "save": "Enregistrer",
+    "like_one": "{{count}} j'aime",
+    "like_other": "{{count}} j'aimes",
+    "loggedToJournal": "Ajouté au journal !",
+    "listenToThis": "J'écoute ça",
+    "playCount_one": "{{count}} écoute",
+    "playCount_other": "{{count}} écoutes",
+    "loginToInteract": "Connecte-toi pour interagir",
+    "comments": "Commentaires",
+    "noComments": "Aucun commentaire pour l'instant.",
+    "deleteComment": "supprimer",
+    "commentPlaceholder": "Laisser un commentaire…",
+    "send": "Envoyer",
+    "loginToComment": "Connecte-toi",
+    "loginToCommentSuffix": "pour commenter."
+  },
+  "vinylGrid": {
+    "noVinylFound": "Aucun vinyle trouvé",
+    "tryAdjustFilters": "Essaie d'ajuster les filtres ou synchro ta collection Discogs."
+  },
+  "collectionPage": {
+    "vinylCount_one": "{{count}} vinyle",
+    "vinylCount_other": "{{count}} vinyles",
+    "followers": "abonnés",
+    "following": "abonnements",
+    "resultCount_one": "{{count}} résultat",
+    "resultCount_other": "{{count}} résultats",
+    "lastSync": "Dernière sync : {{date}}",
+    "add": "+ Ajouter",
+    "follow": "+ Suivre",
+    "following2": "Suivi(e) ✓",
+    "searchPlaceholder": "Artiste, titre, style…",
+    "filters": "⚡ Filtres",
+    "sizeLarge": "Grande",
+    "sizeSmall": "Petite",
+    "genrePlaceholder": "Genre",
+    "decadePlaceholder": "Décennie",
+    "countryPlaceholder": "Pays",
+    "reset": "Réinitialiser",
+    "addModal": {
+      "title": "Ajouter un vinyle",
+      "searchPlaceholder": "Artiste, titre, label…",
+      "search": "Chercher",
+      "searching": "…",
+      "noResults": "Aucun résultat.",
+      "configureTokenFirst": "Configure d'abord ton token Discogs.",
+      "errorPrefix": "Erreur : {{message}}",
+      "add": "+ Ajouter",
+      "adding": "…"
+    }
+  },
+  "dashboardPage": {
+    "title": "Stat & Social",
+    "vinylsWithValue": "{{withValue}}/{{total}} vinyles avec une valeur connue",
+    "followers": "Abonnés",
+    "following": "Abonnements",
+    "likesGiven": "Likes donnés",
+    "noData": "Aucune donnée disponible.",
+    "kpiVinyls": "Vinyles",
+    "kpiMinPrice": "Prix minimum en vente",
+    "kpiMinPriceSub": "somme du prix le plus bas trouvé par disque",
+    "kpiCountries": "Pays différents",
+    "mostPrecious": "💰 Les plus précieux",
+    "mostPreciousSub": "Prix de l'annonce la moins chère actuellement en vente sur Discogs (pas une moyenne)",
+    "topGenres": "🎸 Top genres",
+    "byDecade": "📅 Par décennie",
+    "byDecadeSub": "Année de sortie originale des albums",
+    "originCountries": "🌍 Pays d'origine"
+  },
+  "journalPage": {
+    "title": "Journal d'écoute",
+    "subtitleOwner": "Toutes tes sessions d'écoute",
+    "subtitleOther": "Les écoutes de @{{username}}",
+    "statTotal": "Total écoutes",
+    "statThisWeek": "Cette semaine",
+    "statMostPlayed": "Le plus joué",
+    "statTimes_one": "{{count}} fois",
+    "statTimes_other": "{{count}} fois",
+    "emptyOwner": "Aucune écoute pour l'instant. Ouvre un vinyle et clique sur 'J'écoute ça' !",
+    "emptyOther": "Aucune écoute enregistrée.",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier"
+  },
+  "settingsPage": {
+    "title": "Paramètres",
+    "profile": {
+      "cardTitle": "Profil",
+      "photoLabel": "Photo de profil",
+      "defaultInitial": "Initiale par défaut",
+      "uploadPhoto": "Importer une photo (2 Mo max)",
+      "displayName": "Nom d'affichage",
+      "displayNamePlaceholder": "Ton nom public",
+      "username": "Nom d'utilisateur",
+      "usernamePlaceholder": "ton-pseudo",
+      "usernameHint": "Modifie l'URL de ta collection. Sensible à la casse.",
+      "bio": "Bio",
+      "bioPlaceholder": "Quelques mots sur ta collection…",
+      "publicCollection": "Collection publique — {{visibility}}",
+      "visiblePublic": "visible par tous",
+      "visiblePrivate": "visible uniquement par toi",
+      "imageTooLarge": "Image trop lourde (2 Mo maximum).",
+      "updated": "Profil mis à jour ✓"
+    },
+    "discogs": {
+      "cardTitle": "Connexion Discogs",
+      "generateToken": "Génère un token sur",
+      "tokenLabel": "Token personnel",
+      "tokenPlaceholder": "Colle ton token ici",
+      "usernameLabel": "Nom d'utilisateur Discogs",
+      "usernamePlaceholder": "MonPseudoDiscogs",
+      "usernameHint": "Sensible à la casse — copie-le exactement depuis discogs.com/my",
+      "requiredError": "Token et nom d'utilisateur Discogs requis.",
+      "updated": "Connexion Discogs mise à jour ✓",
+      "removeConfirm": "Ça supprimera aussi ta collection et ta wantlist importées de Discogs. Confirmer ?",
+      "removing": "Suppression…",
+      "removeToken": "Supprimer le token",
+      "removed": "Token Discogs et collection supprimés ✓"
+    },
+    "password": {
+      "cardTitle": "Mot de passe",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "tooShort": "Le nouveau mot de passe doit faire au moins 6 caractères.",
+      "mismatch": "Les mots de passe ne correspondent pas.",
+      "updated": "Mot de passe mis à jour ✓",
+      "changeButton": "Changer le mot de passe"
+    },
+    "session": {
+      "cardTitle": "Session",
+      "signOut": "Se déconnecter"
+    },
+    "deleteAccount": {
+      "cardTitle": "Zone de danger",
+      "button": "Supprimer mon compte",
+      "warning": "Action irréversible : ta collection, tes commentaires, likes et abonnements seront supprimés définitivement.",
+      "typeToConfirmPrefix": "Tape",
+      "typeToConfirmSuffix": "pour confirmer.",
+      "confirmButton": "Confirmer la suppression",
+      "deleting": "Suppression…",
+      "error": "Erreur lors de la suppression. Réessaie ou contacte le support."
+    }
+  },
+  "wantlistPage": {
+    "title": "Wantlist",
+    "lastSync": "Dernière sync : {{date}}",
+    "empty": "La wantlist est vide.",
+    "emptySyncHint": "Clique sur \"Sync Discogs\" en haut de page pour importer tes envies.",
+    "discogsLink": "Discogs ↗",
+    "remove": "Retirer"
+  },
+  "landingPage": {
+    "badge": "Tes vinyles, indexés et partagés",
+    "heroTitle1": "Ta collection de vinyles,",
+    "heroTitle2": "toujours à portée",
+    "heroSubtitle": "Importe ta collection Discogs, explore celle des autres, et laisse WaxShelf choisir ce que tu devrais écouter ce soir.",
+    "syncing": "Synchronisation…",
+    "syncingProgress": "Sync… ({{done}}/{{total}})",
+    "wantlistSyncing": "Wantlist…",
+    "syncButton": "Synchroniser avec Discogs",
+    "lastSync": "Dernière sync : {{date}}",
+    "createSpace": "Créer mon espace",
+    "publicCollections": "Collections publiques",
+    "empty": "Sois le premier à partager ta collection !"
+  },
+  "discogsSync": {
+    "success": "✅ Sync terminée — {{count}} vinyles, {{wantlistCount}} envies.",
+    "error": "Erreur : {{message}}",
+    "unknownError": "Erreur inconnue"
+  },
+  "format": {
+    "today": "aujourd'hui",
+    "yesterday": "hier",
+    "daysAgo_one": "il y a {{count}} jour",
+    "daysAgo_other": "il y a {{count}} jours",
+    "at": "à {{time}}"
+  },
+  "discogs": {
+    "unknownArtist": "Artiste inconnu"
+  }
+}

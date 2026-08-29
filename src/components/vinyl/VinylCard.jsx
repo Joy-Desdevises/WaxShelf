@@ -12,6 +12,7 @@
  */
 
 import { useState, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { generateAnecdote, isQuotaExceeded } from '../../lib/gemini'
 import { formatCurrency } from '../../lib/format'
 import { supabase } from '../../lib/supabase'
@@ -21,6 +22,7 @@ const PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
 export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }) {
+  const { t } = useTranslation()
   const dim = 'w-full aspect-square'
   const titleSize = size === 'sm' ? 'text-xs' : 'text-sm'
   const artistSize = size === 'sm' ? 'text-[10px]' : 'text-xs'
@@ -160,7 +162,7 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
           {vinyl.average_value && (
             <span
               className="absolute bottom-1.5 right-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-[#f5a623] backdrop-blur-sm"
-              title="Prix mini Discogs (annonce la moins chère en vente actuellement)"
+              title={t('vinylCard.priceTooltip')}
             >
               ~{formatCurrency(vinyl.average_value, vinyl.average_value_currency)}
             </span>
@@ -181,7 +183,7 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
             <div className="flex flex-1 items-center justify-center py-2">
               {loading ? (
                 <p className="animate-pulse text-center text-[9px] italic text-[#999]">
-                  Génération…
+                  {t('vinylCard.generating')}
                 </p>
               ) : anecdote ? (
                 <p className="line-clamp-5 text-center text-[9px] italic leading-relaxed text-[#aaa]">
@@ -206,7 +208,7 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
             {vinyl.original_year && (
               <span className="text-[10px] text-[#999]">{vinyl.original_year}</span>
             )}
-            <span className="ml-auto text-[9px] text-[#888] italic">Clic pour détails</span>
+            <span className="ml-auto text-[9px] text-[#888] italic">{t('vinylCard.clickForDetails')}</span>
           </div>
         </div>
 
@@ -217,8 +219,8 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
         <button
           onClick={handleLogPlay}
           disabled={logPlay.isPending}
-          title="J'écoute ça"
-          aria-label="J'écoute ça"
+          title={t('vinylCard.listenToThis')}
+          aria-label={t('vinylCard.listenToThis')}
           className={`absolute right-1.5 top-1.5 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition disabled:opacity-60 ${
             justLogged
               ? 'bg-[#f5a623] text-black'
@@ -237,16 +239,16 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
         <>
           <button
             onClick={handleToggleFlip}
-            title={flipped ? 'Voir la pochette' : "Voir l'anecdote"}
-            aria-label={flipped ? 'Voir la pochette' : "Voir l'anecdote"}
+            title={flipped ? t('vinylCard.viewCover') : t('vinylCard.viewAnecdote')}
+            aria-label={flipped ? t('vinylCard.viewCover') : t('vinylCard.viewAnecdote')}
             className="absolute bottom-1.5 left-1.5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-[#f5a623] backdrop-blur-sm transition hover:bg-[#f5a623] hover:text-black md:hidden"
           >
             <span className="text-sm">{flipped ? '🖼' : '📖'}</span>
           </button>
           <button
             onClick={handleShowDetails}
-            title="Voir tous les détails"
-            aria-label="Voir tous les détails"
+            title={t('vinylCard.viewAllDetails')}
+            aria-label={t('vinylCard.viewAllDetails')}
             className="absolute bottom-1.5 left-1/2 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full bg-black/70 text-[#f5a623] backdrop-blur-sm transition hover:bg-[#f5a623] hover:text-black md:hidden"
           >
             <span className="text-sm">ℹ</span>

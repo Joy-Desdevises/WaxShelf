@@ -1,13 +1,28 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { formatCurrency } from '../../lib/format'
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 
-const MOODS = ['Détente', 'Énergie', 'Mélancolie', 'Fête', 'Concentration', 'Surprends moi']
-const DURATIONS = ['< 30 min', '30-45 min', '45-60 min', 'Peu importe']
-const GENRES_OPTIONS = ['Rock', 'Jazz', 'Electronic', 'Hip-Hop', 'Soul', 'Classical', 'Pop', 'Folk', 'Reggae', 'Metal', 'Peu importe']
+// Clés internes stables (indépendantes de la langue affichée) : "surprise"
+// et "any" pilotent la logique de filtrage, les genres restent en anglais
+// (ce sont les valeurs réelles retournées par Discogs, jamais traduites).
+const MOOD_KEYS = ['relax', 'energy', 'melancholy', 'party', 'focus', 'surprise']
+const DURATION_KEYS = ['short', 'medium', 'long']
+const GENRES_OPTIONS = ['Rock', 'Jazz', 'Electronic', 'Hip-Hop', 'Soul', 'Classical', 'Pop', 'Folk', 'Reggae', 'Metal']
+
+// Mapping humeur → styles (les styles restent en anglais, ce sont des
+// valeurs Discogs réelles utilisées pour le matching, jamais affichées telles quelles).
+const MOOD_STYLE_MAP = {
+  relax: ['Jazz', 'Soul', 'Folk', 'Classical', 'Bossa Nova'],
+  energy: ['Rock', 'Metal', 'Electronic', 'Punk', 'Drum n Bass'],
+  melancholy: ['Folk', 'Blues', 'Alternative', 'Indie', 'Post-Rock'],
+  party: ['Electronic', 'Disco', 'Hip-Hop', 'Pop', 'Funk'],
+  focus: ['Classical', 'Ambient', 'Jazz', 'Electronic'],
+}
 
 export default function ListenSuggestionModal({ collection, onClose }) {
   useLockBodyScroll()
+  const { t } = useTranslation()
   const [mood, setMood] = useState('')
   const [duration, setDuration] = useState('')
   const [genre, setGenre] = useState('')
@@ -17,7 +32,7 @@ export default function ListenSuggestionModal({ collection, onClose }) {
     let pool = [...collection]
 
     // Filtre genre
-    if (genre && genre !== 'Peu importe') {
+    if (genre && genre !== 'any') {
       const filtered = pool.filter(
         (v) =>
           v.genres?.some((g) => g.toLowerCase().includes(genre.toLowerCase())) ||
@@ -27,20 +42,13 @@ export default function ListenSuggestionModal({ collection, onClose }) {
     }
 
     // Si "Surprise moi", on ignore les autres filtres
-    if (!mood || mood === 'Surprends moi') {
+    if (!mood || mood === 'surprise') {
       setSuggestion(pool[Math.floor(Math.random() * pool.length)])
       return
     }
 
     // Filtre humeur (mapping rough)
-    const moodMap = {
-      Détente: ['Jazz', 'Soul', 'Folk', 'Classical', 'Bossa Nova'],
-      Énergie: ['Rock', 'Metal', 'Electronic', 'Punk', 'Drum n Bass'],
-      Mélancolie: ['Folk', 'Blues', 'Alternative', 'Indie', 'Post-Rock'],
-      Fête: ['Electronic', 'Disco', 'Hip-Hop', 'Pop', 'Funk'],
-      Concentration: ['Classical', 'Ambient', 'Jazz', 'Electronic'],
-    }
-    const preferredStyles = moodMap[mood] || []
+    const preferredStyles = MOOD_STYLE_MAP[mood] || []
     const moodFiltered = pool.filter((v) =>
       preferredStyles.some(
         (s) =>
@@ -64,7 +72,7 @@ export default function ListenSuggestionModal({ collection, onClose }) {
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
         <button
           onClick={onClose}
-          aria-label="Fermer"
+          aria-label={t('common.close')}
           className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white"
         >
           ✕
@@ -73,47 +81,49 @@ export default function ListenSuggestionModal({ collection, onClose }) {
         {!suggestion ? (
           <>
             <h2 className="mb-1 text-xl font-semibold text-white">
-              🎲 Que devrais-je écouter ?
+              {t('listenSuggestion.title')}
             </h2>
             <p className="mb-6 text-sm text-[#888]">
-              Réponds à quelques questions et je choisis pour toi dans ta collection.
+              {t('listenSuggestion.subtitle')}
             </p>
 
             {/* Humeur */}
             <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#999]">
-              Humeur
+              {t('listenSuggestion.moodLabel')}
             </label>
             <div className="mb-4 flex flex-wrap gap-2">
-              {MOODS.map((m) => (
-                <Chip key={m} label={m} active={mood === m} onClick={() => setMood(m === mood ? '' : m)} />
+              {MOOD_KEYS.map((m) => (
+                <Chip key={m} label={t(`listenSuggestion.moods.${m}`)} active={mood === m} onClick={() => setMood(m === mood ? '' : m)} />
               ))}
             </div>
 
             {/* Durée */}
             <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#999]">
-              Durée disponible
+              {t('listenSuggestion.durationLabel')}
             </label>
             <div className="mb-4 flex flex-wrap gap-2">
-              {DURATIONS.map((d) => (
-                <Chip key={d} label={d} active={duration === d} onClick={() => setDuration(d === duration ? '' : d)} />
+              {DURATION_KEYS.map((d) => (
+                <Chip key={d} label={t(`listenSuggestion.durations.${d}`)} active={duration === d} onClick={() => setDuration(d === duration ? '' : d)} />
               ))}
+              <Chip label={t('listenSuggestion.any')} active={duration === 'any'} onClick={() => setDuration(duration === 'any' ? '' : 'any')} />
             </div>
 
             {/* Genre */}
             <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-[#999]">
-              Genre préféré
+              {t('listenSuggestion.genreLabel')}
             </label>
             <div className="mb-6 flex flex-wrap gap-2">
               {GENRES_OPTIONS.map((g) => (
                 <Chip key={g} label={g} active={genre === g} onClick={() => setGenre(g === genre ? '' : g)} />
               ))}
+              <Chip label={t('listenSuggestion.any')} active={genre === 'any'} onClick={() => setGenre(genre === 'any' ? '' : 'any')} />
             </div>
 
             <button
               onClick={getSuggestion}
               className="w-full rounded-lg bg-[#f5a623] py-3 font-medium text-black transition hover:bg-[#fbbf24] active:scale-95"
             >
-              Trouve-moi un vinyle 🎵
+              {t('listenSuggestion.cta')}
             </button>
           </>
         ) : (
@@ -140,11 +150,12 @@ function Chip({ label, active, onClick }) {
 }
 
 function SuggestionResult({ vinyl, onReset, onClose }) {
+  const { t } = useTranslation()
   const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
   return (
     <div className="text-center">
-      <p className="mb-4 text-sm text-[#888]">Pour toi ce soir 🎵</p>
+      <p className="mb-4 text-sm text-[#888]">{t('listenSuggestion.forTonight')}</p>
       <div className="mx-auto mb-4 h-48 w-48 overflow-hidden rounded-lg shadow-xl">
         <img
           src={vinyl.cover_image || vinyl.thumb_image || PLACEHOLDER}
@@ -158,7 +169,7 @@ function SuggestionResult({ vinyl, onReset, onClose }) {
         {vinyl.year && <span>{vinyl.year}</span>}
         {vinyl.styles?.[0] && <span>· {vinyl.styles[0]}</span>}
         {vinyl.average_value && (
-          <span title="Prix mini Discogs (annonce la moins chère en vente actuellement)">
+          <span title={t('listenSuggestion.priceTooltip')}>
             · ~{formatCurrency(vinyl.average_value, vinyl.average_value_currency)}
           </span>
         )}
@@ -169,13 +180,13 @@ function SuggestionResult({ vinyl, onReset, onClose }) {
           onClick={onReset}
           className="flex-1 rounded-lg border border-[#333] py-2.5 text-sm text-[#888] transition hover:border-[#555] hover:text-white"
         >
-          Autre suggestion
+          {t('listenSuggestion.otherSuggestion')}
         </button>
         <button
           onClick={onClose}
           className="flex-1 rounded-lg bg-[#f5a623] py-2.5 text-sm font-medium text-black transition hover:bg-[#fbbf24]"
         >
-          C'est parti ! 🎶
+          {t('listenSuggestion.letsGo')}
         </button>
       </div>
     </div>

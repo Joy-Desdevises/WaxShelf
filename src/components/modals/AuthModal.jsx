@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 
 export default function AuthModal({ onClose, initialMode = 'signin' }) {
   useLockBodyScroll()
+  const { t } = useTranslation()
   const { signIn, signUp, resetPassword } = useAuth()
   const [mode, setMode] = useState(initialMode) // 'signin' | 'signup' | 'reset'
   const [email, setEmail] = useState('')
@@ -32,11 +34,11 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
     } else if (mode === 'signup') {
       const { error: err } = await signUp(email, password, username)
       if (err) setError(err.message)
-      else setSuccess('Compte créé ! Vérifie ton email pour confirmer ton inscription.')
+      else setSuccess(t('auth.signupSuccess'))
     } else {
       const { error: err } = await resetPassword(email)
       if (err) setError(err.message)
-      else setSuccess('Un e-mail avec un lien de réinitialisation vient de t’être envoyé.')
+      else setSuccess(t('auth.resetSuccess'))
     }
     setLoading(false)
   }
@@ -50,14 +52,14 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
         <button
           onClick={onClose}
-          aria-label="Fermer"
+          aria-label={t('common.close')}
           className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white"
         >
           ✕
         </button>
 
         <h2 className="mb-6 text-xl font-semibold text-white">
-          {mode === 'signin' ? 'Connexion' : mode === 'signup' ? 'Créer un compte' : 'Mot de passe oublié'}
+          {t(`auth.title.${mode}`)}
         </h2>
 
         {success ? (
@@ -66,16 +68,16 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'signup' && (
               <Field
-                label="Nom d'utilisateur"
+                label={t('auth.username')}
                 type="text"
                 value={username}
                 onChange={setUsername}
-                placeholder="votre-pseudo"
+                placeholder={t('auth.usernamePlaceholder')}
                 required
               />
             )}
             <Field
-              label="Email"
+              label={t('auth.email')}
               type="email"
               value={email}
               onChange={setEmail}
@@ -84,7 +86,7 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
             />
             {mode !== 'reset' && (
               <PasswordField
-                label="Mot de passe"
+                label={t('auth.password')}
                 value={password}
                 onChange={setPassword}
                 required
@@ -97,7 +99,7 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
                 onClick={() => switchMode('reset')}
                 className="text-sm text-[#999] hover:text-[#f5a623] hover:underline"
               >
-                J'ai perdu mon mot de passe
+                {t('auth.forgotPassword')}
               </button>
             )}
 
@@ -108,13 +110,7 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
               disabled={loading}
               className="w-full rounded-lg bg-[#f5a623] py-2.5 font-medium text-black transition hover:bg-[#fbbf24] disabled:opacity-50"
             >
-              {loading
-                ? 'Chargement…'
-                : mode === 'signin'
-                ? 'Se connecter'
-                : mode === 'signup'
-                ? 'Créer le compte'
-                : 'Envoyer le lien de réinitialisation'}
+              {loading ? t('auth.loading') : t(`auth.submit.${mode}`)}
             </button>
           </form>
         )}
@@ -122,16 +118,16 @@ export default function AuthModal({ onClose, initialMode = 'signin' }) {
         <p className="mt-4 text-center text-sm text-[#999]">
           {mode === 'reset' ? (
             <button onClick={() => switchMode('signin')} className="text-[#f5a623] hover:underline">
-              Retour à la connexion
+              {t('auth.backToSignin')}
             </button>
           ) : (
             <>
-              {mode === 'signin' ? 'Pas encore de compte ? ' : 'Déjà un compte ? '}
+              {mode === 'signin' ? t('auth.noAccount') : t('auth.hasAccount')}
               <button
                 onClick={() => switchMode(mode === 'signin' ? 'signup' : 'signin')}
                 className="text-[#f5a623] hover:underline"
               >
-                {mode === 'signin' ? 'Créer un compte' : 'Se connecter'}
+                {mode === 'signin' ? t('auth.title.signup') : t('auth.submit.signin')}
               </button>
             </>
           )}
@@ -160,6 +156,7 @@ function Field({ label, type, value, onChange, placeholder, required }) {
 }
 
 function PasswordField({ label, value, onChange, required }) {
+  const { t } = useTranslation()
   const [visible, setVisible] = useState(false)
 
   return (
@@ -180,7 +177,7 @@ function PasswordField({ label, value, onChange, required }) {
           type="button"
           onClick={() => setVisible((v) => !v)}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-[#999] hover:text-white transition"
-          aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+          aria-label={visible ? t('auth.hidePassword') : t('auth.showPassword')}
         >
           {visible ? '🙈' : '👁️'}
         </button>

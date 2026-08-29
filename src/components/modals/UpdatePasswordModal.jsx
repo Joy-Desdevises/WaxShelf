@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 
@@ -8,6 +9,7 @@ import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 // terminer le flux.
 export default function UpdatePasswordModal() {
   useLockBodyScroll()
+  const { t } = useTranslation()
   const { updatePassword } = useAuth()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -18,7 +20,7 @@ export default function UpdatePasswordModal() {
   async function handleSubmit(e) {
     e.preventDefault()
     if (password !== confirm) {
-      setError('Les deux mots de passe ne correspondent pas.')
+      setError(t('updatePassword.mismatchError'))
       return
     }
     setError('')
@@ -32,8 +34,8 @@ export default function UpdatePasswordModal() {
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm sm:items-center sm:p-4">
       <div className="safe-bottom relative w-full rounded-t-2xl bg-[#111] p-6 shadow-2xl sm:max-w-sm sm:rounded-xl">
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
-        <h2 className="mb-2 text-xl font-semibold text-white">Nouveau mot de passe</h2>
-        <p className="mb-6 text-sm text-[#999]">Choisis un nouveau mot de passe pour ton compte.</p>
+        <h2 className="mb-2 text-xl font-semibold text-white">{t('updatePassword.title')}</h2>
+        <p className="mb-6 text-sm text-[#999]">{t('updatePassword.subtitle')}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
@@ -41,7 +43,7 @@ export default function UpdatePasswordModal() {
               type={visible ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Nouveau mot de passe"
+              placeholder={t('updatePassword.newPassword')}
               required
               className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 pr-11 text-sm text-white placeholder-[#888] outline-none focus:border-[#f5a623] transition"
             />
@@ -49,7 +51,7 @@ export default function UpdatePasswordModal() {
               type="button"
               onClick={() => setVisible((v) => !v)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[#999] hover:text-white transition"
-              aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              aria-label={visible ? t('auth.hidePassword') : t('auth.showPassword')}
             >
               {visible ? '🙈' : '👁️'}
             </button>
@@ -58,7 +60,7 @@ export default function UpdatePasswordModal() {
             type={visible ? 'text' : 'password'}
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            placeholder="Confirme le mot de passe"
+            placeholder={t('updatePassword.confirmPassword')}
             required
             className="w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm text-white placeholder-[#888] outline-none focus:border-[#f5a623] transition"
           />
@@ -70,7 +72,7 @@ export default function UpdatePasswordModal() {
             disabled={loading}
             className="w-full rounded-lg bg-[#f5a623] py-2.5 font-medium text-black transition hover:bg-[#fbbf24] disabled:opacity-50"
           >
-            {loading ? 'Enregistrement…' : 'Enregistrer le mot de passe'}
+            {loading ? t('updatePassword.saving') : t('updatePassword.save')}
           </button>
         </form>
       </div>

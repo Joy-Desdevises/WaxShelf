@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import Header from '../components/layout/Header'
 import FollowListModal from '../components/modals/FollowListModal'
@@ -11,6 +12,7 @@ import { useMyLikesCount } from '../hooks/useSocial'
 import { formatCurrency } from '../lib/format'
 
 export default function DashboardPage() {
+  const { t } = useTranslation()
   const { username } = useParams()
   const { user, profile } = useAuth()
   const isOwner = user && profile?.username === username
@@ -69,22 +71,22 @@ export default function DashboardPage() {
       <main className="mx-auto max-w-5xl px-4 py-8">
         <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-xl font-bold text-white sm:text-2xl">
-            Stat &amp; Social
+            {t('dashboardPage.title')}
             <span className="ml-2 text-sm font-normal text-[#999]">· @{username}</span>
           </h1>
 
           {isOwner && !isLoading && collection.length > 0 && stats?.withValue < collection.length && (
             <p className="text-xs text-[#999]">
-              {stats?.withValue}/{collection.length} vinyles avec une valeur connue
+              {t('dashboardPage.vinylsWithValue', { withValue: stats?.withValue, total: collection.length })}
             </p>
           )}
         </div>
 
         {/* ── Social ── */}
         <div className="mb-6 grid grid-cols-3 gap-3">
-          <SocialCard icon="👥" label="Abonnés" value={followCounts?.followers ?? 0} onClick={() => setShowFollowList('followers')} />
-          <SocialCard icon="➕" label="Abonnements" value={followCounts?.following ?? 0} onClick={() => setShowFollowList('following')} />
-          <SocialCard icon="❤️" label="Likes donnés" value={likesCount ?? 0} onClick={() => setShowLikes(true)} />
+          <SocialCard icon="👥" label={t('dashboardPage.followers')} value={followCounts?.followers ?? 0} onClick={() => setShowFollowList('followers')} />
+          <SocialCard icon="➕" label={t('dashboardPage.following')} value={followCounts?.following ?? 0} onClick={() => setShowFollowList('following')} />
+          <SocialCard icon="❤️" label={t('dashboardPage.likesGiven')} value={likesCount ?? 0} onClick={() => setShowLikes(true)} />
         </div>
 
         {isLoading ? (
@@ -92,21 +94,21 @@ export default function DashboardPage() {
             {[...Array(4)].map((_, i) => <div key={i} className="h-28 animate-pulse rounded-xl bg-[#111]" />)}
           </div>
         ) : !stats ? (
-          <p className="text-[#999]">Aucune donnée disponible.</p>
+          <p className="text-[#999]">{t('dashboardPage.noData')}</p>
         ) : (
           <div className="space-y-6">
 
             {/* ── KPIs ── */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <StatCard icon="📀" label="Vinyles" value={collection.length} />
-              <StatCard icon="💰" label="Prix minimum en vente" sub="somme du prix le plus bas trouvé par disque" value={stats.totalValue > 0 ? `~${formatCurrency(Math.round(stats.totalValue), stats.currency)}` : '—'} />
-              <StatCard icon="🌍" label="Pays différents" value={Object.keys(stats.decadeCount).length > 0 ? stats.topCountries.length : '—'} />
+              <StatCard icon="📀" label={t('dashboardPage.kpiVinyls')} value={collection.length} />
+              <StatCard icon="💰" label={t('dashboardPage.kpiMinPrice')} sub={t('dashboardPage.kpiMinPriceSub')} value={stats.totalValue > 0 ? `~${formatCurrency(Math.round(stats.totalValue), stats.currency)}` : '—'} />
+              <StatCard icon="🌍" label={t('dashboardPage.kpiCountries')} value={Object.keys(stats.decadeCount).length > 0 ? stats.topCountries.length : '—'} />
             </div>
 
             {/* ── Valeur : top 10 les plus chers ── */}
             {stats.topValuable.length > 0 && (
-              <Card title="💰 Les plus précieux">
-                <p className="-mt-2 mb-3 text-xs text-[#999]">Prix de l'annonce la moins chère actuellement en vente sur Discogs (pas une moyenne)</p>
+              <Card title={t('dashboardPage.mostPrecious')}>
+                <p className="-mt-2 mb-3 text-xs text-[#999]">{t('dashboardPage.mostPreciousSub')}</p>
                 <div className="space-y-2">
                   {stats.topValuable.map((v, i) => (
                     <div key={v.id} className="flex items-center gap-3">
@@ -137,7 +139,7 @@ export default function DashboardPage() {
             {/* ── Genres + Décennies ── */}
             <div className="grid gap-4 sm:grid-cols-2">
               {stats.topGenres.length > 0 && (
-                <Card title="🎸 Top genres">
+                <Card title={t('dashboardPage.topGenres')}>
                   <div className="space-y-3">
                     {stats.topGenres.map(([genre, count]) => (
                       <Bar key={genre} label={genre} count={count} max={stats.topGenres[0][1]} />
@@ -147,8 +149,8 @@ export default function DashboardPage() {
               )}
 
               {Object.keys(stats.decadeCount).length > 0 && (
-                <Card title="📅 Par décennie">
-                  <p className="-mt-2 mb-3 text-xs text-[#999]">Année de sortie originale des albums</p>
+                <Card title={t('dashboardPage.byDecade')}>
+                  <p className="-mt-2 mb-3 text-xs text-[#999]">{t('dashboardPage.byDecadeSub')}</p>
                   <div className="space-y-3">
                     {Object.entries(stats.decadeCount).sort().map(([decade, count]) => (
                       <Bar key={decade} label={decade} count={count} max={Math.max(...Object.values(stats.decadeCount))} />
@@ -160,7 +162,7 @@ export default function DashboardPage() {
 
             {/* ── Pays ── */}
             {stats.topCountries.length > 0 && (
-              <Card title="🌍 Pays d'origine">
+              <Card title={t('dashboardPage.originCountries')}>
                 <div className="flex flex-wrap gap-2">
                   {stats.topCountries.map(([country, count]) => (
                     <span key={country} className="flex items-center gap-2 rounded-full bg-[#1a1a1a] px-3 py-1.5 text-sm">

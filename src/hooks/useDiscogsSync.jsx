@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from './useAuth'
 import { useSyncDiscogs } from './useCollection'
@@ -16,6 +17,7 @@ import DiscogsTokenModal from '../components/modals/DiscogsTokenModal'
 const DiscogsSyncContext = createContext(null)
 
 export function DiscogsSyncProvider({ children }) {
+  const { t } = useTranslation()
   const { user, profile, updateProfile } = useAuth()
   const syncMutation = useSyncDiscogs()
   const wantlistSyncMutation = useSyncWantlist()
@@ -66,10 +68,10 @@ export function DiscogsSyncProvider({ children }) {
       const wantlistCount = await wantlistSyncMutation.mutateAsync({ userId: user.id, discogsToken, discogsUsername })
       updateProfile({ last_wantlist_sync_at: new Date().toISOString() })
 
-      showToast('success', `✅ Sync terminée — ${count} vinyles, ${wantlistCount} envies.`)
+      showToast('success', t('discogsSync.success', { count, wantlistCount }))
     } catch (err) {
-      const msg = err?.response?.data?.message || err.message || 'Erreur inconnue'
-      showToast('error', `Erreur : ${msg}`)
+      const msg = err?.response?.data?.message || err.message || t('discogsSync.unknownError')
+      showToast('error', t('discogsSync.error', { message: msg }))
     }
     setEnrichProgress(null)
     setSyncStep(null)

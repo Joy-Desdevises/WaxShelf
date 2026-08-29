@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import Avatar from '../layout/Avatar'
 import { useFollowList } from '../../hooks/useFollows'
@@ -5,8 +6,9 @@ import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 
 export default function FollowListModal({ userId, direction, onClose }) {
   useLockBodyScroll()
+  const { t } = useTranslation()
   const { data: list = [], isLoading } = useFollowList(userId, direction)
-  const title = direction === 'followers' ? 'Abonnés' : 'Abonnements'
+  const title = direction === 'followers' ? t('followList.followers') : t('followList.following')
 
   return (
     <div
@@ -17,14 +19,14 @@ export default function FollowListModal({ userId, direction, onClose }) {
         <div className="mx-auto mt-3 h-1 w-10 rounded-full bg-[#333] sm:hidden" />
         <div className="flex items-center justify-between border-b border-[#222] p-4">
           <h2 className="font-semibold text-white">{title}</h2>
-          <button onClick={onClose} aria-label="Fermer" className="-mr-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white">✕</button>
+          <button onClick={onClose} aria-label={t('common.close')} className="-mr-2 flex h-9 w-9 items-center justify-center text-[#999] hover:text-white">✕</button>
         </div>
         <div className="flex-1 overflow-y-auto p-2">
           {isLoading ? (
-            <p className="p-4 text-center text-sm text-[#999]">Chargement…</p>
+            <p className="p-4 text-center text-sm text-[#999]">{t('followList.loading')}</p>
           ) : list.length === 0 ? (
             <p className="p-4 text-center text-sm text-[#999]">
-              {direction === 'followers' ? 'Aucun abonné pour le moment.' : "Ne suit personne pour le moment."}
+              {direction === 'followers' ? t('followList.emptyFollowers') : t('followList.emptyFollowing')}
             </p>
           ) : (
             list.map((p) => (
