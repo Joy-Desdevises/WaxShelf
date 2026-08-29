@@ -8,6 +8,7 @@ import ListenSuggestionModal from '../modals/ListenSuggestionModal'
 import AuthModal from '../modals/AuthModal'
 import UpdatePasswordModal from '../modals/UpdatePasswordModal'
 import Avatar from './Avatar'
+import waxshelfLogoText from '../../assets/waxshelf_logo_texte.svg'
 
 // Header unique, affiché sur toutes les pages : mêmes onglets, même widget
 // "What should I listen to?" et même bouton de sync Discogs partout, basés
@@ -72,9 +73,12 @@ export default function Header() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 text-white">
-            <span className="text-xl">🎵</span>
-            <span className="text-base font-semibold tracking-tight">WaxShelf</span>
+          <Link to="/" className="flex items-center text-white" aria-label="WaxShelf home">
+            <img
+              src={waxshelfLogoText}
+              alt="WaxShelf"
+              className="h-10 w-auto object-contain md:h-14"
+            />
           </Link>
 
           {/* Nav desktop */}
