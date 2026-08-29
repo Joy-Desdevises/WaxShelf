@@ -12,7 +12,7 @@
  */
 
 import { useState, useRef } from 'react'
-import { generateAnecdote } from '../../lib/gemini'
+import { generateAnecdote, isQuotaExceeded } from '../../lib/gemini'
 import { formatCurrency } from '../../lib/format'
 import { supabase } from '../../lib/supabase'
 import { useLogPlay } from '../../hooks/usePlayLog'
@@ -49,6 +49,9 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
 
   async function maybeLoadAnecdote() {
     if (size === 'sm' || anecdote || loading) return
+    // Quota OpenRouter épuisé récemment : on ne tente même pas l'appel, pour
+    // ne pas laisser "Génération…" tourner pour rien à chaque vinyle retourné.
+    if (isQuotaExceeded()) return
     setLoading(true)
     try {
       // vinyl.year est l'année de CE pressage précis (souvent une réédition
