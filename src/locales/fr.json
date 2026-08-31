@@ -4,7 +4,7 @@
     "nav": {
       "home": "Accueil",
       "collection": "Collection",
-      "dashboard": "Stats",
+      "dashboard": "Stat & Social",
       "wantlist": "Wantlist",
       "journal": "Journal"
     },
@@ -107,10 +107,23 @@
     "emptyFollowers": "Aucun abonné pour le moment.",
     "emptyFollowing": "Ne suit personne pour le moment."
   },
-  "likedVinyls": {
-    "title": "Likes donnés",
+  "likesModal": {
+    "title": "Likes",
+    "given": "Donnés",
+    "received": "Reçus",
     "loading": "Chargement…",
-    "empty": "Aucun like pour le moment."
+    "emptyGiven": "Aucun like donné pour le moment.",
+    "emptyReceived": "Aucun like reçu pour le moment."
+  },
+  "commentsModal": {
+    "title": "Commentaires",
+    "left": "Laissés",
+    "received": "Reçus",
+    "loading": "Chargement…",
+    "emptyLeft": "Aucun commentaire laissé pour le moment.",
+    "emptyReceived": "Aucun commentaire reçu pour le moment.",
+    "leftOn": "sur {{vinyl}} · {{artist}}",
+    "receivedFrom": "@{{username}} sur {{vinyl}}"
   },
   "listenSuggestion": {
     "title": "🎲 Que devrais-je écouter ?",
@@ -232,7 +245,8 @@
     "vinylsWithValue": "{{withValue}}/{{total}} vinyles avec une valeur connue",
     "followers": "Abonnés",
     "following": "Abonnements",
-    "likesGiven": "Likes donnés",
+    "likes": "Likes reçus/donnés",
+    "comments": "Commentaires reçus/donnés",
     "noData": "Aucune donnée disponible.",
     "kpiVinyls": "Vinyles",
     "kpiMinPrice": "Prix minimum en vente",

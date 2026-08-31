@@ -3,12 +3,13 @@ import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import Header from '../components/layout/Header'
 import FollowListModal from '../components/modals/FollowListModal'
-import LikedVinylsModal from '../components/modals/LikedVinylsModal'
+import LikesModal from '../components/modals/LikesModal'
+import CommentsModal from '../components/modals/CommentsModal'
 import { useCollectionByUsername } from '../hooks/useCollection'
 import { useAuth } from '../hooks/useAuth'
 import { useProfileByUsername } from '../hooks/useProfile'
 import { useFollowCounts } from '../hooks/useFollows'
-import { useMyLikesCount } from '../hooks/useSocial'
+import { useMyLikesCount, useReceivedLikesCount, useMyCommentsCount, useReceivedCommentsCount } from '../hooks/useSocial'
 import { formatCurrency } from '../lib/format'
 
 export default function DashboardPage() {
@@ -20,10 +21,14 @@ export default function DashboardPage() {
   const { data: collection = [], isLoading } = useCollectionByUsername(username)
   const { data: viewedProfile } = useProfileByUsername(username)
   const { data: followCounts } = useFollowCounts(viewedProfile?.id)
-  const { data: likesCount } = useMyLikesCount(viewedProfile?.id)
+  const { data: likesGivenCount } = useMyLikesCount(viewedProfile?.id)
+  const { data: likesReceivedCount } = useReceivedLikesCount(viewedProfile?.id)
+  const { data: commentsLeftCount } = useMyCommentsCount(viewedProfile?.id)
+  const { data: commentsReceivedCount } = useReceivedCommentsCount(viewedProfile?.id)
 
   const [showFollowList, setShowFollowList] = useState(null) // 'followers' | 'following' | null
   const [showLikes, setShowLikes] = useState(false)
+  const [showComments, setShowComments] = useState(false)
 
   // ── Stats calculées ────────────────────────────────────────────────────────
   const stats = useMemo(() => {
@@ -83,10 +88,11 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Social ── */}
-        <div className="mb-6 grid grid-cols-3 gap-3">
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <SocialCard icon="👥" label={t('dashboardPage.followers')} value={followCounts?.followers ?? 0} onClick={() => setShowFollowList('followers')} />
           <SocialCard icon="➕" label={t('dashboardPage.following')} value={followCounts?.following ?? 0} onClick={() => setShowFollowList('following')} />
-          <SocialCard icon="❤️" label={t('dashboardPage.likesGiven')} value={likesCount ?? 0} onClick={() => setShowLikes(true)} />
+          <SocialCard icon="❤️" label={t('dashboardPage.likes')} value={(likesGivenCount ?? 0) + (likesReceivedCount ?? 0)} onClick={() => setShowLikes(true)} />
+          <SocialCard icon="💬" label={t('dashboardPage.comments')} value={(commentsLeftCount ?? 0) + (commentsReceivedCount ?? 0)} onClick={() => setShowComments(true)} />
         </div>
 
         {isLoading ? (
@@ -186,7 +192,11 @@ export default function DashboardPage() {
       )}
 
       {showLikes && (
-        <LikedVinylsModal userId={viewedProfile?.id} onClose={() => setShowLikes(false)} />
+        <LikesModal userId={viewedProfile?.id} onClose={() => setShowLikes(false)} />
+      )}
+
+      {showComments && (
+        <CommentsModal userId={viewedProfile?.id} onClose={() => setShowComments(false)} />
       )}
     </div>
   )

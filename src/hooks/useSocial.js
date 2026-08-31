@@ -79,6 +79,40 @@ export function useMyLikes(userId, enabled = true) {
   })
 }
 
+// Compteur léger des likes reçus sur les vinyles de userId, peu importe qui
+// les a likés — jointure sur vinyl_records pour filtrer par propriétaire.
+export function useReceivedLikesCount(userId) {
+  return useQuery({
+    queryKey: ['received-likes-count', userId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('vinyl_likes')
+        .select('id, vinyl_records!inner(user_id)', { count: 'exact', head: true })
+        .eq('vinyl_records.user_id', userId)
+      return count || 0
+    },
+    enabled: !!userId,
+  })
+}
+
+// Likes reçus sur les vinyles de userId, avec l'utilisateur qui a liké et
+// le vinyle concerné.
+export function useReceivedLikes(userId) {
+  return useQuery({
+    queryKey: ['received-likes', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('vinyl_likes')
+        .select('id, profiles(username, avatar_url, display_name), vinyl_records!inner(id, title, artist, thumb_image, cover_image, user_id)')
+        .eq('vinyl_records.user_id', userId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data
+    },
+    enabled: !!userId,
+  })
+}
+
 // ── Commentaires ──────────────────────────────────────────────────────────────
 
 export function useComments(vinylId) {
@@ -120,6 +154,76 @@ export function useComments(vinylId) {
   })
 
   return { comments, isLoading, addComment, deleteComment }
+}
+
+// Compteur léger (HEAD request) des commentaires laissés par userId, sur
+// n'importe quel vinyle — même principe que useMyLikesCount.
+export function useMyCommentsCount(userId) {
+  return useQuery({
+    queryKey: ['my-comments-count', userId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('vinyl_comments')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+      return count || 0
+    },
+    enabled: !!userId,
+  })
+}
+
+// Compteur léger des commentaires reçus sur les vinyles de userId, peu
+// importe qui les a laissés — jointure sur vinyl_records pour filtrer par
+// propriétaire du disque commenté.
+export function useReceivedCommentsCount(userId) {
+  return useQuery({
+    queryKey: ['received-comments-count', userId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('vinyl_comments')
+        .select('id, vinyl_records!inner(user_id)', { count: 'exact', head: true })
+        .eq('vinyl_records.user_id', userId)
+      return count || 0
+    },
+    enabled: !!userId,
+  })
+}
+
+// Commentaires laissés par userId, avec le vinyle concerné et son
+// propriétaire (peut différer de userId si commenté chez quelqu'un d'autre)
+// pour pouvoir naviguer vers la bonne collection.
+export function useMyComments(userId) {
+  return useQuery({
+    queryKey: ['my-comments', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('vinyl_comments')
+        .select('id, content, created_at, vinyl_records(id, title, artist, thumb_image, cover_image, profiles(username, display_name))')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data.filter((c) => c.vinyl_records)
+    },
+    enabled: !!userId,
+  })
+}
+
+// Commentaires reçus sur les vinyles de userId, avec l'auteur du commentaire
+// et le vinyle concerné.
+export function useReceivedComments(userId) {
+  return useQuery({
+    queryKey: ['received-comments', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('vinyl_comments')
+        .select('id, content, created_at, profiles(username, avatar_url, display_name), vinyl_records!inner(id, title, artist, thumb_image, cover_image, user_id)')
+        .eq('vinyl_records.user_id', userId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data
+    },
+    enabled: !!userId,
+  })
 }
 
 // ── Rating + Notes + Valeur (propriétaire) ────────────────────────────────────

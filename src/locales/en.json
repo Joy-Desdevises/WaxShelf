@@ -4,7 +4,7 @@
     "nav": {
       "home": "Home",
       "collection": "Collection",
-      "dashboard": "Stats",
+      "dashboard": "Stat & Social",
       "wantlist": "Wantlist",
       "journal": "Journal"
     },
@@ -107,10 +107,23 @@
     "emptyFollowers": "No followers yet.",
     "emptyFollowing": "Not following anyone yet."
   },
-  "likedVinyls": {
-    "title": "Likes given",
+  "likesModal": {
+    "title": "Likes",
+    "given": "Given",
+    "received": "Received",
     "loading": "Loading…",
-    "empty": "No likes yet."
+    "emptyGiven": "No likes given yet.",
+    "emptyReceived": "No likes received yet."
+  },
+  "commentsModal": {
+    "title": "Comments",
+    "left": "Left",
+    "received": "Received",
+    "loading": "Loading…",
+    "emptyLeft": "No comments left yet.",
+    "emptyReceived": "No comments received yet.",
+    "leftOn": "on {{vinyl}} · {{artist}}",
+    "receivedFrom": "@{{username}} on {{vinyl}}"
   },
   "listenSuggestion": {
     "title": "🎲 What should I listen to?",
@@ -232,7 +245,8 @@
     "vinylsWithValue": "{{withValue}}/{{total}} records with a known value",
     "followers": "Followers",
     "following": "Following",
-    "likesGiven": "Likes given",
+    "likes": "Likes received/given",
+    "comments": "Comments received/given",
     "noData": "No data available.",
     "kpiVinyls": "Records",
     "kpiMinPrice": "Minimum resale value",
