@@ -274,7 +274,7 @@ function HeaderSearch() {
           onFocus={() => setOpen(true)}
           placeholder={t('header.search.placeholder')}
           aria-label={t('header.search.placeholder')}
-          className="w-20 rounded-lg border border-[#333] bg-[#111] py-1.5 pl-8 pr-2 text-sm text-white placeholder-[#888] outline-none transition-all focus:w-36 focus:border-[#555] sm:w-28 sm:focus:w-48"
+          className="w-32 rounded-lg border border-[#333] bg-[#111] py-1.5 pl-8 pr-2 text-sm text-white placeholder-[#888] outline-none transition-colors focus:border-[#555] sm:w-40"
         />
       </form>
 
