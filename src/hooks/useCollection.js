@@ -34,7 +34,11 @@ export function useCollectionByUsername(username) {
         .eq('username', username)
         .single()
       if (profileError) throw profileError
-      if (!profile.is_public) return []
+      // Pas de court-circuit sur is_public ici : la RLS de vinyl_records
+      // gère déjà correctement "public OU propriétaire" (voir migration
+      // initiale) — un court-circuit client-side sur is_public bloquerait
+      // aussi le propriétaire d'un profil privé consultant sa propre
+      // collection, sans jamais vérifier qui regarde.
 
       // 2. Récupérer la collection
       const { data, error } = await supabase
