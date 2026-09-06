@@ -139,7 +139,7 @@ export default function DashboardPage() {
               {activity.length === 0 ? (
                 <p className="text-sm text-[#999]">{t('dashboardPage.activityEmpty')}</p>
               ) : (
-                <div className="max-h-80 space-y-3 overflow-y-auto pr-1">
+                <div className="max-h-44 space-y-3 overflow-y-auto pr-1">
                   {activity.map((item) => (
                     <ActivityRow key={item.key} item={item} t={t} />
                   ))}
