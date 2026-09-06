@@ -53,6 +53,21 @@ export function useCollectionByUsername(username) {
   })
 }
 
+// Nombre de vinyles + envies d'un profil, toujours public (comme le nombre
+// de posts sur un compte Instagram privé) même quand le contenu détaillé
+// reste caché par is_public — voir migration 20260906170000_collection_counts_public.
+export function useCollectionCounts(userId) {
+  return useQuery({
+    queryKey: ['collection-counts', userId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_collection_counts', { target_user_id: userId }).single()
+      if (error) throw error
+      return { vinylCount: data.vinyl_count || 0, wantlistCount: data.wantlist_count || 0 }
+    },
+    enabled: !!userId,
+  })
+}
+
 // ── Sync Discogs ──────────────────────────────────────────────────────────────
 
 export function useSyncDiscogs() {

@@ -6,7 +6,7 @@ import VinylGrid from '../components/vinyl/VinylGrid'
 import VinylDetailModal from '../components/vinyl/VinylDetailModal'
 import FollowListModal from '../components/modals/FollowListModal'
 import { useAuth } from '../hooks/useAuth'
-import { useCollectionByUsername } from '../hooks/useCollection'
+import { useCollectionByUsername, useCollectionCounts } from '../hooks/useCollection'
 import { useProfileByUsername } from '../hooks/useProfile'
 import { useFollowCounts, useIsFollowing, useToggleFollow } from '../hooks/useFollows'
 import { useWantlistItems } from '../hooks/useWantlist'
@@ -46,6 +46,10 @@ export default function CollectionPage() {
   const { data: collection = [], isLoading, refetch } = useCollectionByUsername(username)
   const { data: wantlistItems = [], isLoading: wantlistLoading, refetch: refetchWantlist } = useWantlistItems(username)
   const { data: viewedProfile } = useProfileByUsername(username)
+  // Toujours public (comme le nombre de posts d'un compte Instagram privé),
+  // même quand collection/wantlistItems restent vides pour un visiteur —
+  // voir useCollectionCounts.
+  const { data: counts } = useCollectionCounts(viewedProfile?.id)
   const { data: followCounts } = useFollowCounts(viewedProfile?.id)
   const { data: isFollowing } = useIsFollowing(user?.id, viewedProfile?.id)
   const toggleFollow = useToggleFollow()
@@ -129,8 +133,8 @@ export default function CollectionPage() {
               {username}
               <span className="ml-2 text-sm font-normal text-[#999]">
                 · {tab === 'collection'
-                  ? t('collectionPage.vinylCount', { count: collection.length })
-                  : t('collectionPage.wantlistCount', { count: wantlistItems.length })}
+                  ? t('collectionPage.vinylCount', { count: counts?.vinylCount ?? collection.length })
+                  : t('collectionPage.wantlistCount', { count: counts?.wantlistCount ?? wantlistItems.length })}
               </span>
             </h1>
             <div className="mt-1 flex gap-3 text-sm text-[#999]">
@@ -275,10 +279,10 @@ export default function CollectionPage() {
         {/* Onglets Collection / Wantlist */}
         <div className="mb-5 flex gap-1 border-b border-[#1a1a1a]">
           <TabBtn active={tab === 'collection'} onClick={() => setTab('collection')}>
-            {t('collectionPage.tabCollection')} <span className="text-[#666]">· {collection.length}</span>
+            {t('collectionPage.tabCollection')} <span className="text-[#666]">· {counts?.vinylCount ?? collection.length}</span>
           </TabBtn>
           <TabBtn active={tab === 'wantlist'} onClick={() => setTab('wantlist')}>
-            {t('collectionPage.tabWantlist')} <span className="text-[#666]">· {wantlistItems.length}</span>
+            {t('collectionPage.tabWantlist')} <span className="text-[#666]">· {counts?.wantlistCount ?? wantlistItems.length}</span>
           </TabBtn>
         </div>
 
