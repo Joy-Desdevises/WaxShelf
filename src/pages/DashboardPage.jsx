@@ -139,7 +139,7 @@ export default function DashboardPage() {
               {activity.length === 0 ? (
                 <p className="text-sm text-[#999]">{t('dashboardPage.activityEmpty')}</p>
               ) : (
-                <div className="max-h-44 space-y-3 overflow-y-auto pr-1">
+                <div className="max-h-44 space-y-3 overflow-y-auto overflow-x-hidden pr-1">
                   {activity.map((item) => (
                     <ActivityRow key={item.key} item={item} t={t} />
                   ))}
@@ -301,7 +301,7 @@ function ActivityRow({ item, t }) {
   else text = t('dashboardPage.activityFollow', { name })
 
   return (
-    <Link to={`/${actor.username}`} className="flex items-center gap-3 rounded-lg -mx-2 px-2 py-1.5 transition hover:bg-[#1a1a1a]">
+    <Link to={`/${actor.username}`} className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition hover:bg-[#1a1a1a]">
       <Avatar avatarUrl={actor.avatar_url} fallbackLetter={actor.username?.[0]} className="h-8 w-8 shrink-0 rounded-full text-xs text-white" />
       <div className="min-w-0 flex-1">
         <p className="line-clamp-1 text-sm text-white">{text}</p>
