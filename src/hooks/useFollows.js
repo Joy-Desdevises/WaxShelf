@@ -1,15 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 
+// Compteurs toujours publics (juste des nombres) même sur un profil
+// privé — passe par une fonction security definer car la lecture
+// directe de `follows` est désormais restreinte à ses deux parties
+// (voir migration 20260906140000_open_profile_visibility).
 export function useFollowCounts(userId) {
   return useQuery({
     queryKey: ['follow-counts', userId],
     queryFn: async () => {
-      const [{ count: followers }, { count: following }] = await Promise.all([
-        supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', userId),
-        supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', userId),
-      ])
-      return { followers: followers || 0, following: following || 0 }
+      const { data, error } = await supabase.rpc('get_follow_counts', { target_user_id: userId }).single()
+      if (error) throw error
+      return { followers: data.followers || 0, following: data.following || 0 }
     },
     enabled: !!userId,
   })
@@ -59,28 +61,19 @@ export function useToggleFollow() {
 }
 
 // direction: 'followers' (qui suit userId) ou 'following' (qui userId suit)
+// Liste détaillée réservée au propriétaire quand son profil est privé
+// (comme Instagram) — la fonction get_follow_list applique cette règle
+// côté serveur ; voir migration 20260906140000_open_profile_visibility.
 export function useFollowList(userId, direction, enabled = true) {
-  const filterColumn = direction === 'followers' ? 'following_id' : 'follower_id'
-  const targetColumn = direction === 'followers' ? 'follower_id' : 'following_id'
-
   return useQuery({
     queryKey: ['follow-list', userId, direction],
     queryFn: async () => {
-      const { data: rows, error } = await supabase
-        .from('follows')
-        .select(targetColumn)
-        .eq(filterColumn, userId)
+      const { data, error } = await supabase.rpc('get_follow_list', {
+        target_user_id: userId,
+        direction,
+      })
       if (error) throw error
-
-      const ids = rows.map((r) => r[targetColumn])
-      if (ids.length === 0) return []
-
-      const { data: profiles, error: profError } = await supabase
-        .from('profiles')
-        .select('id, username, display_name, avatar_url')
-        .in('id', ids)
-      if (profError) throw profError
-      return profiles
+      return data
     },
     enabled: enabled && !!userId,
   })
