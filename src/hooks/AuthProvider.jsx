@@ -1,18 +1,26 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { AuthContext } from './authContext'
 
 // Contexte plutôt qu'un simple hook : plusieurs endroits de l'app (header,
 // accueil, wantlist, collection...) lisent et mettent à jour le même profil
 // (ex: last_collection_sync_at après une sync). Avec un hook local, chaque
 // composant aurait son propre état isolé et ne verrait pas les mises à jour
 // faites ailleurs sans recharger la page.
-const AuthContext = createContext(null)
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [passwordRecovery, setPasswordRecovery] = useState(false)
+
+  async function fetchProfile(userId) {
+    const [{ data }, { data: secret }] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', userId).single(),
+      supabase.from('profile_secrets').select('discogs_token').eq('user_id', userId).maybeSingle(),
+    ])
+    setProfile(data ? { ...data, discogs_token: secret?.discogs_token ?? null } : null)
+    setLoading(false)
+  }
 
   useEffect(() => {
     // Session initiale
@@ -32,15 +40,6 @@ export function AuthProvider({ children }) {
 
     return () => subscription.unsubscribe()
   }, [])
-
-  async function fetchProfile(userId) {
-    const [{ data }, { data: secret }] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', userId).single(),
-      supabase.from('profile_secrets').select('discogs_token').eq('user_id', userId).maybeSingle(),
-    ])
-    setProfile(data ? { ...data, discogs_token: secret?.discogs_token ?? null } : null)
-    setLoading(false)
-  }
 
   async function signIn(email, password) {
     return supabase.auth.signInWithPassword({ email, password })
@@ -111,8 +110,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  return useContext(AuthContext)
 }

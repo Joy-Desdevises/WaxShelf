@@ -17,8 +17,6 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(true)
   const [showAuth, setShowAuth] = useState(false)
 
-  useEffect(() => { fetchPublicUsers() }, [])
-
   async function fetchPublicUsers() {
     const { data } = await supabase
       .from('profiles')
@@ -29,6 +27,17 @@ export default function LandingPage() {
     setUsers(data || [])
     setLoading(false)
   }
+
+  useEffect(() => {
+    // Chargement de données au montage : setUsers/setLoading s'exécutent
+    // après le `await` (donc de façon asynchrone, pas synchrone dans le
+    // corps de l'effet) — c'est exactement le pattern documenté par React
+    // pour aller chercher des données dans un effet. La règle plus stricte
+    // ci-dessous ne distingue pas encore ce cas d'un vrai setState
+    // synchrone.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchPublicUsers()
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">

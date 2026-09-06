@@ -151,7 +151,7 @@ export function useDeleteVinyl() {
   const qc = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ userId, vinylId }) => {
+    mutationFn: async ({ vinylId }) => {
       const { error } = await supabase
         .from('vinyl_records')
         .delete()

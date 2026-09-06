@@ -33,10 +33,14 @@ export default function Header() {
 
   const userMenuRef = useRef(null)
 
-  // Ferme le menu au changement de page
-  useEffect(() => {
+  // Ferme le menu au changement de page — ajusté pendant le rendu plutôt que
+  // dans un effet (cf. https://react.dev/learn/you-might-not-need-an-effect),
+  // pour éviter un rendu de trop après le changement de route.
+  const [prevPathname, setPrevPathname] = useState(location.pathname)
+  if (location.pathname !== prevPathname) {
+    setPrevPathname(location.pathname)
     setShowUserMenu(false)
-  }, [location.pathname])
+  }
 
   // Ferme le menu utilisateur si clic extérieur
   useEffect(() => {

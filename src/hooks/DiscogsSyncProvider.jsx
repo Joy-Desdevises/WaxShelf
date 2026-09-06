@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from './useAuth'
@@ -6,6 +6,7 @@ import { useSyncDiscogs } from './useCollection'
 import { useSyncWantlist } from './useWantlist'
 import { supabase } from '../lib/supabase'
 import DiscogsTokenModal from '../components/modals/DiscogsTokenModal'
+import { DiscogsSyncContext } from './discogsSyncContext'
 
 // Contexte plutôt qu'un hook local : la sync peut prendre plusieurs minutes
 // sur une grosse collection, et le bouton qui la déclenche (header ou
@@ -14,8 +15,6 @@ import DiscogsTokenModal from '../components/modals/DiscogsTokenModal'
 // (progression, toast) en cours de route — d'où l'impression qu'elle
 // s'arrêtait. Un seul état partagé, posé au-dessus du routeur, survit à la
 // navigation.
-const DiscogsSyncContext = createContext(null)
-
 export function DiscogsSyncProvider({ children }) {
   const { t } = useTranslation()
   const { user, profile, updateProfile } = useAuth()
@@ -97,8 +96,4 @@ export function DiscogsSyncProvider({ children }) {
       )}
     </DiscogsSyncContext.Provider>
   )
-}
-
-export function useDiscogsSync() {
-  return useContext(DiscogsSyncContext)
 }
