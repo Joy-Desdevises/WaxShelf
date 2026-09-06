@@ -320,8 +320,11 @@
     },
     "password": {
       "cardTitle": "Password",
+      "currentPassword": "Current password",
       "newPassword": "New password",
       "confirmPassword": "Confirm password",
+      "currentRequired": "Enter your current password.",
+      "currentIncorrect": "Current password is incorrect.",
       "tooShort": "The new password must be at least 6 characters.",
       "mismatch": "The passwords don't match.",
       "updated": "Password updated ✓",

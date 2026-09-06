@@ -339,6 +339,7 @@ function DiscogsSection({ profile, updateProfile }) {
 
 function PasswordSection() {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -346,6 +347,10 @@ function PasswordSection() {
   const [status, setStatus] = useState(null)
 
   async function handleSave() {
+    if (!current) {
+      setStatus({ type: 'error', msg: t('settingsPage.password.currentRequired') })
+      return
+    }
     if (!next || next.length < 6) {
       setStatus({ type: 'error', msg: t('settingsPage.password.tooShort') })
       return
@@ -356,6 +361,17 @@ function PasswordSection() {
     }
     setSaving(true)
     setStatus(null)
+
+    // Supabase updateUser() ne redemande jamais le mot de passe actuel — sans
+    // cette étape, une session laissée ouverte suffirait à en changer un
+    // sans rien connaître du compte.
+    const { error: verifyError } = await supabase.auth.signInWithPassword({ email: user.email, password: current })
+    if (verifyError) {
+      setSaving(false)
+      setStatus({ type: 'error', msg: t('settingsPage.password.currentIncorrect') })
+      return
+    }
+
     const { error } = await supabase.auth.updateUser({ password: next })
     setSaving(false)
     if (error) setStatus({ type: 'error', msg: error.message })
@@ -368,6 +384,7 @@ function PasswordSection() {
   return (
     <Card title={t('settingsPage.password.cardTitle')}>
       <div className="space-y-4">
+        <PasswordField label={t('settingsPage.password.currentPassword')} value={current} onChange={setCurrent} placeholder="••••••••" />
         <PasswordField label={t('settingsPage.password.newPassword')} value={next} onChange={setNext} placeholder="••••••••" />
         <PasswordField label={t('settingsPage.password.confirmPassword')} value={confirm} onChange={setConfirm} placeholder="••••••••" />
       </div>

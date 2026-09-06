@@ -320,8 +320,11 @@
     },
     "password": {
       "cardTitle": "Mot de passe",
+      "currentPassword": "Mot de passe actuel",
       "newPassword": "Nouveau mot de passe",
       "confirmPassword": "Confirmer le mot de passe",
+      "currentRequired": "Renseigne ton mot de passe actuel.",
+      "currentIncorrect": "Mot de passe actuel incorrect.",
       "tooShort": "Le nouveau mot de passe doit faire au moins 6 caractères.",
       "mismatch": "Les mots de passe ne correspondent pas.",
       "updated": "Mot de passe mis à jour ✓",
