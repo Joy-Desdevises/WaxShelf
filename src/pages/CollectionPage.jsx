@@ -9,6 +9,8 @@ import { useAuth } from '../hooks/useAuth'
 import { useCollectionByUsername } from '../hooks/useCollection'
 import { useProfileByUsername } from '../hooks/useProfile'
 import { useFollowCounts, useIsFollowing, useToggleFollow } from '../hooks/useFollows'
+import { useWantlistItems } from '../hooks/useWantlist'
+import { useDiscogsSync } from '../hooks/useDiscogsSync'
 import { supabase } from '../lib/supabase'
 import { searchDiscogs } from '../lib/discogs'
 import { timeAgo } from '../lib/format'
@@ -42,11 +44,14 @@ export default function CollectionPage() {
   const isOwner = user && profile?.username === username
 
   const { data: collection = [], isLoading, refetch } = useCollectionByUsername(username)
+  const { data: wantlistItems = [], isLoading: wantlistLoading, refetch: refetchWantlist } = useWantlistItems(username)
   const { data: viewedProfile } = useProfileByUsername(username)
   const { data: followCounts } = useFollowCounts(viewedProfile?.id)
   const { data: isFollowing } = useIsFollowing(user?.id, viewedProfile?.id)
   const toggleFollow = useToggleFollow()
+  const { handleSync, syncStep, enrichProgress } = useDiscogsSync()
 
+  const [tab, setTab] = useState('collection') // 'collection' | 'wantlist'
   const [search, setSearch] = useState('')
   const [filterGenre, setFilterGenre] = useState('')
   const [filterDecade, setFilterDecade] = useState('')
@@ -56,6 +61,11 @@ export default function CollectionPage() {
   const [showAddSearch, setShowAddSearch] = useState(false)
   const [selectedVinyl, setSelectedVinyl] = useState(null)
   const [showFollowList, setShowFollowList] = useState(null) // 'followers' | 'following' | null
+
+  async function handleRemoveWant(itemId) {
+    await supabase.from('wantlist_items').delete().eq('id', itemId)
+    refetchWantlist()
+  }
 
   function handleToggleFollow() {
     if (!user || !viewedProfile) return
@@ -86,6 +96,16 @@ export default function CollectionPage() {
     })
   }, [collection, search, filterGenre, filterDecade, filterCountry])
 
+  // Wantlist : pas de genre/décennie/pays en base (colonnes absentes de
+  // wantlist_items), seule la recherche texte s'applique sur cet onglet.
+  const filteredWantlist = useMemo(() => {
+    if (!search) return wantlistItems
+    const q = search.toLowerCase()
+    return wantlistItems.filter(
+      (w) => w.title?.toLowerCase().includes(q) || w.artist?.toLowerCase().includes(q)
+    )
+  }, [wantlistItems, search])
+
   function resetFilters() {
     setSearch('')
     setFilterGenre('')
@@ -108,7 +128,9 @@ export default function CollectionPage() {
             <h1 className="text-xl font-bold text-white sm:text-2xl">
               {username}
               <span className="ml-2 text-sm font-normal text-[#999]">
-                · {t('collectionPage.vinylCount', { count: collection.length })}
+                · {tab === 'collection'
+                  ? t('collectionPage.vinylCount', { count: collection.length })
+                  : t('collectionPage.wantlistCount', { count: wantlistItems.length })}
               </span>
             </h1>
             <div className="mt-1 flex gap-3 text-sm text-[#999]">
@@ -119,7 +141,7 @@ export default function CollectionPage() {
                 <span className="font-semibold text-white">{followCounts?.following ?? 0}</span> {t('collectionPage.following')}
               </button>
             </div>
-            {hasFilters && (
+            {tab === 'collection' && hasFilters && (
               <p className="mt-0.5 text-sm text-[#999]">
                 {t('collectionPage.resultCount', { count: filtered.length })}
               </p>
@@ -127,16 +149,41 @@ export default function CollectionPage() {
           </div>
 
           <div className="flex flex-col items-start gap-1 sm:items-end">
-            {isOwner && profile?.last_collection_sync_at && (
-              <p className="text-[10px] text-[#888]">{t('collectionPage.lastSync', { date: timeAgo(profile.last_collection_sync_at) })}</p>
+            {isOwner && (tab === 'collection' ? profile?.last_collection_sync_at : profile?.last_wantlist_sync_at) && (
+              <p className="text-[10px] text-[#888]">
+                {t('collectionPage.lastSync', {
+                  date: timeAgo(tab === 'collection' ? profile.last_collection_sync_at : profile.last_wantlist_sync_at),
+                })}
+              </p>
             )}
             {isOwner ? (
-              <button
-                onClick={() => setShowAddSearch(true)}
-                className="flex items-center justify-center gap-1 rounded-lg bg-[#f5a623] px-3 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] sm:px-4"
-              >
-                {t('collectionPage.add')}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleSync()}
+                  disabled={syncStep !== null}
+                  title={profile?.last_collection_sync_at ? t('header.sync.lastSync', { date: timeAgo(profile.last_collection_sync_at) }) : undefined}
+                  className="flex items-center justify-center gap-1.5 rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-sm text-white transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] disabled:opacity-50 sm:px-4"
+                >
+                  <span className={syncStep !== null ? 'inline-block animate-spin' : ''}>🔄</span>
+                  <span className="hidden sm:inline">
+                    {syncStep === 'collection'
+                      ? enrichProgress
+                        ? t('header.sync.syncingProgress', { done: enrichProgress.done, total: enrichProgress.total })
+                        : t('header.sync.syncing')
+                      : syncStep === 'wantlist'
+                        ? t('header.sync.wantlist')
+                        : t('header.sync.sync')}
+                  </span>
+                </button>
+                {tab === 'collection' && (
+                  <button
+                    onClick={() => setShowAddSearch(true)}
+                    className="flex items-center justify-center gap-1 rounded-lg bg-[#f5a623] px-3 py-2 text-sm font-medium text-black transition hover:bg-[#fbbf24] sm:px-4"
+                  >
+                    {t('collectionPage.add')}
+                  </button>
+                )}
+              </div>
             ) : (
               user && (
                 <button
@@ -174,57 +221,83 @@ export default function CollectionPage() {
             )}
           </div>
 
-          {/* Bouton filtres mobile */}
-          <button
-            onClick={() => setShowFilters((v) => !v)}
-            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition sm:hidden ${
-              activeFilterCount > 0
-                ? 'border-[#f5a623]/50 bg-[#f5a623]/10 text-[#f5a623]'
-                : 'border-[#222] bg-[#111] text-[#888]'
-            }`}
-          >
-            {t('collectionPage.filters')}
-            {activeFilterCount > 0 && (
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#f5a623] text-[10px] font-bold text-black">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-
-          {/* Toggle taille cartes */}
-          <div className="flex rounded-lg border border-[#222] bg-[#111] p-0.5">
-            <SizeBtn active={cardSize === 'lg'} onClick={() => setCardSize('lg')} label="⊞" title={t('collectionPage.sizeLarge')} />
-            <SizeBtn active={cardSize === 'sm'} onClick={() => setCardSize('sm')} label="⊟" title={t('collectionPage.sizeSmall')} />
-          </div>
-        </div>
-
-        {/* Filtres desktop (toujours visibles) + mobile (toggle) */}
-        <div className={`mb-5 ${showFilters || 'hidden sm:flex'} flex flex-col gap-2 rounded-lg border border-[#1a1a1a] bg-[#111] p-3 sm:flex-row sm:flex-wrap sm:items-center sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0`}>
-          <Select value={filterGenre} onChange={setFilterGenre} placeholder={t('collectionPage.genrePlaceholder')} options={genres} />
-          <Select
-            value={filterDecade}
-            onChange={setFilterDecade}
-            placeholder={t('collectionPage.decadePlaceholder')}
-            options={decades.map((d) => ({ value: String(d), label: `${d}s` }))}
-          />
-          <Select value={filterCountry} onChange={setFilterCountry} placeholder={t('collectionPage.countryPlaceholder')} options={countries} />
-          {hasFilters && (
+          {/* Bouton filtres mobile — pas de genre/décennie/pays côté wantlist */}
+          {tab === 'collection' && (
             <button
-              onClick={() => { resetFilters(); setShowFilters(false) }}
-              className="rounded-lg border border-[#333] px-3 py-2 text-xs text-[#888] transition hover:border-[#555] hover:text-white"
+              onClick={() => setShowFilters((v) => !v)}
+              className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition sm:hidden ${
+                activeFilterCount > 0
+                  ? 'border-[#f5a623]/50 bg-[#f5a623]/10 text-[#f5a623]'
+                  : 'border-[#222] bg-[#111] text-[#888]'
+              }`}
             >
-              {t('collectionPage.reset')}
+              {t('collectionPage.filters')}
+              {activeFilterCount > 0 && (
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#f5a623] text-[10px] font-bold text-black">
+                  {activeFilterCount}
+                </span>
+              )}
             </button>
+          )}
+
+          {/* Toggle taille cartes — n'a de sens que sur la grille collection */}
+          {tab === 'collection' && (
+            <div className="flex rounded-lg border border-[#222] bg-[#111] p-0.5">
+              <SizeBtn active={cardSize === 'lg'} onClick={() => setCardSize('lg')} label="⊞" title={t('collectionPage.sizeLarge')} />
+              <SizeBtn active={cardSize === 'sm'} onClick={() => setCardSize('sm')} label="⊟" title={t('collectionPage.sizeSmall')} />
+            </div>
           )}
         </div>
 
-        <VinylGrid
-          records={filtered}
-          size={cardSize}
-          loading={isLoading}
-          onCardClick={(vinyl) => setSelectedVinyl(vinyl)}
-          currentUserId={user?.id}
-        />
+        {/* Filtres desktop (toujours visibles) + mobile (toggle) — collection uniquement,
+            wantlist_items n'a pas de colonnes genre/année/pays */}
+        {tab === 'collection' && (
+          <div className={`mb-5 ${showFilters || 'hidden sm:flex'} flex flex-col gap-2 rounded-lg border border-[#1a1a1a] bg-[#111] p-3 sm:flex-row sm:flex-wrap sm:items-center sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0`}>
+            <Select value={filterGenre} onChange={setFilterGenre} placeholder={t('collectionPage.genrePlaceholder')} options={genres} />
+            <Select
+              value={filterDecade}
+              onChange={setFilterDecade}
+              placeholder={t('collectionPage.decadePlaceholder')}
+              options={decades.map((d) => ({ value: String(d), label: `${d}s` }))}
+            />
+            <Select value={filterCountry} onChange={setFilterCountry} placeholder={t('collectionPage.countryPlaceholder')} options={countries} />
+            {hasFilters && (
+              <button
+                onClick={() => { resetFilters(); setShowFilters(false) }}
+                className="rounded-lg border border-[#333] px-3 py-2 text-xs text-[#888] transition hover:border-[#555] hover:text-white"
+              >
+                {t('collectionPage.reset')}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Onglets Collection / Wantlist */}
+        <div className="mb-5 flex gap-1 border-b border-[#1a1a1a]">
+          <TabBtn active={tab === 'collection'} onClick={() => setTab('collection')}>
+            {t('collectionPage.tabCollection')} <span className="text-[#666]">· {collection.length}</span>
+          </TabBtn>
+          <TabBtn active={tab === 'wantlist'} onClick={() => setTab('wantlist')}>
+            {t('collectionPage.tabWantlist')} <span className="text-[#666]">· {wantlistItems.length}</span>
+          </TabBtn>
+        </div>
+
+        {tab === 'collection' ? (
+          <VinylGrid
+            records={filtered}
+            size={cardSize}
+            loading={isLoading}
+            onCardClick={(vinyl) => setSelectedVinyl(vinyl)}
+            currentUserId={user?.id}
+          />
+        ) : (
+          <WantlistList
+            items={filteredWantlist}
+            loading={wantlistLoading}
+            isOwner={isOwner}
+            onRemove={handleRemoveWant}
+          />
+        )}
       </main>
 
       {selectedVinyl && (
@@ -325,6 +398,80 @@ function SizeBtn({ active, onClick, label, title }) {
     >
       {label}
     </button>
+  )
+}
+
+function TabBtn({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`-mb-px flex items-center gap-1 border-b-2 px-1 pb-2.5 text-sm font-medium transition ${
+        active ? 'border-[#f5a623] text-white' : 'border-transparent text-[#888] hover:text-white'
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
+const WANTLIST_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
+
+function WantlistList({ items, loading, isOwner, onRemove }) {
+  const { t } = useTranslation()
+
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="h-20 animate-pulse rounded-xl bg-[#111]" />
+        ))}
+      </div>
+    )
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="py-24 text-center">
+        <p className="text-5xl">🎵</p>
+        <p className="mt-4 text-[#888]">{t('wantlistPage.empty')}</p>
+        {isOwner && <p className="mt-1 text-sm text-[#999]">{t('wantlistPage.emptySyncHint')}</p>}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {items.map((item) => (
+        <div
+          key={item.id}
+          className="flex items-center gap-3 rounded-xl border border-[#1a1a1a] bg-[#111] p-3 transition hover:border-[#2a2a2a]"
+        >
+          <img src={item.thumb_image || WANTLIST_PLACEHOLDER} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+          <div className="min-w-0 flex-1">
+            <p className="line-clamp-1 font-medium text-white">{item.title}</p>
+            <p className="text-sm text-[#999]">
+              {item.artist}{item.year ? ` · ${item.year}` : ''}
+            </p>
+          </div>
+          <a
+            href={`https://www.discogs.com/release/${item.discogs_id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 rounded-lg border border-[#2a2a2a] px-3 py-1.5 text-xs text-[#888] transition hover:border-[#444] hover:text-white"
+          >
+            {t('wantlistPage.discogsLink')}
+          </a>
+          {isOwner && (
+            <button
+              onClick={() => onRemove(item.id)}
+              className="shrink-0 rounded-lg border border-[#2a2a2a] px-3 py-1.5 text-xs text-[#888] transition hover:border-red-500/40 hover:text-red-400"
+            >
+              {t('wantlistPage.remove')}
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
   )
 }
 

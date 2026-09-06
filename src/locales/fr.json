@@ -5,7 +5,6 @@
       "home": "Accueil",
       "collection": "Collection",
       "dashboard": "Stat & Social",
-      "wantlist": "Wantlist",
       "journal": "Journal"
     },
     "sync": {
@@ -15,15 +14,17 @@
       "sync": "Sync Discogs",
       "lastSync": "Dernière sync : {{date}}"
     },
+    "search": {
+      "placeholder": "Utilisateurs…",
+      "empty": "Aucun utilisateur trouvé"
+    },
     "listen": {
       "label": "Écouter",
-      "cta": "What should I listen to?"
+      "cta": "J'écoute quoi ?"
     },
     "menu": {
-      "label": "Menu",
       "collection": "Ma collection",
       "stats": "Statistiques",
-      "wantlist": "Wantlist",
       "journal": "🎵 Journal",
       "settings": "⚙️ Paramètres",
       "signOut": "Déconnexion"
@@ -212,6 +213,10 @@
   "collectionPage": {
     "vinylCount_one": "{{count}} vinyle",
     "vinylCount_other": "{{count}} vinyles",
+    "wantlistCount_one": "{{count}} envie",
+    "wantlistCount_other": "{{count}} envies",
+    "tabCollection": "Collection",
+    "tabWantlist": "Wantlist",
     "followers": "abonnés",
     "following": "abonnements",
     "resultCount_one": "{{count}} résultat",
@@ -333,8 +338,6 @@
     }
   },
   "wantlistPage": {
-    "title": "Wantlist",
-    "lastSync": "Dernière sync : {{date}}",
     "empty": "La wantlist est vide.",
     "emptySyncHint": "Clique sur \"Sync Discogs\" en haut de page pour importer tes envies.",
     "discogsLink": "Discogs ↗",

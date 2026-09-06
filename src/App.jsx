@@ -4,7 +4,6 @@ import { DiscogsSyncProvider } from './hooks/useDiscogsSync'
 import LandingPage from './pages/LandingPage'
 import CollectionPage from './pages/CollectionPage'
 import DashboardPage from './pages/DashboardPage'
-import WantlistPage from './pages/WantlistPage'
 import SettingsPage from './pages/SettingsPage'
 import JournalPage from './pages/JournalPage'
 import Footer from './components/layout/Footer'
@@ -26,9 +25,6 @@ export default function App() {
 
             {/* Dashboard statistiques */}
             <Route path="/:username/dashboard" element={<DashboardPage />} />
-
-            {/* Wantlist */}
-            <Route path="/:username/wantlist" element={<WantlistPage />} />
 
             {/* Journal d'écoute */}
             <Route path="/:username/journal" element={<JournalPage />} />

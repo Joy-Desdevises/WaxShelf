@@ -4,7 +4,7 @@ import { Link, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useCollection } from '../../hooks/useCollection'
 import { useDiscogsSync } from '../../hooks/useDiscogsSync'
-import { timeAgo } from '../../lib/format'
+import { useSearchProfiles } from '../../hooks/useProfile'
 import ListenSuggestionModal from '../modals/ListenSuggestionModal'
 import AuthModal from '../modals/AuthModal'
 import UpdatePasswordModal from '../modals/UpdatePasswordModal'
@@ -23,7 +23,7 @@ export default function Header() {
   const location = useLocation()
   const { user, profile, signOut, passwordRecovery } = useAuth()
   const { data: ownCollection = [] } = useCollection(user?.id)
-  const { handleSync, syncStep, enrichProgress } = useDiscogsSync()
+  const { syncStep, enrichProgress } = useDiscogsSync()
 
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
@@ -54,8 +54,9 @@ export default function Header() {
 
   // Toujours basé sur le profil connecté, jamais sur celui affiché à l'écran
   // (ex: on visite le profil de quelqu'un) — sinon les onglets Collection/
-  // Stats/Wantlist/Journal restent bloqués sur ce profil visité tant qu'on
-  // navigue via ces onglets. Repli sur :username seulement si déconnecté.
+  // Stats/Journal restent bloqués sur ce profil visité tant qu'on navigue
+  // via ces onglets. Repli sur :username seulement si déconnecté. Plus de
+  // lien Wantlist séparé : fusionné dans Collection sous forme d'onglet.
   const navUsername = profile?.username || username
 
   const navLinks = [
@@ -64,7 +65,6 @@ export default function Header() {
       ? [
           { to: `/${navUsername}`, label: t('header.nav.collection') },
           { to: `/${navUsername}/dashboard`, label: t('header.nav.dashboard') },
-          { to: `/${navUsername}/wantlist`, label: t('header.nav.wantlist') },
           { to: `/${navUsername}/journal`, label: t('header.nav.journal') },
         ]
       : []),
@@ -95,33 +95,11 @@ export default function Header() {
               des zones de clic bien distinctes, resserré sur desktop */}
           <div className="flex items-center gap-4 md:gap-2">
 
-            {/* Sync Discogs (collection + wantlist) — sur mobile, icône dans un
-                cercle + légende dessous (même gabarit que l'avatar) ; sur
-                desktop, pilule icône+texte comme avant */}
-            {user && (
-              <button
-                onClick={() => handleSync()}
-                disabled={syncStep !== null}
-                title={profile?.last_collection_sync_at ? t('header.sync.lastSync', { date: timeAgo(profile.last_collection_sync_at) }) : undefined}
-                className="flex flex-col items-center gap-0.5 disabled:opacity-50 md:flex-row md:gap-2 md:rounded-lg md:border md:border-[#333] md:bg-[#111] md:px-4 md:py-1.5 md:text-white md:transition md:hover:border-[#f5a623]/60 md:hover:bg-[#1a1a1a]"
-              >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#333] bg-[#111] transition hover:border-[#f5a623]/60 hover:bg-[#1a1a1a] md:h-auto md:w-auto md:rounded-none md:border-0 md:bg-transparent md:hover:border-0 md:hover:bg-transparent">
-                  <span className={syncStep !== null ? 'animate-spin inline-block' : ''}>🔄</span>
-                </span>
-                <span className="text-[9px] leading-none text-[#999] md:hidden">
-                  {syncStep === 'collection' ? t('header.sync.syncing') : syncStep === 'wantlist' ? t('header.sync.wantlist') : t('header.sync.sync')}
-                </span>
-                <span className="hidden md:inline md:text-sm">
-                  {syncStep === 'collection'
-                    ? enrichProgress
-                      ? t('header.sync.syncingProgress', { done: enrichProgress.done, total: enrichProgress.total })
-                      : t('header.sync.syncing')
-                    : syncStep === 'wantlist'
-                      ? t('header.sync.wantlist')
-                      : t('header.sync.sync')}
-                </span>
-              </button>
-            )}
+            {/* Recherche de profil par pseudo — visible de tous, y compris
+                déconnecté : un compte privé se trouve toujours par son
+                pseudo exact, seul son contenu reste caché (cf. migration
+                20260906140000_open_profile_visibility). */}
+            <HeaderSearch />
 
             {/* "What should I listen to?" — même principe : cercle ambré +
                 légende dessous sur mobile, pilule ambrée pleine sur desktop */}
@@ -139,7 +117,11 @@ export default function Header() {
             )}
 
             {/* Avatar + menu utilisateur — fait aussi office de menu de navigation
-                sur mobile (légende "Menu" sous l'icône), plus besoin de burger séparé */}
+                sur mobile (pseudo affiché sous l'icône, à toutes les tailles),
+                plus besoin de burger séparé. Sur desktop, le nav du haut donne
+                déjà accès aux pages : le menu ne garde que réglages/langue/
+                déconnexion ; sur mobile (pas de nav visible), il garde aussi
+                les liens de pages. */}
             {user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
@@ -153,21 +135,23 @@ export default function Header() {
                       className="h-8 w-8 rounded-full text-sm text-white"
                     />
                   </span>
-                  <span className="text-[9px] leading-none text-[#999] md:hidden">{t('header.menu.label')}</span>
+                  <span className="max-w-[4.5rem] truncate text-[9px] leading-none text-[#999]">{profile?.username}</span>
                 </button>
 
                 {showUserMenu && (
-                  <div className="absolute right-0 top-10 z-50 w-52 rounded-xl border border-[#222] bg-[#111] py-1 shadow-2xl">
+                  <div className="absolute right-0 top-12 z-50 w-52 rounded-xl border border-[#222] bg-[#111] py-1 shadow-2xl">
                     {profile && (
                       <>
                         <p className="px-4 py-2 text-xs text-[#999]">@{profile.username}</p>
                         <div className="my-1 border-t border-[#1a1a1a]" />
-                        <MenuItem to={`/${profile.username}`} onClick={() => setShowUserMenu(false)}>{t('header.menu.collection')}</MenuItem>
-                        <MenuItem to={`/${profile.username}/dashboard`} onClick={() => setShowUserMenu(false)}>{t('header.menu.stats')}</MenuItem>
-                        <MenuItem to={`/${profile.username}/wantlist`} onClick={() => setShowUserMenu(false)}>{t('header.menu.wantlist')}</MenuItem>
-                        <MenuItem to={`/${profile.username}/journal`} onClick={() => setShowUserMenu(false)}>{t('header.menu.journal')}</MenuItem>
-                        <div className="my-1 border-t border-[#1a1a1a]" />
+                        <div className="md:hidden">
+                          <MenuItem to={`/${profile.username}`} onClick={() => setShowUserMenu(false)}>{t('header.menu.collection')}</MenuItem>
+                          <MenuItem to={`/${profile.username}/dashboard`} onClick={() => setShowUserMenu(false)}>{t('header.menu.stats')}</MenuItem>
+                          <MenuItem to={`/${profile.username}/journal`} onClick={() => setShowUserMenu(false)}>{t('header.menu.journal')}</MenuItem>
+                          <div className="my-1 border-t border-[#1a1a1a]" />
+                        </div>
                         <MenuItem to="/settings" onClick={() => setShowUserMenu(false)}>{t('header.menu.settings')}</MenuItem>
+                        <LanguageMenuItem />
                       </>
                     )}
                     <div className="my-1 border-t border-[#1a1a1a]" />
@@ -181,15 +165,18 @@ export default function Header() {
                 )}
               </div>
             ) : (
-              <button
-                onClick={() => setShowAuth(true)}
-                className="rounded-lg border border-[#333] px-3 py-1.5 text-sm text-white transition hover:border-[#555] hover:bg-[#1a1a1a]"
-              >
-                {t('header.login')}
-              </button>
+              <>
+                <button
+                  onClick={() => setShowAuth(true)}
+                  className="rounded-lg border border-[#333] px-3 py-1.5 text-sm text-white transition hover:border-[#555] hover:bg-[#1a1a1a]"
+                >
+                  {t('header.login')}
+                </button>
+                {/* Pas de menu avatar tant que déconnecté : le drapeau reste
+                    ici, seul endroit du header où le changer sinon. */}
+                <LanguageToggle />
+              </>
             )}
-
-            <LanguageToggle />
           </div>
         </div>
 
@@ -228,5 +215,90 @@ function MenuItem({ to, onClick, children }) {
     <Link to={to} onClick={onClick} className="block px-4 py-2 text-sm text-[#888] transition hover:bg-[#1a1a1a] hover:text-white">
       {children}
     </Link>
+  )
+}
+
+function LanguageMenuItem() {
+  const { t, i18n } = useTranslation()
+
+  function toggleLanguage() {
+    i18n.changeLanguage(i18n.language === 'fr' ? 'en' : 'fr')
+  }
+
+  return (
+    <button
+      onClick={toggleLanguage}
+      className="flex w-full items-center justify-between px-4 py-2 text-left text-sm text-[#888] transition hover:bg-[#1a1a1a] hover:text-white"
+    >
+      <span>{t('header.language')}</span>
+      <span>{i18n.language === 'fr' ? '🇫🇷' : '🇬🇧'}</span>
+    </button>
+  )
+}
+
+function HeaderSearch() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const { data: results = [] } = useSearchProfiles(query)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  function goTo(username) {
+    navigate(`/${username}`)
+    setQuery('')
+    setOpen(false)
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    if (results[0]) goTo(results[0].username)
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <form onSubmit={handleSubmit} className="relative">
+        <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-[#999]">🔍</span>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
+          onFocus={() => setOpen(true)}
+          placeholder={t('header.search.placeholder')}
+          aria-label={t('header.search.placeholder')}
+          className="w-20 rounded-lg border border-[#333] bg-[#111] py-1.5 pl-8 pr-2 text-sm text-white placeholder-[#888] outline-none transition-all focus:w-36 focus:border-[#555] sm:w-28 sm:focus:w-48"
+        />
+      </form>
+
+      {open && query.trim().length >= 2 && (
+        <div className="absolute right-0 top-10 z-50 max-h-72 w-56 overflow-y-auto rounded-xl border border-[#222] bg-[#111] py-1 shadow-2xl sm:w-64">
+          {results.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-[#999]">{t('header.search.empty')}</p>
+          ) : (
+            results.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => goTo(r.username)}
+                className="flex w-full items-center gap-3 px-3 py-2 text-left transition hover:bg-[#1a1a1a]"
+              >
+                <Avatar avatarUrl={r.avatar_url} fallbackLetter={r.username?.[0]} className="h-8 w-8 shrink-0 rounded-full text-sm text-white" />
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-1 text-sm font-medium text-white">{r.display_name || r.username}</p>
+                  <p className="line-clamp-1 text-xs text-[#999]">@{r.username}</p>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
   )
 }

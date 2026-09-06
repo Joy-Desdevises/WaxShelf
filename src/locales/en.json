@@ -5,7 +5,6 @@
       "home": "Home",
       "collection": "Collection",
       "dashboard": "Stat & Social",
-      "wantlist": "Wantlist",
       "journal": "Journal"
     },
     "sync": {
@@ -15,15 +14,17 @@
       "sync": "Sync Discogs",
       "lastSync": "Last sync: {{date}}"
     },
+    "search": {
+      "placeholder": "Users…",
+      "empty": "No user found"
+    },
     "listen": {
       "label": "Listen",
-      "cta": "What should I listen to?"
+      "cta": "What to play?"
     },
     "menu": {
-      "label": "Menu",
       "collection": "My collection",
       "stats": "Statistics",
-      "wantlist": "Wantlist",
       "journal": "🎵 Journal",
       "settings": "⚙️ Settings",
       "signOut": "Sign out"
@@ -212,6 +213,10 @@
   "collectionPage": {
     "vinylCount_one": "{{count}} record",
     "vinylCount_other": "{{count}} records",
+    "wantlistCount_one": "{{count}} want",
+    "wantlistCount_other": "{{count}} wants",
+    "tabCollection": "Collection",
+    "tabWantlist": "Wantlist",
     "followers": "followers",
     "following": "following",
     "resultCount_one": "{{count}} result",
@@ -333,8 +338,6 @@
     }
   },
   "wantlistPage": {
-    "title": "Wantlist",
-    "lastSync": "Last sync: {{date}}",
     "empty": "The wantlist is empty.",
     "emptySyncHint": "Click \"Sync Discogs\" at the top of the page to import your wants.",
     "discogsLink": "Discogs ↗",
