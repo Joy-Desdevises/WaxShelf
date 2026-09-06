@@ -43,37 +43,45 @@ export function useLikes(vinylId) {
   return { likes, toggleLike }
 }
 
-// Compteur léger (HEAD request) pour l'affichage type "Stat & Social" — la
-// liste complète n'est chargée que si l'utilisateur ouvre la modale.
+// Compteur léger pour l'affichage type "Stat & Social" — la liste complète
+// n'est chargée que si l'utilisateur ouvre la modale. Passe par une fonction
+// security definer plutôt qu'une requête directe : cette activité DONNÉE
+// (peu importe le disque concerné) doit rester cachée si l'auteur (userId)
+// est privé, même quand le disque liké appartient à quelqu'un de public —
+// voir migration 20260906160000_private_given_activity.
 export function useMyLikesCount(userId) {
   return useQuery({
     queryKey: ['my-likes-count', userId],
     queryFn: async () => {
-      const { count } = await supabase
-        .from('vinyl_likes')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-      return count || 0
+      const { data, error } = await supabase.rpc('get_my_likes_count', { target_user_id: userId })
+      if (error) throw error
+      return data || 0
     },
     enabled: !!userId,
   })
 }
 
 // Vinyles likés par userId, avec les infos nécessaires pour les afficher et
-// retrouver le profil propriétaire. Si le propriétaire est repassé en privé
-// entre-temps, la ligne vinyl_records devient invisible via RLS — on la
-// filtre plutôt que d'afficher un like sur un disque fantôme.
+// retrouver le profil propriétaire. Reshape côté client vers la forme
+// attendue par LikesModal (vinyl_records.profiles imbriqués), pour ne rien
+// changer côté composants malgré le passage par la RPC ci-dessus.
 export function useMyLikes(userId, enabled = true) {
   return useQuery({
     queryKey: ['my-likes', userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('vinyl_likes')
-        .select('id, vinyl_records(id, title, artist, thumb_image, cover_image, profiles(username, display_name))')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+      const { data, error } = await supabase.rpc('get_my_likes', { target_user_id: userId })
       if (error) throw error
-      return data.filter((l) => l.vinyl_records)
+      return data.map((r) => ({
+        id: r.like_id,
+        vinyl_records: {
+          id: r.vinyl_id,
+          title: r.title,
+          artist: r.artist,
+          thumb_image: r.thumb_image,
+          cover_image: r.cover_image,
+          profiles: { username: r.owner_username, display_name: r.owner_display_name },
+        },
+      }))
     },
     enabled: enabled && !!userId,
   })
@@ -156,17 +164,16 @@ export function useComments(vinylId) {
   return { comments, isLoading, addComment, deleteComment }
 }
 
-// Compteur léger (HEAD request) des commentaires laissés par userId, sur
-// n'importe quel vinyle — même principe que useMyLikesCount.
+// Compteur léger des commentaires laissés par userId, sur n'importe quel
+// vinyle — même principe que useMyLikesCount (RPC gatée sur la
+// confidentialité de l'auteur, pas celle du disque commenté).
 export function useMyCommentsCount(userId) {
   return useQuery({
     queryKey: ['my-comments-count', userId],
     queryFn: async () => {
-      const { count } = await supabase
-        .from('vinyl_comments')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-      return count || 0
+      const { data, error } = await supabase.rpc('get_my_comments_count', { target_user_id: userId })
+      if (error) throw error
+      return data || 0
     },
     enabled: !!userId,
   })
@@ -191,18 +198,27 @@ export function useReceivedCommentsCount(userId) {
 
 // Commentaires laissés par userId, avec le vinyle concerné et son
 // propriétaire (peut différer de userId si commenté chez quelqu'un d'autre)
-// pour pouvoir naviguer vers la bonne collection.
+// pour pouvoir naviguer vers la bonne collection. Reshape côté client vers
+// la forme attendue par CommentsModal, même principe que useMyLikes.
 export function useMyComments(userId) {
   return useQuery({
     queryKey: ['my-comments', userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('vinyl_comments')
-        .select('id, content, created_at, vinyl_records(id, title, artist, thumb_image, cover_image, profiles(username, display_name))')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+      const { data, error } = await supabase.rpc('get_my_comments', { target_user_id: userId })
       if (error) throw error
-      return data.filter((c) => c.vinyl_records)
+      return data.map((r) => ({
+        id: r.comment_id,
+        content: r.content,
+        created_at: r.created_at,
+        vinyl_records: {
+          id: r.vinyl_id,
+          title: r.title,
+          artist: r.artist,
+          thumb_image: r.thumb_image,
+          cover_image: r.cover_image,
+          profiles: { username: r.owner_username, display_name: r.owner_display_name },
+        },
+      }))
     },
     enabled: !!userId,
   })
