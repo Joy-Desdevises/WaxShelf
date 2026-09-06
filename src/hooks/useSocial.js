@@ -103,7 +103,7 @@ export function useReceivedLikes(userId) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('vinyl_likes')
-        .select('id, profiles(username, avatar_url, display_name), vinyl_records!inner(id, title, artist, thumb_image, cover_image, user_id)')
+        .select('id, created_at, profiles(username, avatar_url, display_name), vinyl_records!inner(id, title, artist, thumb_image, cover_image, user_id)')
         .eq('vinyl_records.user_id', userId)
         .order('created_at', { ascending: false })
       if (error) throw error

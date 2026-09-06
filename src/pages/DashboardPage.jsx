@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import Header from '../components/layout/Header'
+import Avatar from '../components/layout/Avatar'
 import FollowListModal from '../components/modals/FollowListModal'
 import LikesModal from '../components/modals/LikesModal'
 import CommentsModal from '../components/modals/CommentsModal'
@@ -9,13 +10,21 @@ import { useCollectionByUsername } from '../hooks/useCollection'
 import { useAuth } from '../hooks/useAuth'
 import { useProfileByUsername } from '../hooks/useProfile'
 import { useFollowCounts } from '../hooks/useFollows'
-import { useMyLikesCount, useReceivedLikesCount, useMyCommentsCount, useReceivedCommentsCount } from '../hooks/useSocial'
-import { formatCurrency } from '../lib/format'
+import {
+  useMyLikesCount,
+  useReceivedLikesCount,
+  useMyCommentsCount,
+  useReceivedCommentsCount,
+  useReceivedLikes,
+  useReceivedComments,
+} from '../hooks/useSocial'
+import { useRecentFollowers } from '../hooks/useNotifications'
+import { formatCurrency, timeAgo } from '../lib/format'
 
 export default function DashboardPage() {
   const { t } = useTranslation()
   const { username } = useParams()
-  const { user, profile } = useAuth()
+  const { user, profile, updateProfile } = useAuth()
   const isOwner = user && profile?.username === username
 
   const { data: collection = [], isLoading } = useCollectionByUsername(username)
@@ -25,6 +34,34 @@ export default function DashboardPage() {
   const { data: likesReceivedCount } = useReceivedLikesCount(viewedProfile?.id)
   const { data: commentsLeftCount } = useMyCommentsCount(viewedProfile?.id)
   const { data: commentsReceivedCount } = useReceivedCommentsCount(viewedProfile?.id)
+
+  // Flux "activité récente" réservé au propriétaire (likes/commentaires/
+  // abonnés le concernant) — désactivé pour un visiteur via l'id undefined.
+  const notifUserId = isOwner ? viewedProfile?.id : undefined
+  const { data: receivedLikes = [] } = useReceivedLikes(notifUserId)
+  const { data: receivedComments = [] } = useReceivedComments(notifUserId)
+  const { data: recentFollowers = [] } = useRecentFollowers(notifUserId)
+
+  const activity = useMemo(() => {
+    if (!isOwner) return []
+    const items = [
+      ...receivedLikes.map((l) => ({ key: `like-${l.id}`, type: 'like', created_at: l.created_at, actor: l.profiles, vinyl: l.vinyl_records })),
+      ...receivedComments.map((c) => ({ key: `comment-${c.id}`, type: 'comment', created_at: c.created_at, actor: c.profiles, vinyl: c.vinyl_records })),
+      ...recentFollowers.map((f) => ({ key: `follow-${f.profiles?.id}-${f.created_at}`, type: 'follow', created_at: f.created_at, actor: f.profiles })),
+    ]
+    return items
+      .filter((i) => i.actor)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 15)
+  }, [isOwner, receivedLikes, receivedComments, recentFollowers])
+
+  // Marque les notifications comme vues à chaque visite de sa propre page
+  // Stat & Social — remet le badge du header à zéro immédiatement (le
+  // compteur dépend de ce timestamp dans sa queryKey).
+  useEffect(() => {
+    if (isOwner) updateProfile({ last_notifications_seen_at: new Date().toISOString() })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOwner])
 
   const [showFollowList, setShowFollowList] = useState(null) // 'followers' | 'following' | null
   const [showLikes, setShowLikes] = useState(false)
@@ -94,6 +131,23 @@ export default function DashboardPage() {
           <SocialCard icon="❤️" label={t('dashboardPage.likes')} value={(likesGivenCount ?? 0) + (likesReceivedCount ?? 0)} onClick={() => setShowLikes(true)} />
           <SocialCard icon="💬" label={t('dashboardPage.comments')} value={(commentsLeftCount ?? 0) + (commentsReceivedCount ?? 0)} onClick={() => setShowComments(true)} />
         </div>
+
+        {/* ── Activité récente (propriétaire uniquement) ── */}
+        {isOwner && (
+          <div className="mb-6">
+            <Card title={t('dashboardPage.recentActivity')}>
+              {activity.length === 0 ? (
+                <p className="text-sm text-[#999]">{t('dashboardPage.activityEmpty')}</p>
+              ) : (
+                <div className="space-y-3">
+                  {activity.map((item) => (
+                    <ActivityRow key={item.key} item={item} t={t} />
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -234,6 +288,26 @@ function Card({ title, children }) {
       <h3 className="mb-4 text-sm font-semibold text-white">{title}</h3>
       {children}
     </div>
+  )
+}
+
+function ActivityRow({ item, t }) {
+  const { actor, type, vinyl, created_at } = item
+  const name = actor.display_name || actor.username
+
+  let text
+  if (type === 'like') text = t('dashboardPage.activityLike', { name, title: vinyl?.title })
+  else if (type === 'comment') text = t('dashboardPage.activityComment', { name, title: vinyl?.title })
+  else text = t('dashboardPage.activityFollow', { name })
+
+  return (
+    <Link to={`/${actor.username}`} className="flex items-center gap-3 rounded-lg -mx-2 px-2 py-1.5 transition hover:bg-[#1a1a1a]">
+      <Avatar avatarUrl={actor.avatar_url} fallbackLetter={actor.username?.[0]} className="h-8 w-8 shrink-0 rounded-full text-xs text-white" />
+      <div className="min-w-0 flex-1">
+        <p className="line-clamp-1 text-sm text-white">{text}</p>
+      </div>
+      <span className="shrink-0 text-xs text-[#888]">{timeAgo(created_at)}</span>
+    </Link>
   )
 }
 

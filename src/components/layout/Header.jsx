@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useCollection } from '../../hooks/useCollection'
 import { useDiscogsSync } from '../../hooks/useDiscogsSync'
 import { useSearchProfiles } from '../../hooks/useProfile'
+import { useUnreadNotificationsCount } from '../../hooks/useNotifications'
 import ListenSuggestionModal from '../modals/ListenSuggestionModal'
 import AuthModal from '../modals/AuthModal'
 import UpdatePasswordModal from '../modals/UpdatePasswordModal'
@@ -24,6 +25,7 @@ export default function Header() {
   const { user, profile, signOut, passwordRecovery } = useAuth()
   const { data: ownCollection = [] } = useCollection(user?.id)
   const { syncStep, enrichProgress } = useDiscogsSync()
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount(user?.id, profile?.last_notifications_seen_at)
 
   const [showSuggest, setShowSuggest] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
@@ -64,7 +66,7 @@ export default function Header() {
     ...(navUsername
       ? [
           { to: `/${navUsername}`, label: t('header.nav.collection') },
-          { to: `/${navUsername}/dashboard`, label: t('header.nav.dashboard') },
+          { to: `/${navUsername}/dashboard`, label: t('header.nav.dashboard'), badge: unreadCount },
           { to: `/${navUsername}/journal`, label: t('header.nav.journal') },
         ]
       : []),
@@ -87,7 +89,7 @@ export default function Header() {
           {/* Nav desktop */}
           <nav className="hidden items-center gap-1 md:flex">
             {navLinks.map((l) => (
-              <NavLink key={l.to} to={l.to}>{l.label}</NavLink>
+              <NavLink key={l.to} to={l.to} badge={l.badge}>{l.label}</NavLink>
             ))}
           </nav>
 
@@ -146,7 +148,7 @@ export default function Header() {
                         <div className="my-1 border-t border-[#1a1a1a]" />
                         <div className="md:hidden">
                           <MenuItem to={`/${profile.username}`} onClick={() => setShowUserMenu(false)}>{t('header.menu.collection')}</MenuItem>
-                          <MenuItem to={`/${profile.username}/dashboard`} onClick={() => setShowUserMenu(false)}>{t('header.menu.stats')}</MenuItem>
+                          <MenuItem to={`/${profile.username}/dashboard`} onClick={() => setShowUserMenu(false)} badge={unreadCount}>{t('header.menu.stats')}</MenuItem>
                           <MenuItem to={`/${profile.username}/journal`} onClick={() => setShowUserMenu(false)}>{t('header.menu.journal')}</MenuItem>
                           <div className="my-1 border-t border-[#1a1a1a]" />
                         </div>
@@ -202,18 +204,29 @@ export default function Header() {
   )
 }
 
-function NavLink({ to, children }) {
+function NotificationBadge({ count }) {
+  if (!count) return null
   return (
-    <Link to={to} className="rounded-md px-3 py-1.5 text-sm text-[#888] transition hover:bg-[#1a1a1a] hover:text-white">
+    <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[#f5a623] px-1 text-[10px] font-bold leading-none text-black">
+      {count > 9 ? '9+' : count}
+    </span>
+  )
+}
+
+function NavLink({ to, children, badge }) {
+  return (
+    <Link to={to} className="relative flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-[#888] transition hover:bg-[#1a1a1a] hover:text-white">
       {children}
+      <NotificationBadge count={badge} />
     </Link>
   )
 }
 
-function MenuItem({ to, onClick, children }) {
+function MenuItem({ to, onClick, children, badge }) {
   return (
-    <Link to={to} onClick={onClick} className="block px-4 py-2 text-sm text-[#888] transition hover:bg-[#1a1a1a] hover:text-white">
+    <Link to={to} onClick={onClick} className="flex items-center justify-between px-4 py-2 text-sm text-[#888] transition hover:bg-[#1a1a1a] hover:text-white">
       {children}
+      <NotificationBadge count={badge} />
     </Link>
   )
 }
