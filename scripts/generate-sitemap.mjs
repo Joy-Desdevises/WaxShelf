@@ -36,7 +36,7 @@ async function main() {
     urlEntry(`${SITE_URL}/`, { changefreq: 'daily', priority: '1.0' }),
     ...profiles
       .filter((p) => p.username)
-      .map((p) => urlEntry(`${SITE_URL}/${escapeXml(p.username)}`, { changefreq: 'weekly', priority: '0.7' })),
+      .map((p) => urlEntry(`${SITE_URL}/${escapeXml(encodeURIComponent(p.username))}`, { changefreq: 'weekly', priority: '0.7' })),
   ]
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.join('\n')}\n</urlset>\n`
