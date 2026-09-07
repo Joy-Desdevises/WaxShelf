@@ -211,6 +211,9 @@
     "tryAdjustFilters": "Essaie d'ajuster les filtres ou synchro ta collection Discogs."
   },
   "collectionPage": {
+    "notFoundTitle": "Profil introuvable",
+    "notFoundText": "Ce pseudo n'existe pas ou plus.",
+    "notFoundBack": "Retour à l'accueil",
     "vinylCount_one": "{{count}} vinyle",
     "vinylCount_other": "{{count}} vinyles",
     "wantlistCount_one": "{{count}} envie",

@@ -211,6 +211,9 @@
     "tryAdjustFilters": "Try adjusting the filters or syncing your Discogs collection."
   },
   "collectionPage": {
+    "notFoundTitle": "Profile not found",
+    "notFoundText": "This username doesn't exist.",
+    "notFoundBack": "Back to home",
     "vinylCount_one": "{{count}} record",
     "vinylCount_other": "{{count}} records",
     "wantlistCount_one": "{{count}} want",

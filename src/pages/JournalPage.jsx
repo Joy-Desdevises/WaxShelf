@@ -16,10 +16,11 @@ export default function JournalPage() {
   const isOwner = user && profile?.username === username
   const qc = useQueryClient()
 
-  const { data: profileData } = useQuery({
+  const { data: profileData, isError: profileNotFound } = useQuery({
     queryKey: ['profile', username],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, is_public').eq('username', username).single()
+      const { data, error } = await supabase.from('profiles').select('id, is_public').eq('username', username).single()
+      if (error) throw error
       return data
     },
     enabled: !!username,
@@ -28,7 +29,7 @@ export default function JournalPage() {
   useDocumentMeta({
     title: t('seo.journalTitle', { username }),
     description: t('seo.journalDescription', { username }),
-    noindex: profileData ? !profileData.is_public : false,
+    noindex: profileNotFound || (profileData ? !profileData.is_public : false),
   })
 
   const userId = profileData?.id

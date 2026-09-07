@@ -29,11 +29,11 @@ export default function DashboardPage() {
   const isOwner = user && profile?.username === username
 
   const { data: collection = [], isLoading } = useCollectionByUsername(username)
-  const { data: viewedProfile } = useProfileByUsername(username)
+  const { data: viewedProfile, isError: profileNotFound } = useProfileByUsername(username)
   useDocumentMeta({
     title: t('seo.dashboardTitle', { username }),
     description: t('seo.dashboardDescription', { username }),
-    noindex: viewedProfile ? !viewedProfile.is_public : false,
+    noindex: profileNotFound || (viewedProfile ? !viewedProfile.is_public : false),
   })
   const { data: followCounts } = useFollowCounts(viewedProfile?.id)
   const { data: likesGivenCount } = useMyLikesCount(viewedProfile?.id)

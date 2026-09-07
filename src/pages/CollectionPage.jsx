@@ -46,7 +46,7 @@ export default function CollectionPage() {
 
   const { data: collection = [], isLoading, refetch } = useCollectionByUsername(username)
   const { data: wantlistItems = [], isLoading: wantlistLoading, refetch: refetchWantlist } = useWantlistItems(username)
-  const { data: viewedProfile } = useProfileByUsername(username)
+  const { data: viewedProfile, isLoading: profileLoading, isError: profileNotFound } = useProfileByUsername(username)
   // Toujours public (comme le nombre de posts d'un compte Instagram privé),
   // même quand collection/wantlistItems restent vides pour un visiteur —
   // voir useCollectionCounts.
@@ -57,10 +57,20 @@ export default function CollectionPage() {
   const { handleSync, syncStep, enrichProgress } = useDiscogsSync()
 
   const vinylCount = counts?.vinylCount ?? collection.length
+  const isPublic = viewedProfile?.is_public
   useDocumentMeta({
     title: t('seo.collectionTitle', { username }),
     description: t('seo.collectionDescription', { username, count: vinylCount }),
-    noindex: viewedProfile ? !viewedProfile.is_public : false,
+    noindex: profileNotFound || (viewedProfile ? !isPublic : false),
+    jsonLd: viewedProfile && isPublic ? {
+      '@context': 'https://schema.org',
+      '@type': 'ProfilePage',
+      mainEntity: {
+        '@type': 'Person',
+        name: username,
+        url: `https://waxshelf.fr/${username}`,
+      },
+    } : null,
   })
 
   const [tab, setTab] = useState('collection') // 'collection' | 'wantlist'
@@ -127,6 +137,22 @@ export default function CollectionPage() {
 
   const hasFilters = search || filterGenre || filterDecade || filterCountry
   const activeFilterCount = [filterGenre, filterDecade, filterCountry].filter(Boolean).length
+
+  if (!profileLoading && profileNotFound) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a]">
+        <Header />
+        <main className="mx-auto flex max-w-7xl flex-col items-center px-4 py-24 text-center">
+          <p className="text-5xl">🔍</p>
+          <h1 className="mt-4 text-xl font-bold text-white">{t('collectionPage.notFoundTitle')}</h1>
+          <p className="mt-2 text-[#999]">{t('collectionPage.notFoundText')}</p>
+          <Link to="/" className="mt-6 rounded-lg bg-[#f5a623] px-4 py-2 text-sm font-medium text-black hover:bg-[#fbbf24]">
+            {t('collectionPage.notFoundBack')}
+          </Link>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
