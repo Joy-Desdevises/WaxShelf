@@ -5,6 +5,7 @@ import Header from '../components/layout/Header'
 import { useAuth } from '../hooks/useAuth'
 import { useJournal, useJournalStats } from '../hooks/usePlayLog'
 import { supabase } from '../lib/supabase'
+import useDocumentMeta from '../hooks/useDocumentMeta'
 
 const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3Crect fill='%231a1a1a'/%3E%3C/svg%3E"
 
@@ -18,10 +19,16 @@ export default function JournalPage() {
   const { data: profileData } = useQuery({
     queryKey: ['profile', username],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id').eq('username', username).single()
+      const { data } = await supabase.from('profiles').select('id, is_public').eq('username', username).single()
       return data
     },
     enabled: !!username,
+  })
+
+  useDocumentMeta({
+    title: t('seo.journalTitle', { username }),
+    description: t('seo.journalDescription', { username }),
+    noindex: profileData ? !profileData.is_public : false,
   })
 
   const userId = profileData?.id

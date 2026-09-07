@@ -15,6 +15,7 @@ import { supabase } from '../lib/supabase'
 import { searchDiscogs } from '../lib/discogs'
 import { timeAgo } from '../lib/format'
 import { useLockBodyScroll } from '../hooks/useLockBodyScroll'
+import useDocumentMeta from '../hooks/useDocumentMeta'
 
 // Décennie basée sur l'année de sortie originale de l'album, pas celle du
 // pressage possédé (peut être une réédition tardive) — cf. DashboardPage.
@@ -54,6 +55,13 @@ export default function CollectionPage() {
   const { data: isFollowing } = useIsFollowing(user?.id, viewedProfile?.id)
   const toggleFollow = useToggleFollow()
   const { handleSync, syncStep, enrichProgress } = useDiscogsSync()
+
+  const vinylCount = counts?.vinylCount ?? collection.length
+  useDocumentMeta({
+    title: t('seo.collectionTitle', { username }),
+    description: t('seo.collectionDescription', { username, count: vinylCount }),
+    noindex: viewedProfile ? !viewedProfile.is_public : false,
+  })
 
   const [tab, setTab] = useState('collection') // 'collection' | 'wantlist'
   const [search, setSearch] = useState('')

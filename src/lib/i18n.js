@@ -22,4 +22,12 @@ i18n
     },
   })
 
+// L'attribut lang du <html> est figé dans index.html (nécessairement, vu
+// que la langue n'est connue qu'après ce détecteur côté client) — on le
+// resynchronise ici pour matcher la langue réellement affichée.
+document.documentElement.lang = i18n.language
+i18n.on('languageChanged', (lng) => {
+  document.documentElement.lang = lng
+})
+
 export default i18n

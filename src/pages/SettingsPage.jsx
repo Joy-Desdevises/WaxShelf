@@ -7,11 +7,13 @@ import { supabase } from '../lib/supabase'
 import Header from '../components/layout/Header'
 import Avatar from '../components/layout/Avatar'
 import { AVATAR_PRESETS, presetToAvatarUrl } from '../lib/avatars'
+import useDocumentMeta from '../hooks/useDocumentMeta'
 
 export default function SettingsPage() {
   const { t } = useTranslation()
   const { user, profile, loading, updateProfile, signOut } = useAuth()
   const navigate = useNavigate()
+  useDocumentMeta({ title: t('seo.settingsTitle'), noindex: true })
 
   if (!loading && !user) {
     navigate('/')

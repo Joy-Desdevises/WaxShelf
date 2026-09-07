@@ -379,5 +379,15 @@
   },
   "discogs": {
     "unknownArtist": "Unknown artist"
+  },
+  "seo": {
+    "collectionTitle": "{{username}} · Vinyl collection on WaxShelf",
+    "collectionDescription_one": "{{username}} owns {{count}} record on WaxShelf. Check out their collection and wantlist.",
+    "collectionDescription_other": "{{username}} owns {{count}} records on WaxShelf. Check out their collection and wantlist.",
+    "dashboardTitle": "{{username}}'s stats · WaxShelf",
+    "dashboardDescription": "Stats and activity for {{username}}'s vinyl collection on WaxShelf.",
+    "journalTitle": "{{username}}'s listening journal · WaxShelf",
+    "journalDescription": "{{username}}'s vinyl listening journal on WaxShelf.",
+    "settingsTitle": "Settings · WaxShelf"
   }
 }

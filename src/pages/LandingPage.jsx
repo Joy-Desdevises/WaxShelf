@@ -8,9 +8,14 @@ import Avatar from '../components/layout/Avatar'
 import { useAuth } from '../hooks/useAuth'
 import { useDiscogsSync } from '../hooks/useDiscogsSync'
 import { formatDateTime } from '../lib/format'
+import useDocumentMeta from '../hooks/useDocumentMeta'
 
 export default function LandingPage() {
   const { t } = useTranslation()
+  useDocumentMeta({
+    title: `${t('landingPage.heroTitle1')} ${t('landingPage.heroTitle2')} · WaxShelf`,
+    description: t('landingPage.heroSubtitle'),
+  })
   const { user, profile } = useAuth()
   const { handleSync, syncStep, enrichProgress } = useDiscogsSync()
   const [users, setUsers] = useState([])

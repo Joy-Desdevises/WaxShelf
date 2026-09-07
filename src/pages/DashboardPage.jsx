@@ -20,6 +20,7 @@ import {
 } from '../hooks/useSocial'
 import { useRecentFollowers } from '../hooks/useNotifications'
 import { formatCurrency, timeAgo } from '../lib/format'
+import useDocumentMeta from '../hooks/useDocumentMeta'
 
 export default function DashboardPage() {
   const { t } = useTranslation()
@@ -29,6 +30,11 @@ export default function DashboardPage() {
 
   const { data: collection = [], isLoading } = useCollectionByUsername(username)
   const { data: viewedProfile } = useProfileByUsername(username)
+  useDocumentMeta({
+    title: t('seo.dashboardTitle', { username }),
+    description: t('seo.dashboardDescription', { username }),
+    noindex: viewedProfile ? !viewedProfile.is_public : false,
+  })
   const { data: followCounts } = useFollowCounts(viewedProfile?.id)
   const { data: likesGivenCount } = useMyLikesCount(viewedProfile?.id)
   const { data: likesReceivedCount } = useReceivedLikesCount(viewedProfile?.id)

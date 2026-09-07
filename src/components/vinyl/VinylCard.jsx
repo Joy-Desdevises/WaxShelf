@@ -149,7 +149,7 @@ export default function VinylCard({ vinyl, size = 'lg', onClick, currentUserId }
         <div className="vinyl-card-front bg-[#1a1a1a]">
           <img
             src={vinyl.cover_image || vinyl.thumb_image || PLACEHOLDER}
-            alt=""
+            alt={`${vinyl.artist} — ${vinyl.title}`}
             className="h-full w-full object-cover"
             loading="lazy"
             onError={(e) => { e.currentTarget.src = PLACEHOLDER }}
